@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>医院挂号系统</title>
+    <!-- Fav Icon --><!-- Google Fonts -->
+    <link href="../static/css/css2.css" rel="stylesheet">
+    <link href="../static/css/css21.css" rel="stylesheet">
+    <!-- Stylesheets -->
+    <link href="../static/css/font-awesome-all.css" rel="stylesheet">
+    <link href="../static/css/flaticon.css" rel="stylesheet">
+    <link href="../static/css/owl.css" rel="stylesheet">
+    <link href="../static/css/bootstrap.css" rel="stylesheet">
+    <link href="../static/css/jquery.fancybox.min.css" rel="stylesheet">
+    <link href="../static/css/animate.css" rel="stylesheet">
+    <link href="../static/css/color.css" rel="stylesheet">
+    <link href="../static/css/style.css" rel="stylesheet">
+    <link href="../static/css/responsive.css" rel="stylesheet">
+</head>
+<script src="/js/jquery-3.7.1.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // 获取按钮元素
+        const gerenzhuyeButton = document.getElementById('gerenzhuye');
+
+        // 定义点击事件处理函数
+        function handleButtonClick() {
+            // 获取当前页面的 URL 对象
+            const url = new URL(window.location.href);
+            // 获取 URL 中的 search 参数
+            const searchParams = new URLSearchParams(url.search);
+            // 获取 patientId 参数的值
+            const doctorId = searchParams.get('doctorId');
+            // 如果 patientId 存在
+            if (doctorId) {
+                // 构建跳转的 URL，带上 patientId 参数
+                const redirectUrl = `doctor-profile.html?doctorId=${encodeURIComponent(doctorId)}`;
+                // 跳转到指定页面
+                window.location.href = redirectUrl;
+            }
+        }
+        // 添加点击事件监听器
+        gerenzhuyeButton.addEventListener('click', handleButtonClick);
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // 获取按钮元素
+        const hzxinxiButton = document.getElementById('hzxinxi');
+
+        // 定义点击事件处理函数
+        function handleButtonClick() {
+            // 获取当前页面的 URL 对象
+            const url = new URL(window.location.href);
+            // 获取 URL 中的 search 参数
+            const searchParams = new URLSearchParams(url.search);
+            // 获取 patientId 参数的值
+            const patientId = searchParams.get('patientId');
+            // 如果 patientId 存在
+            if (patientId) {
+                // 构建跳转的 URL，带上 patientId 参数
+                const redirectUrl = `/hospro/patientpr.html?patientId=${encodeURIComponent(patientId)}`;
+                // 跳转到指定页面
+                window.location.href = redirectUrl;
+            }
+        }
+        // 添加点击事件监听器
+        hzxinxiButton.addEventListener('click', handleButtonClick);
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // 获取按钮元素
+        const glygerenzhuyeButton = document.getElementById('glygerenzhuye');
+
+        // 定义点击事件处理函数
+        function handleButtonClick() {
+            // 获取当前页面的 URL 对象
+            const url = new URL(window.location.href);
+            // 获取 URL 中的 search 参数
+            const searchParams = new URLSearchParams(url.search);
+            // 获取 patientId 参数的值
+            const adminId = searchParams.get('adminId');
+            // 如果 patientId 存在
+            if (adminId) {
+                // 构建跳转的 URL，带上 patientId 参数
+                const redirectUrl = `adminProfile.html?adminId=${encodeURIComponent(adminId)}`;
+                // 跳转到指定页面
+                window.location.href = redirectUrl;
+            }
+        }
+        // 添加点击事件监听器
+        glygerenzhuyeButton.addEventListener('click', handleButtonClick);
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // 获取按钮元素
+        const glygerenzhuyeButton = document.getElementById('glygerenzhuye');
+
+        // 定义点击事件处理函数
+        function handleButtonClick() {
+            // 获取当前页面的 URL 对象
+            const url = new URL(window.location.href);
+            // 获取 URL 中的 search 参数
+            const searchParams = new URLSearchParams(url.search);
+            // 获取 patientId 参数的值
+            const adminId = searchParams.get('adminId');
+            // 如果 patientId 存在
+            if (adminId) {
+                // 构建跳转的 URL，带上 patientId 参数
+                const redirectUrl = `adminProfile.html?adminId=${encodeURIComponent(adminId)}`;
+                // 跳转到指定页面
+                window.location.href = redirectUrl;
+            }
+        }
+        // 添加点击事件监听器
+        glygerenzhuyeButton.addEventListener('click', handleButtonClick);
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // 获取按钮元素
+        const jiuzhenButton = document.getElementById('jiuzhen');
+
+        // 定义点击事件处理函数
+        function handleButtonClick() {
+            // 获取当前页面的 URL 对象
+            const url = new URL(window.location.href);
+            // 获取 URL 中的 search 参数
+            const searchParams = new URLSearchParams(url.search);
+            // 获取 patientId 参数的值
+            const doctorId = searchParams.get('doctorId');
+            // 如果 patientId 存在
+            if (doctorId) {
+                // 构建跳转的 URL，带上 patientId 参数
+                const redirectUrl = `appointment-records.html?doctorId=${encodeURIComponent(doctorId)}`;
+                // 跳转到指定页面
+                window.location.href = redirectUrl;
+            }
+        }
+        // 添加点击事件监听器
+        jiuzhenButton.addEventListener('click', handleButtonClick);
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // 获取按钮元素
+        const hzjiuzhenButton = document.getElementById('hzjiuzhen');
+        // 定义点击事件处理函数
+        function handleButtonClick() {
+            // 获取当前页面的 URL 对象
+            const url = new URL(window.location.href);
+            // 获取 URL 中的 search 参数
+            const searchParams = new URLSearchParams(url.search);
+            // 获取 patientId 参数的值
+            const patientId = searchParams.get('patientId');
+            // 如果 patientId 存在
+            if (patientId) {
+                // 构建跳转的 URL，带上 patientId 参数
+                const redirectUrl = `patient.jsp?patientId=${encodeURIComponent(patientId)}`;
+                // 跳转到指定页面
+                window.location.href = redirectUrl;
+            }
+        }
+        // 添加点击事件监听器
+        hzjiuzhenButton.addEventListener('click', handleButtonClick);
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // 获取按钮元素
+        const paibanButton = document.getElementById('paiban');
+        // 定义点击事件处理函数
+        function handleButtonClick() {
+            // 获取当前页面的 URL 对象
+            const url = new URL(window.location.href);
+            // 获取 URL 中的 search 参数
+            const searchParams = new URLSearchParams(url.search);
+            // 获取 patientId 参数的值
+            const doctorId = searchParams.get('doctorId');
+            // 如果 patientId 存在
+            if (doctorId) {
+                // 构建跳转的 URL，带上 patientId 参数
+                const redirectUrl = `/hospro/date.html?doctorId=${encodeURIComponent(doctorId)}`;
+                // 跳转到指定页面
+                window.location.href = redirectUrl;
+            }
+        }
+        // 添加点击事件监听器
+        paibanButton.addEventListener('click', handleButtonClick);
+    });
+</script>
+
+<style>
+    #result {
+        background-color: #f9f9f9;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        max-height: 200px;
+        overflow-y: auto;
+        margin-top: 10px;
+    }
+
+    .suggestion {
+        padding: 10px 10px;
+        margin: 10px 0;
+        background-color: #ffffff;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        color: #125;
+    }
+
+
+    .suggestion:last-child {
+        border-bottom: none;
+    }
+
+    .announcement-card {
+        background: #a3b4de;
+        padding: 100px;
+        border-radius: 50px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+    .announcement-title {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        color: #333;
+    }
+    .announcement-date {
+        font-size: 1rem;
+        color: #888;
+        margin-bottom: 15px;
+    }
+    .announcement-content {
+        font-size: 1rem;
+        color: #555;
+        margin-bottom: 20px;
+    }
+    .btn-primary {
+        background-color: #104985;
+        border-color: #104985;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+    .owl-nav {
+        position: absolute;
+        top: 50%;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        transform: translateY(-50%);
+    }
+    .owl-nav button {
+        background: none;
+        border: none;
+        font-size: 2rem;
+        color: #e1e0e0;
+        cursor: pointer;
+    }
+    .owl-nav button.owl-prev {
+        margin-left: -25px;
+    }
+    .owl-nav button.owl-next {
+        margin-right: -25px;
+    }
+
+    .nav-style-one .owl-prev {
+        box-shadow: 0 0 10px #d5edea;
+    }
+
+    .nav-style-one .owl-next {
+        box-shadow: 0 0 10px #d5edea;
+    }
+
+    .sub-department-container {
+        display: none;
+        margin-top: 20px;
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .sub-department-container ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .sub-department-container li {
+        margin: 10px 0;
+        font-size: 1.2rem;
+        color: #333;
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+    .sub-department-container li:last-child {
+        border-bottom: none;
+    }
+
+    #department-container {
+
+        overflow-x: auto;
+
+        overflow-y: auto;
+        white-space: nowrap;
+
+        scrollbar-width: thin;
+
+        scrollbar-color: #ccc #f1f1f1;
+    }
+
+    .feature-block {
+        display: inline-block;
+        margin-right: 30px;
+        width: 300px;
+        vertical-align: top;
+        position: relative;
+        padding-bottom: 30px;
+        margin-bottom: 30px;
+        overflow-x: auto;
+
+        margin-left: 30px;
+
+    }
+
+    .sub-department {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        display: none;
+    }
+
+    .sub-department table {
+        width: 100%;
+    }
+    .main-menu .navigation>li>ul>li>ul {
+        position: absolute;
+        right: -92%;
+        top: 0;
+        width: 230px;
+        z-index: 100;
+        display: none;
+        padding: 10px 0;
+        background: #061a3a;
+        filter: alpha(opacity=0);
+        -webkit-transition: all .2s ease-out;
+        transition: all .2s ease-out;
+        -moz-transition: all .2s ease-out;
+        -ms-transition: all .2s ease-out;
+        -webkit-box-shadow: 0 4px 4px 1px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 4px 1px rgba(0, 0, 0, 0.2);
+        -webkit-transform: rotateX(-90deg);
+        transform: rotateX(-90deg);
+        -webkit-transform-origin: 0 0;
+        transform-origin: 0 0;
+    }
+
+    .main-menu .navigation>li>ul>li:hover>ul {
+        display: block;
+        -webkit-transform: rotateX(0);
+        transform: rotateX(0);
+        filter: alpha(opacity=100);
+        opacity: 1;
+    }
+</style>
+
+<script>
+    $(function (){
+        // 获取顶部URL中的doctorId参数值
+        var urlParams = new URLSearchParams(window.location.search);
+        var doctorId = urlParams.get('doctorId');
+
+        // 获取顶部URL中的 patientId 参数值
+        var urlParams = new URLSearchParams(window.location.search);
+        var patientId = urlParams.get('patientId');
+
+
+        // 动态设置医嘱管理链接的点击事件
+        $('#docOrderLink').on('click', function(event) {
+            event.preventDefault(); // 阻止默认行为
+            var targetUrl = '/hospro/docOrder.html?doctorId=' + doctorId;
+            window.location.href = targetUrl; // 执行页面跳转
+        });
+        // 动态设置就诊记录查询链接的点击事件
+        $('#patOrderLink').on('click', function(event) {
+            event.preventDefault(); // 阻止默认行为
+            var targetUrl = '/hospro/patOrder.html?patientId=' + patientId;
+            window.location.href = targetUrl; // 执行页面跳转
+        });
+
+        alert("123")
+        // 获取当前 URL
+        const url = new URL(window.location);
+
+        // 从 URL 中获取参数
+        const searchParams = new URLSearchParams(url.search);
+
+        // 获取 jobNum 参数的值
+        const jobNum = searchParams.get('jobNum');
+
+        // 检查 jobNum 参数是否存在，如果存在则弹出提示
+        if (jobNum) {
+            alert(`您的工号是: ${jobNum}`);
+        }
+
+    })
+</script>
+<!-- 监听输入框 -->
+<script type="text/javascript">
+    $(document).ready(function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const typeId = urlParams.get('typeId');
+
+        // 根据typeId显示相应的div
+        if (typeId === '0') {
+            var Obj ='<div class="author"><div class="btn-box"><a href="register-page.html" class="theme-btn-one"><i class="icon-image"></i>注册/登录</a></div> </div>'
+            $("#title-box").append(Obj);
+            $("#title-box2").append(Obj);
+        } else if (typeId === '1') {
+            const doctorId = urlParams.get('doctorId');
+            $.ajax({
+                url: '/doctor/list',
+                type: 'POST',
+                data: { "id": doctorId },
+                dataType: 'json',
+                success: function (data) {
+                    console.log(data);
+                    const Obj = '<div class="author"> <a href="doctorDetails.html?doctorId=' + doctorId + '"><figure class="author-image"><img src="hospro/images/doctor/' + data.avatar + '.jpg" alt=""></figure> <div class="select-box"><select class="wide"> <option url="" data-display="' + data.name + '"></option></select></div></a></div>';
+                    $("#title-box").append(Obj);
+                    $("#title-box2").append(Obj);
+                }
+            });
+        } else if (typeId === '2') {
+            document.getElementById('patient-box').style.display = 'block';
+            const patientId = urlParams.get('patientId');
+            $.ajax({
+                url: '/patients/select',
+                type: 'POST',
+                data: { "id": patientId },
+                dataType: 'json',
+                success: function (data) {
+                    console.log(data);
+                    const Obj ='<div class="author"> <a href="patientDetails.html?patientId=' + patientId + '"><figure class="author-image"><img src="hospro/images/patient/' + data.avatar + '.jpg" alt=""></figure> <div class="select-box"><select class="wide"> <option url="" data-display="' + data.name + '"></option></select></div></a></div>'
+
+                    $("#title-box").append(Obj);
+                    $("#title-box2").append(Obj);
+                }
+            });
+        } else if (typeId === '3') {
+            document.getElementById('admin-box').style.display = 'block';
+            const adminsId = urlParams.get('adminsId');
+            $.ajax({
+                url: '/admins/list-by-id',
+                type: 'POST',
+                data: { "id": adminsId },
+                dataType: 'json',
+                success: function (data) {
+                    console.log(data);
+                    const Obj ='<div class="author"> <a href="adminDetails.html?adminId=' + adminId + '"><figure class="author-image"><img src="hospro/images/admin/' + data.avatar + '.jpg" alt=""></figure> <div class="select-box"><select class="wide"> <option url="" data-display="' + data.name + '"></option></select></div></a></div>'
+
+                    $("#title-box").append(Obj);
+                    $("#title-box2").append(Obj);
+                }
+            });
+        }
+
+        $.ajax({
+            url: "/news/latest",
+            type: "GET",
+            dataType: "json",
+            success: function (data) {
+                var newsList = data;
+                $.each(newsList, function (index, item) {
+                    var Obj = "<div class='col-lg-4 col-md-6 col-sm-12 news-block'><div class='news-block-one wow fadeInUp animated animated' data-wow-delay='300ms' data-wow-duration='1500ms'><div class='inner-box'><figure class='image-box'><img src='images/news/" + item.newsImg + ".jpg' alt=''><a href='newsDetails.html?id=" + item.newsId + "' class='link'><i class='fas fa-link'></i></a><span class='category'>Features</span></figure><div class='lower-content'><h3><a href='newsDetails.html?id=" + item.newsId + "'>" + item.title + "</a></h3><ul class='post-info'><li>" + item.creationTime + "</li></ul><p>" + item.content.substring(0, 50) + "</p><div class='link'><a href='newsDetails.html?id=" + item.newsId + "'><i class='icon-Arrow-Right'></i></a></div><div class='btn-box'><a href='newsDetails.html?id=" + item.newsId + "' class='theme-btn-one'>阅读更多<i class='icon-Arrow-Right'></i></a></div></div></div><div></div>";
+                    $("#news-container").append(Obj);
+                });
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                alert("服务器错误码：" + XMLHttpRequest.status);
+            }
+        })
+
+        $("#inputView").on("input", function (event) {
+            var keyword = $.trim(this.value);
+            // ajax搜索
+            $.ajax({
+                type: "GET",
+                url: "/find?keyword=" + keyword,
+                //datatype: "json", //////
+                success: function (data) {
+                    // 将返回的 JSON 字符串解析为 JavaScript 对象数组
+                    var dataArray = JSON.parse(data);
+
+                    if (keyword === '') {
+                        $("#result").html("<p>关键词不得为空</p>");
+                    } else if (dataArray.length === 0) {
+                        $("#result").html("<p>暂无搜索结果</p>");
+                    } else {
+                        // 清空结果区域
+                        $("#result").empty();
+                        // 循环遍历列表
+                        for (var i = 0; i < dataArray.length; i++) {
+                            var deptname = dataArray[i].departmentName;
+
+                            $("#result").append('<p class="suggestion">' + deptname + "</p>");
+                        }
+                    }
+                },
+                error: function () {
+                    console.log("服务器错误");
+                }
+            });
+        });
+
+        // 监听点击事件
+        $("#result").on("click", ".suggestion", function () {
+            var selectedDeptName = $(this).text();
+            $("#inputView").val(selectedDeptName);
+        });
+        // 轮播图
+        $(".single-item-carousel").owlCarousel({
+            items: 1, // 每次显示一个项目
+            loop: true, // 无限循环
+            margin: 10, // 项目之间的间距
+            nav: true, // 显示导航按钮
+            autoplay: true, // 自动播放
+            autoplayTimeout: 3000, // 自动播放间隔时间
+            autoplayHoverPause: true // 鼠标悬停时暂停自动播放
+        });
+
+
+        $.ajax({
+            url: '/first',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                const $container = $('#department-container');
+                // 在控制台打印数据
+                console.log(data);
+                // 清空原有内容
+                $container.empty();
+                // 遍历数据，生成一级科室HTML
+                $.each(data, function(i, v) {
+                    const departmentHtml = `
+                    <div class="feature-block" data-department="${v.departmentId}">
+                        <div class="feature-block-one">
+                            <div class="inner-box pattern-1 text-center">
+                                <p>预约</p>
+                                <h3>${v.departmentName}</h3>
+                                <div class="link"><a href=""><i class="icon-Arrow-Right"></i></a></div>
+                                <div class="btn-box"><a href="" class="theme-btn-one">立即预约<i class="icon-Arrow-Right"></i></a></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div id="subMenu${v.departmentId}" class="sub-department-container">
+                                <ul></ul>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                    $container.append(departmentHtml);
+                });
+
+                // 为每个一级科室添加鼠标悬停事件监听器
+                $('.feature-block').on('mouseenter', function() {
+                    const $this = $(this);
+                    const departmentId = $this.data('department');
+
+                    // 获取index对应的子菜单
+                    const $subMenu = $('#subMenu' + departmentId);
+
+                    // 如果子菜单已经显示，则不再发送请求
+                    if ($subMenu.css('display') !== 'none') {
+                        return;
+                    }
+                    // 清除原有子菜单内容
+                    $subMenu.find('tbody').empty();
+
+                    // 发送ajax请求获取二级科室数据
+                    $.ajax({
+                        url: '/second',
+                        type: 'GET',
+                        data: { "deptPid": departmentId },
+                        dataType: 'json',
+                        success: function(data) {
+                            // 清空原有子菜单内容
+                            $subMenu.find('ul').empty();
+                            // 遍历数据，生成子菜单内容
+                            $.each(data, function(i, v) {
+                                var liObj = $("<li><a href='http://localhost:8080/hospro/doctor-directory.html?departmentId=" + v.departmentId + "&departmentName=" + v.departmentName+"'>" + v.departmentName + "</li>");
+                                liObj.appendTo($subMenu.find('ul'));
+                            });
+
+                            // 显示二级科室容器
+                            $subMenu.css('display', 'block');
+
+                        }
+                    });
+                });
+
+                // 鼠标离开一级科室时，隐藏二级科室容器
+                $('.feature-block').on('mouseleave', function() {
+                    const $this = $(this);
+                    const departmentId = $this.data('department');
+                    const $subMenu = $('#subMenu' + departmentId);
+                    // 隐藏二级科室容器
+                    $subMenu.css('display', 'none');
+
+                });
+            }
+        });
+
+
+    });
+
+</script>
+
+
+<!-- page wrapper -->
+<body>
+<div class="boxed_wrapper"><!-- preloader -->
+    <div class="preloader"></div><!-- preloader --><!-- main header -->
+
+<!--        &lt;!&ndash; header-lower &ndash;&gt;-->
+
+
+
+
+
+
+
+
+
+
+<!--                                class="icon-bar"></i></div>-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--        &lt;!&ndash;sticky Header&ndash;&gt;-->
+
+
+
+
+
+
+
+
+<!--                            &lt;!&ndash;Keep This Empty / Menu will come through Javascript&ndash;&gt;-->
+
+
+
+
+
+
+
+
+    <!-- main-header end -->
+    <header class="main-header style-three"><!-- header-lower -->
+        <div class="header-lower">
+            <div class="outer-box clearfix">
+                <div class="left-column pull-left">
+                    <div class="menu-area"><!--Mobile Navigation Toggler-->
+                        <div class="mobile-nav-toggler"><i class="icon-bar"></i><i class="icon-bar"></i><i
+                                class="icon-bar"></i></div>
+                        <nav class="main-menu navbar-expand-md navbar-light">
+                            <div class="collapse navbar-collapse show clearfix" id="navbarSupportedContent">
+                                <ul class="navigation clearfix">
+                                    <li class="current dropdown"><a href="">首页</a>
+                                    </li>
+                                    <li class="dropdown"><a href="">医生</a>
+                                        <ul>
+                                            <li class="dropdown"><a href="">个人中心</a>
+                                                <ul>
+                                                    <li><a href="login.html?typeId=1">注册/登录</a></li>
+                                                    <li><a href="change-password.html?typeId=1">修改密码</a></li>
+                                                    <li><a id="gerenzhuye">个人信息</a></li>
+                                                    <li><a id="paiban">排班表</a></li>
+                                                </ul>
+                                            </li>
+                                            <li class="dropdown"><a id="jiuzhen">患者就诊</a></li>
+
+                                            <li class="dropdown"><a id="docOrderLink" href="#">医嘱管理</a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="dropdown"><a href="">患者</a>
+                                        <ul>
+                                            <li class="dropdown"><a href="">个人中心</a>
+                                                <ul>
+                                                    <li><a href="login.html?typeId=2">注册/登录</a></li>
+                                                    <li><a href="change-password.html?typeId=2">修改密码</a></li>
+                                                    <li><a id="hzxinxi">个人信息</a></li>
+                                                </ul>
+                                            </li>
+                                            <li class="dropdown"><a href="">预约挂号</a></li>
+                                            <li class="dropdown"><a id="hzjiuzhen">就诊记录查询</a></li>
+                                            <li class="dropdown"><a id="patOrderLink" href="">医嘱</a></li>
+                                            <li class="dropdown"><a href="">账户充值</a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="dropdown"><a href="">管理员</a>
+                                        <ul>
+                                            <li class="dropdown"><a href="">个人中心</a>
+                                                <ul>
+                                                    <li><a href="login.html?typeId=3">注册/登录</a></li>
+                                                    <li><a href="change-password.html?typeId=3">修改密码</a></li>
+                                                    <li><a id="glygerenzhuye">个人信息</a></li>
+                                                </ul>
+                                            </li>
+                                            <li class="dropdown"><a href="">用户管理</a></li>
+                                            <li class="dropdown"><a href="/departments/list">科室管理</a></li>
+                                            <li class="dropdown"><a href="/hospro/doctors.jsp">医生管理</a></li>
+                                            <li class="dropdown"><a href="/hospro/my-patients.jsp">病患管理</a></li>
+                                            <li class="dropdown"><a href="">排班管理</a></li>
+                                            <li class="dropdown"><a href="/hospro/newsAdmins.html">新闻管理</a></li>
+                                            <li class="dropdown"><a href="/hospro/sum.html">统计报表</a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="dropdown"><a href="news.html">新闻中心</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+                <div class="right-column pull-right">
+                    <div class="author-box" id="title-box">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="sticky-header">
+            <div class="auto-container">
+                <div class="outer-box">
+                    <div class="logo-box">
+                        <figure class="logo"><a href="index.html"><img src="../static/picture/small-logo.png" alt=""></a>
+                        </figure>
+                    </div>
+                    <div class="menu-area">
+                        <nav class="main-menu clearfix"><!--Keep This Empty / Menu will come through Javascript--></nav>
+                    </div>
+                    <div class="author-box" id="title-box2">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu  -->
+    <div class="mobile-menu">
+        <div class="menu-backdrop"></div>
+        <div class="close-btn"><i class="fas fa-times"></i></div>
+
+        <nav class="menu-box">
+            <div class="nav-logo"><a href=""><img src="../static/picture/logo-2.png" alt="" title=""></a></div>
+            <div class="menu-outer">
+                <!--Here Menu Will Come Automatically Via Javascript / Same Menu as in Header--></div>
+            <div class="contact-info">
+                <h4>联系信息</h4>
+                <ul>
+                    <li>海淀区，北京市，中国</li>
+                    <li><a href="">+88 01682648101</a></li>
+                    <li><a href="mailto:info@example.com">info@example.com</a></li>
+                </ul>
+            </div>
+            <div class="social-links">
+                <ul class="clearfix">
+                    <li><a href=""><span class="fab fa-twitter"></span></a></li>
+                    <li><a href=""><span class="fab fa-facebook-square"></span></a></li>
+                    <li><a href=""><span class="fab fa-pinterest-p"></span></a></li>
+                    <li><a href=""><span class="fab fa-instagram"></span></a></li>
+                    <li><a href=""><span class="fab fa-youtube"></span></a></li>
+                </ul>
+            </div>
+        </nav>
+    </div><!-- End Mobile Menu -->
+
+
+    <!-- banner-section -->
+    <section class="banner-section bg-color-1">
+        <div class="pattern-layer" style="background-image: url(../static/picture/shape-2.png);"></div>
+        <div class="auto-container">
+            <div class="row align-items-center clearfix">
+                <div class="col-lg-6 col-md-12 col-sm-12 content-column">
+                    <div class="content-box">
+                        <h1>医院挂号系统</h1>
+                        <p>为您提供最专业的医疗服务，从专业的医生到全面的医疗服务，让您享受到最好的医疗服务。</p>
+                        <div class="form-inner">
+                            <form action="" method="post">
+                                <div class="form-group">
+                                    <input id="inputView" type="text" name="name" placeholder="请输入科室名称：" required="">
+                                    <button type="submit"><i class="icon-Arrow-Right"></i></button>
+                                    <div id="result"></div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-12 col-sm-12 image-column">
+                    <div class="image-box js-tilt">
+                        <figure class="image clearfix wow fadeInRight animated animated" data-wow-delay="00ms"
+                                data-wow-duration="1500ms"><img src="../static/picture/banner-image-1.png" alt=""></figure>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- banner-section end -->
+
+
+    <!-- announcement-section -->
+    <section class="clients-section bg-color-2">
+        <div class="pattern-layer">
+            <div class="pattern-1" style="background-image: url(../static/picture/shape-22.png);"></div>
+            <div class="pattern-2" style="background-image: url(../static/picture/shape-23.png);"></div>
+        </div>
+        <div class="auto-container">
+            <div class="row clearfix">
+                <div class="col-xl-12 col-lg-12 col-md-12 inner-column">
+                    <div class="testimonial-inner">
+                        <div class="pattern" style="background-image: url(../static/picture/shape-21.png);"></div>
+                        <div class="sec-title">
+                            <p>医院挂号系统</p>
+                            <h2>关注我们的公告</h2>
+                        </div>
+                        <div class="single-item-carousel owl-carousel owl-theme owl-dots-none nav-style-one" id="announcement">
+                            <div class="item">
+                                <div class="announcement-card">
+                                    <h3 class="announcement-title">健康体检预约开放通知</h3>
+                                    <p class="announcement-date">2024-07-16</p>
+                                    <p class="announcement-content">各位患者：为提升服务质量，现开放健康体检预约通道。我们为您提供全面的体检项目选择，并配备专业医护团队，确保您的健康检查及时准确。请尽早安排您的体检时间，预防胜于治疗。期待为您的健康保驾护航。————医院管理部</p>
+                                    <button class="btn btn-primary">查看详情</button>
+                                </div>
+                            </div>
+                            <div class="item">
+                                <div class="announcement-card">
+                                    <h3 class="announcement-title">疫苗接种重要通知</h3>
+                                    <p class="announcement-date">2024-07-06</p>
+                                    <p class="announcement-content">亲爱的患者，请注意，我们提供最新的COVID-19疫苗接种服务。为响应防疫号召，保护您和他人的健康，我们设立了多个接种点，并提供方便快捷的预约服务。请及时预约，共同为社区健康贡献力量。————医院疫苗接种组</p>
+                                    <button class="btn btn-primary">查看详情</button>
+                                </div>
+                            </div>
+                            <div class="item">
+                                <div class="announcement-card">
+                                    <h3 class="announcement-title">门诊服务时间调整公告</h3>
+                                    <p class="announcement-date">2024-07-14</p>
+                                    <p class="announcement-content">尊敬的患者：为了更好地安排门诊服务，我们将调整部分科室的就诊时间。调整后的时间将更贴合患者的需求，同时确保医疗资源的有效利用。请关注最新公告，感谢您的理解与支持。————医院门诊管理办公室</p>
+                                    <button class="btn btn-primary" url="">查看详情</button>
+                                </div>
+                            </div>
+                            <div class="item">
+                                <div class="announcement-card">
+                                    <h3 class="announcement-title">医院全面开放在线挂号服务</h3>
+                                    <p class="announcement-date">2024-06-28</p>
+                                    <p class="announcement-content">为了方便患者就医，本院现已全面开放在线挂号服务。您可以随时随地通过网上平台或手机APP预约专家门诊，节省您宝贵的时间。我们致力于提供更便捷、高效的医疗服务，期待为您的健康保驾护航。————医院信息技术部</p>
+                                    <button class="btn btn-primary">查看详情</button>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+    </section>
+    <!-- announcement-section end -->
+
+
+    <!-- department-section -->
+    <section class="feature-section centred bg-color-3">
+        <div class="pattern-layer">
+            <div class="pattern-1" style="background-image: url(../static/picture/shape-13.png);"></div>
+            <div class="pattern-2" style="background-image: url(../static/picture/shape-14.png);"></div>
+        </div>
+
+        <div class="auto-container">
+            <div class="sec-title centred">
+                <p>科室</p>
+                <h2>选择科室预约</h2>
+            </div>
+            <div class="sec-title" id="department-container">
+                <!-- 一级科室将在这里动态加载 -->
+            </div>
+
+        </div>
+    </section>
+
+    <!-- department-section end -->
+
+
+    <!-- process-section -->
+    <section class="process-section bg-color-2">
+        <div class="pattern-layer">
+            <div class="pattern-1" style="background-image: url(../static/picture/shape-17.png);"></div>
+            <div class="pattern-2" style="background-image: url(../static/picture/shape-18.png);"></div>
+            <div class="pattern-3" style="background-image: url(../static/picture/shape-19.png);"></div>
+            <div class="pattern-4" style="background-image: url(../static/picture/shape-20.png);"></div>
+        </div>
+        <div class="auto-container">
+            <div class="sec-title light centred">
+                <p>流程</p>
+                <h2>预约流程</h2>
+            </div>
+            <div class="inner-content">
+                <div class="row clearfix">
+                    <div class="col-lg-4 col-md-6 col-sm-12 processing-block">
+                        <div class="processing-block-one">
+                            <div class="inner-box">
+                                <figure class="icon-box">
+                                    <img src="../static/picture/icon-5.png" alt="">
+                                    <span>01</span>
+                                </figure>
+                                <h3>登录您的患者账号</h3>
+                                <p>打开医院挂号系统，输入您的用户名和密码登录您的患者账号。
+                                    登录后，您可以查看您的预约记录、就诊记录、账户信息等。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-12 processing-block">
+                        <div class="processing-block-one">
+                            <div class="inner-box">
+                                <figure class="icon-box">
+                                    <img src="../static/picture/icon-6.png" alt="">
+                                    <span>02</span>
+                                </figure>
+                                <h3>搜索科室并选择医生</h3>
+                                <p>在首页找到科室搜索或选择框，输入或选择您想要就诊的科室名称。
+                                    浏览显示的医生列表，查看他们的专业背景和可预约的时间。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-12 processing-block">
+                        <div class="processing-block-one">
+                            <div class="inner-box">
+                                <figure class="icon-box">
+                                    <img src="../static/picture/icon-7.png" alt="">
+                                    <span>03</span>
+                                </figure>
+                                <h3>进入预约界面，完成预约</h3>
+                                <p>选择您希望预约的医生。
+                                    在预约界面选择适合您的日期和时间，确认预约信息并完成预约。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- process-section end -->
+
+
+    <!-- news-section -->
+    <section class="news-section">
+        <div class="auto-container">
+            <div class="sec-title centred">
+                <p>新闻资讯</p>
+                <h2>医院挂号系统资讯</h2>
+            </div>
+            <div class="row clearfix" id="news-container">
+
+            </div>
+        </div>
+    </section>
+    <!-- news-section end -->
+
+
+    <!-- agent-section -->
+    <section class="agent-section">
+        <div class="auto-container">
+            <div class="inner-container bg-color-2">
+                <div class="row clearfix">
+                    <div class="col-lg-6 col-md-12 col-sm-12 left-column">
+                        <div class="content_block_3">
+                            <div class="content-box"><h3>紧急联系</h3>
+                                <div class="support-box">
+                                    <div class="icon-box"><i class="fas fa-phone"></i></div>
+                                    <span>电话</span>
+                                    <h3><a href="">+(111) 65_458_856</a></h3></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-12 col-sm-12 right-column">
+                        <div class="content_block_4">
+                            <div class="content-box"><h3>使用邮箱订阅消息提醒</h3>
+                                <form action="" method="post" class="subscribe-form">
+                                    <div class="form-group"><input type="email" name="email" placeholder="你的邮箱"
+                                                                   required="">
+                                        <button type="submit" class="theme-btn-one">现在订阅<i
+                                                class="icon-Arrow-Right"></i></button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- agent-section -->
+
+
+    <!-- main-footer -->
+    <footer class="main-footer">
+        <div class="footer-top">
+            <div class="pattern-layer">
+                <div class="pattern-1" style="background-image: url(../static/picture/shape-30.png);"></div>
+                <div class="pattern-2" style="background-image: url(../static/picture/shape-31.png);"></div>
+            </div>
+            <div class="auto-container">
+                <div class="widget-section">
+                    <div class="row clearfix">
+                        <div class="col-lg-4 col-md-6 col-sm-12 footer-column">
+                            <div class="footer-widget logo-widget">
+                                <figure class="footer-logo"><a href=""><img src="../static/picture/footer-logo.png" alt=""></a>
+                                </figure>
+                                <div class="text"><p>
+                                    本医院是一家集医疗服务、医疗器械、医疗设备、医疗诊断、医疗美容、医疗保健、医疗康复、医疗咨询、医疗教育、医疗体检、医疗健康管理、医疗康复等为一体的综合性医疗机构。</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-sm-12 footer-column">
+                            <div class="footer-widget links-widget">
+                                <div class="widget-title"><h3>Useful Links</h3></div>
+                                <div class="widget-content">
+                                    <ul class="links clearfix">
+                                        <li><a href="">专家团队</a></li>
+                                        <li><a href="">医院</a></li>
+                                        <li><a href="">科室</a></li>
+                                        <li><a href="">加入我们</a></li>
+                                        <li><a href="">联系我们</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-sm-12 footer-column">
+                            <div class="footer-widget contact-widget">
+                                <div class="widget-title"><h3>Contacts</h3></div>
+                                <div class="widget-content">
+                                    <ul class="info-list clearfix">
+                                        <li><i class="fas fa-map-marker-alt"></i>北京市海淀区学院路30号</li>
+                                        <li><i class="fas fa-microphone"></i><a href="">+2(305) 587-3407</a></li>
+                                        <li><i class="fas fa-envelope"></i><a href="mailto:info@example.com">info@example.com</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="auto-container">
+                <div class="inner-box clearfix">
+                    <div class="copyright pull-left"><p><a href="/">Docpro</a>&copy;2020 All Right Reserved</p></div>
+                    <ul class="footer-nav pull-right clearfix">
+                        <li><a href="">服务条款</a></li>
+                        <li><a href="">隐私政策</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer><!-- main-footer end --><!--Scroll to top-->
+    <button class="scroll-top scroll-to-target" data-target="html"><span class="fa fa-arrow-up"></span></button>
+</div><!-- jequery plugins -->
+<script src="../static/js/jquery.js"></script>
+<script src="../static/js/popper.min.js"></script>
+<script src="../static/js/bootstrap.min.js"></script>
+<script src="../static/js/owl.js"></script>
+<script src="../static/js/wow.js"></script>
+<script src="../static/js/validation.js"></script>
+<script src="../static/js/jquery.fancybox.js"></script>
+<script src="../static/js/appear.js"></script>
+<script src="../static/js/scrollbar.js"></script>
+<script src="../static/js/tilt.jquery.js"></script>
+<script src="../static/js/jquery.nice-select.min.js"></script><!-- main-js -->
+<script src="../static/js/script.js"></script>
+</body><!-- End of .page_wrapper --></html>

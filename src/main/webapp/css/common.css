@@ -1,0 +1,280 @@
+/* 在common.css文件中 */
+.dropdown {
+    display: none;
+    border: 1px solid #317EF3;
+    background-color: white;
+    position: absolute;
+    width: 350px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.dropdown li {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dropdown li:hover {
+    background-color: darkgrey;
+}
+
+
+/*------------------------公共样式表----------------------------*/
+* {
+    margin: 0px;
+    padding: 0px;
+    border: 0px;
+}
+a {
+    text-decoration: none;
+}
+.center-all {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.center-align {
+    display: flex;
+    align-items: center;
+}
+.center-justify {
+    display: flex;
+    justify-content: center;
+}
+.center-spacearound {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+/*------------------------本项目公共样式----------------------------*/
+#container {
+    width: 800px;
+    height: 70px;
+    margin: 0 auto;
+    padding-top: 30px;
+    box-sizing: border-box;
+    /*background-color: yellow;*/
+}
+
+/* 搜索框样式 */
+#container .sea-container {
+    width: 0px;
+    height: 30px;
+    /*background-color: green;*/
+    margin: 100px auto;
+    border: 1px solid #317EF3;
+}
+#container .sea-container .blue-input {
+    float: left;
+    width: 350px;
+    height: 30px;
+    padding: 0 10px;
+    box-sizing: border-box;
+    border: 1px solid #317EF3; /* 添加边框 */
+}
+#container .sea-container .blue-button {
+    width: 100px;
+    height: 30px;
+    background-color: #317EF3;
+    color: white;
+    font-size: 15px;
+    border: 1px solid #317EF3; /* 添加边框 */
+}
+
+/* 搜索下拉框 */
+#container .sea-container ul#drop {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+#container .sea-container ul#drop li {
+    margin: 0;
+    padding: 10px;
+}
+#container .sea-container ul#drop li:hover {
+    background-color: darkgrey;
+    width: 200px;
+}
+#container .sea-container p#selectedId {
+    display: inline-block;
+}
+
+
+
+
+
+
+
+
+
+/*!*------------------------公共样式表----------------------------*!*/
+/** {*/
+/*    margin: 0px;*/
+/*    padding: 0px;*/
+/*    border: 0px;*/
+/*}*/
+/*a {*/
+/*    text-decoration: none;*/
+/*}*/
+/*.center-all {*/
+/*    display: flex;*/
+/*    justify-content: center;*/
+/*    align-items: center;*/
+/*}*/
+/*.center-align {*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*}*/
+/*.center-justify {*/
+/*    display: flex;*/
+/*    justify-content: center;*/
+/*}*/
+/*.center-spacearound {*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*    justify-content: space-around;*/
+/*}*/
+
+/*!*------------------------本项目公共样式----------------------------*!*/
+/*#container {*/
+/*    width: 800px;*/
+/*    height: 400px;*/
+/*    margin: 0 auto;*/
+/*    padding-top: 30px;*/
+/*    box-sizing: border-box;*/
+/*    !*background-color: yellow;*!*/
+/*}*/
+
+/* 搜索框样式*/
+/*#container .sea-container {*/
+/*    width: 450px;*/
+/*    height: 30px;*/
+/*    background-color: green;*/
+/*    margin: 100px auto;*/
+/*    border: 1px solid #317EF3;*/
+/*}*/
+/*#container .sea-container .blue-input {*/
+/*    float: left;*/
+/*    width: 350px;*/
+/*    height: 30px;*/
+/*    padding: 0 10px;*/
+/*    box-sizing: border-box;*/
+/*}*/
+/*#container .sea-container .blue-button {*/
+/*    width: 100px;*/
+/*    height: 30px;*/
+/*    background-color: #317EF3;*/
+/*    color: white;*/
+/*    font-size: 15px;*/
+/*}*/
+
+/*!* 搜索下拉框 *!*/
+/*#container .sea-container ul#drop {*/
+/*    list-style: none;*/
+/*    margin: 0;*/
+/*    padding: 0;*/
+/*}*/
+/*#container .sea-container ul#drop li {*/
+/*    margin: 0;*/
+/*    padding: 10px;*/
+/*}*/
+/*#container .sea-container ul#drop li:hover {*/
+/*    background-color: darkgrey;*/
+/*    width: 200px;*/
+/*}*/
+/*#container .sea-container p#selectedId {*/
+/*    display: inline-block;*/
+/*}*/
+
+
+
+
+
+
+
+
+
+
+
+/*!*------------------------公共样式表----------------------------*!*/
+/** {*/
+/*    margin: 0px;*/
+/*    padding: 0px;*/
+/*    border: 0px;*/
+/*}*/
+/*a {*/
+/*    text-decoration: none;*/
+/*}*/
+/*.center-all {*/
+/*    display: flex;*/
+/*    justify-content: center;*/
+/*    align-items: center;*/
+/*}*/
+/*.center-align {*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*}*/
+/*.center-justify {*/
+/*    display: flex;*/
+/*    justify-content: center;*/
+/*}*/
+/*.center-spacearound {*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*    justify-content: space-around;*/
+/*}*/
+
+/*!*------------------------本项目公共样式----------------------------*!*/
+/*#container {*/
+/*    width: 800px;*/
+/*    height: 400px;*/
+/*    margin: 0 auto;*/
+/*    padding-top: 30px;*/
+/*    box-sizing: border-box;*/
+/*    !*background-color: yellow;*!*/
+/*}*/
+
+/*!*搜索栏*!*/
+/*.sea-container {*/
+/*    width: 450px;*/
+/*    height: 30px;*/
+/*    background-color: green;*/
+/*    margin: 100px auto;*/
+/*    border: 1px solid #317EF3;*/
+/*}*/
+/*.blue-input {*/
+/*    float: left;*/
+/*    width: 350px;*/
+/*    height: 30px;*/
+/*    padding: 0 10px;*/
+/*    box-sizing: border-box;*/
+/*}*/
+/*.blue-button {*/
+/*    width: 100px;*/
+/*    height: 30px;*/
+/*    background-color: #317EF3;*/
+/*    color: white;*/
+/*    font-size: 15px;*/
+/*}*/
+
+/*!* 搜索下拉框*!*/
+/*ul#drop {*/
+/*    list-style: none;*/
+/*    margin: 0;*/
+/*    padding: 0;*/
+/*}*/
+/*ul#drop li {*/
+/*    margin: 0;*/
+/*    padding: 10px;*/
+/*}*/
+
+/*ul#drop li:hover {*/
+/*    background-color: darkgrey;*/
+/*    width:200px;*/
+/*}*/
+
+/*p#selectedId {*/
+/*    display: inline-block;*/
+/*}*/

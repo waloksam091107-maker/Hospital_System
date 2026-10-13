@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ustb.hospital.mapper.AdminsMapper">
+
+    <resultMap id="adminMap" type="com.ustb.hospital.entity.Admins">
+        <id column="admin_id" property="adminId"></id>
+        <result column="username" property="username"></result>
+        <result column="password" property="password"></result>
+        <result column="name" property="name"></result>
+        <result column="avatar" property="avatar"></result>
+        <result column="phone" property="phone"></result>
+        <result column="email" property="email"></result>
+
+
+    </resultMap>
+
+
+    <update id="updatePassword">
+        update admins
+        set
+            password=#{1}
+        where
+            username=#{0}
+    </update>
+
+
+
+    <insert id="save">
+        insert into admins(admin_id,username,password,name,avatar,phone,email) values(#{adminId},#{username},#{password},#{name},#{avatar},#{phone},#{email})
+    </insert>
+
+    <select id="selectByUsername" resultMap="adminMap">
+        select * from admins where username =#{username}
+    </select>
+
+    <select id="getMaxId" resultType="int">
+        select max(admin_id) from admins
+    </select>
+    <select id="selectAll" resultMap="adminMap">
+        SELECT
+        admin_id,
+        username,
+        password,
+        name,
+        avatar,
+        phone,
+        email
+        FROM
+        admins
+        WHERE 1=1
+        <if test="username!=null and username!=''">
+            AND username = #{username}
+        </if>
+        <if test = "name!=null and name!=''">
+            AND name = #{name}
+        </if>
+        <if test = "phone!=null and phone!=''">
+            AND phone = #{phone}
+        </if>
+
+    </select>
+    <select id="selectById" resultMap="adminMap">
+        select * from admins where admin_id=#{adminId}
+    </select>
+    <update id="updateById" parameterType="com.ustb.hospital.entity.Admins">
+        UPDATE admins
+        SET username = #{username}, phone = #{phone},email = #{email}
+        WHERE admin_id = #{adminId}
+    </update>
+    <update id="updateAvatar"  parameterType="map">
+        UPDATE admins
+        SET avatar = #{avatar}
+        WHERE admin_id = #{adminId} </update>
+
+</mapper>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ustb.hospital.mapper.OrdersMapper">
+
+
+    <resultMap id="OrderMap" type="com.ustb.hospital.entity.Orders">
+        <id column="order_id" property="orderId"></id>
+        <result column="doctor_id" property="doctorId"></result>
+        <result column="doctor_name" property="doctorName"></result>
+        <result column="patient_id" property="patientId"></result>
+        <result column="patient_name" property="patientName"></result>
+        <result column="order_type" property="orderType"></result>
+        <result column="order_details" property="orderDetails"></result>
+        <result column="status" property="status"></result>
+    </resultMap>
+
+    <insert id="save">
+        insert into orders(order_id,doctor_id,doctor_name,patient_id,patient_name,order_type,order_details,status) values(#{orderId},#{doctorId},#{doctorName},#{patientId},#{patientName},#{orderType},#{orderDetails},#{status})
+    </insert>
+
+    <select id="getMaxOrderId" resultType="int">
+        select max(order_id) from orders
+    </select>
+
+    <select id="findByDocId" resultMap="OrderMap">
+        select * from orders where doctor_id=#{doctorId}
+    </select>
+
+
+
+
+    <select id="findByPatId" resultMap="OrderMap">
+        select * from orders where patient_id=#{patientId}
+    </select>
+
+    <update id="updateOrderDetails">
+        update orders
+        set
+        order_type=#{orderType},
+        order_details=#{orderDetails}
+        where
+            order_id=#{orderId}
+    </update>
+
+    <update id="updateOrderStatus">
+        update orders
+        set
+            status=#{paidStatus}
+        where
+            order_id=#{orderId}
+    </update>
+
+    <delete id="delById">
+        delete from orders where order_id = #{orderId}
+    </delete>
+
+    <select id="selectByDoctorId" resultMap="OrderMap">
+        SELECT order_id, doctor_id, doctor_name, patient_id, patient_name, order_type, order_details, status
+        FROM orders
+        WHERE doctor_id = #{doctorId}
+    </select>
+
+
+
+
+
+
+
+</mapper>

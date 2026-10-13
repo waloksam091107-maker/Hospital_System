@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ustb.hospital.mapper.DatesMapper">
+    <resultMap id="dateMap" type="com.ustb.hospital.entity.Dates">
+        <id column="date_id" property="dateId"/>
+        <result column="date" property="Date"/>
+        <result column="doctor_id" property="doctorId"/>
+        <result column="doctor_name" property="doctorName"/>
+        <result column="shang" property="shang"/>
+        <result column="xia" property="xia"/>
+        <result column="wan" property="wan"/>
+    </resultMap>
+
+    <select id="selectByDoctorId" resultMap="dateMap">
+        SELECT date_id, doctor_id, doctor_name, date, shang, xia, wan
+        FROM dates
+        WHERE doctor_id = #{doctorId}
+    </select>
+
+
+    <select id="findByDoctorAndDate" resultMap="dateMap">
+        SELECT date_id, doctor_id, doctor_name, date, shang, xia, wan
+        FROM dates
+        WHERE doctor_id = #{doctorId}
+          AND date = #{date}
+    </select>
+
+
+    <select id="selectAll" resultMap="dateMap">
+        SELECT date_id, doctor_id, doctor_name, date, shang, xia, wan
+        FROM dates
+    </select>
+    <select id="selectById" resultMap="dateMap">
+        select * from dates where date_id = #{dateId}
+    </select>
+    <update id="updateDate">
+        UPDATE dates
+        SET date=#{Date},
+            shang=#{shang},
+            xia=#{xia},
+            wan=#{wan}
+        WHERE date_id = #{dateId}
+    </update>
+    <delete id="deleteDateById" parameterType="int">
+        DELETE FROM dates WHERE date_id = #{dateId}
+    </delete>
+    <insert id="insertDate">
+        INSERT INTO `hospt`.`dates` (`doctor_id`, `doctor_name`, `date`, `shang`, `xia`, `wan`)
+        VALUES (#{doctorId}, #{doctorName}, #{Date}, #{shang}, #{xia}, #{wan})
+    </insert>
+    <update id="reserveSlot">
+        UPDATE dates
+        <set>
+            <choose>
+                <when test="slot == 'AM'">shang = '0'</when>
+                <when test="slot == 'PM'">xia = '0'</when>
+                <when test="slot == 'EVENING'">wan = '0'</when>
+            </choose>
+        </set>
+        WHERE doctor_id = #{doctorId}
+          AND date = #{date}
+          AND <choose>
+                <when test="slot == 'AM'">shang = '1'</when>
+                <when test="slot == 'PM'">xia = '1'</when>
+                <when test="slot == 'EVENING'">wan = '1'</when>
+                <otherwise>1 = 0</otherwise>
+              </choose>
+    </update>
+    <update id="releaseSlot">
+        UPDATE dates
+        <set>
+            <choose>
+                <when test="slot == 'AM'">shang = '1'</when>
+                <when test="slot == 'PM'">xia = '1'</when>
+                <when test="slot == 'EVENING'">wan = '1'</when>
+            </choose>
+        </set>
+        WHERE doctor_id = #{doctorId}
+          AND date = #{date}
+          AND <choose>
+                <when test="slot == 'AM'">shang = '0'</when>
+                <when test="slot == 'PM'">xia = '0'</when>
+                <when test="slot == 'EVENING'">wan = '0'</when>
+                <otherwise>1 = 0</otherwise>
+              </choose>
+    </update>
+
+</mapper>

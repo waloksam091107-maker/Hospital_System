@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>医生预约记录</title>
+  <link href="../hospro/static/css/bootstrap.css" rel="stylesheet">
+  <link href="../hospro/static/css/style.css" rel="stylesheet">
+  <link href="../hospro/static/css/responsive.css" rel="stylesheet">
+  <script src="../hospro/static/js/jquery.js"></script>
+  <style>
+    body { background: #eefafa; color: #0d2b53; }
+    .doctor-header { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 18px 0; }
+    .doctor-header a { color: #0d2b53; font-weight: 600; text-decoration: none; }
+    .doctor-header a:hover { color: #3bc8bc; }
+    .page-banner { background: #4b448f; color: #fff; padding: 44px 0; }
+    .page-banner h1 { font-size: 34px; font-weight: 700; margin: 0; }
+    .appointment-card { background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(13, 43, 83, .08); margin: 42px 0; padding: 28px; }
+    .appointment-card h2 { color: #0d2b53; font-size: 25px; margin: 0 0 22px; }
+    .status { border-radius: 16px; display: inline-block; font-size: 13px; font-weight: 600; padding: 5px 11px; }
+    .status-booked { background: #fff4d8; color: #986f00; }
+    .status-completed { background: #def7ec; color: #087a47; }
+    .status-cancelled { background: #fee2e2; color: #b42318; }
+    .empty-row, .error-message { color: #667085; padding: 24px; text-align: center; }
+    .error-message { color: #b42318; }
+    .complete-button { background: #3bc8bc; border: 0; border-radius: 5px; color: #fff; cursor: pointer; font-weight: 600; padding: 8px 13px; }
+    .complete-button:hover { background: #27a99f; }
+    .complete-button:disabled { background: #b8c3c8; cursor: not-allowed; }
+    #pagination { margin: 20px 0 0; }
+    #pagination button { background: #fff; border: 1px solid #d0d5dd; border-radius: 4px; color: #344054; margin-right: 6px; padding: 6px 11px; }
+    #pagination button.active { background: #4b448f; border-color: #4b448f; color: #fff; }
+  </style>
+</head>
+<body>
+  <header class="doctor-header">
+    <div class="container d-flex justify-content-between align-items-center">
+      <strong>医院预约挂号管理系统 · 医生中心</strong>
+      <nav><a href="date.html">排班表</a>　<a href="appointments.html">预约记录</a></nav>
+    </div>
+  </header>
+  <section class="page-banner"><div class="container"><h1>预约记录</h1></div></section>
+  <main class="container">
+    <section class="appointment-card">
+      <h2>我的预约</h2>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead><tr><th>编号</th><th>患者</th><th>联系电话</th><th>就诊日期</th><th>就诊时段</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="appointmentRows"><tr><td class="empty-row" colspan="7">正在加载预约记录…</td></tr></tbody>
+        </table>
+      </div>
+      <div id="pagination" aria-label="预约记录分页"></div>
+    </section>
+  </main>
+  <script>
+    const appContext = window.location.pathname.split('/doctor-schedule/')[0];
+    function appUrl(path) { return appContext + path; }
+    function escapeHtml(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, function(character) {
+        return {'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[character];
+      });
+    }
+    function statusText(status) {
+      return { booked: '已预约', completed: '已完成接诊', cancelled: '已取消' }[status] || status;
+    }
+    function renderAppointments(page) {
+      const rows = $('#appointmentRows').empty();
+      const appointments = page.list || [];
+      if (!appointments.length) {
+        rows.append('<tr><td class="empty-row" colspan="7">当前没有预约记录。</td></tr>');
+      } else {
+        appointments.forEach(function(appointment) {
+          const patient = appointment.patients || {};
+          const status = appointment.status || '';
+          const action = status === 'booked'
+            ? '<button type="button" class="complete-button" data-appointment-id="' + appointment.appointmentId + '">完成接诊</button>'
+            : '<button type="button" class="complete-button" disabled>不可操作</button>';
+          rows.append('<tr><td>' + escapeHtml(appointment.appointmentId) + '</td><td>' + escapeHtml(patient.name || '未命名患者') + '</td><td>' + escapeHtml(patient.phone || '-') + '</td><td>' + escapeHtml(appointment.appointmentDate) + '</td><td>' + escapeHtml(appointment.appointmentTime) + '</td><td><span class="status status-' + escapeHtml(status) + '">' + escapeHtml(statusText(status)) + '</span></td><td>' + action + '</td></tr>');
+        });
+      }
+      const pagination = $('#pagination').empty();
+      for (let pageNumber = 1; pageNumber <= (page.pages || 1); pageNumber++) {
+        const button = $('<button type="button"></button>').text(pageNumber);
+        if (pageNumber === page.pageNum) button.addClass('active');
+        button.on('click', function() { loadAppointments(pageNumber); });
+        pagination.append(button);
+      }
+    }
+    function displayError(xhr) {
+      let message = '预约记录加载失败，请稍后重试。';
+      if (xhr.responseJSON && xhr.responseJSON.message) message = xhr.responseJSON.message;
+      $('#appointmentRows').html('<tr><td class="error-message" colspan="7">' + escapeHtml(message) + '</td></tr>');
+    }
+    function loadAppointments(pageNumber) {
+      $.ajax({ url: appUrl('/appointments/doctor'), type: 'GET', dataType: 'json', data: { pageNum: pageNumber } })
+        .done(renderAppointments)
+        .fail(displayError);
+    }
+    $('#appointmentRows').on('click', '.complete-button:not(:disabled)', function() {
+      const appointmentId = $(this).data('appointment-id');
+      if (!window.confirm('确认已完成该患者的接诊吗？')) return;
+      $.ajax({ url: appUrl('/appointments/complete'), type: 'POST', dataType: 'json', data: { appointmentId: appointmentId } })
+        .done(function(response) {
+          alert(response.message || '接诊状态已更新。');
+          if (response.success) loadAppointments(1);
+        })
+        .fail(function(xhr) {
+          alert((xhr.responseJSON && xhr.responseJSON.message) || '完成接诊失败，请稍后重试。');
+        });
+    });
+    $(function() { loadAppointments(1); });
+  </script>
+</body>
+</html>

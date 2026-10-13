@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ustb.hospital.mapper.PatientsMapper">
+
+    <resultMap id="PatientMap" type="com.ustb.hospital.entity.Patients">
+        <id column="patient_id" property="patientId"></id>
+        <result column="id_card_number" property="idCardNumber"></result>
+        <result column="password" property="password"></result>
+        <result column="name" property="name"></result>
+        <result column="avatar" property="avatar"></result>
+        <result column="phone" property="phone"></result>
+        <result column="email" property="email"></result>
+        <result column="balance" property="balance"></result>
+    </resultMap>
+    <update id="updateAvatar" parameterType="map">
+        UPDATE patients
+        SET avatar = #{avatar}
+        WHERE patient_id = #{patientId}
+    </update>
+
+    <update id="updateBal">
+        update patients
+        set
+            balance=#{balance}
+        where
+            patient_id=#{patientId}
+    </update>
+    <update id="deductBalanceIfEnough">
+        UPDATE patients
+        SET balance = CAST(balance AS DECIMAL(12,2)) - #{fee}
+        WHERE patient_id = #{patientId}
+          AND CAST(balance AS DECIMAL(12,2)) &gt;= #{fee}
+    </update>
+    <update id="updatePatientProfileById" parameterType="com.ustb.hospital.entity.Patients">
+        UPDATE patients
+        SET phone = #{phone}, balance = #{balance}, email = #{email}
+        WHERE patient_id = #{patientId}
+    </update>
+
+    <select id="getpatById" resultMap="PatientMap">
+        select * from patients where patient_id=#{patientId}
+    </select>
+
+
+    <select id="getBalById" resultMap="PatientMap">
+        select * from patients where patient_id=#{patientId}
+    </select>
+
+
+    <insert id="save">
+        insert into patients(patient_id,id_card_number,password,name,avatar,phone,email,balance)
+        values(#{patientId},#{idCardNumber},#{password},#{name},#{avatar},#{phone},#{email},#{balance})
+    </insert>
+
+    <select id="getMaxId" resultType="int">
+        select max(patient_id) from patients
+    </select>
+
+    <update id="updatePassword">
+        update patients
+        set
+            password=#{1}
+        where
+            name=#{0}
+    </update>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <select id="selectAll" resultMap="PatientMap">
+        select * from patients
+    </select>
+
+    <select id="selectByName" resultMap="PatientMap">
+        select * from patients where name=#{name}
+    </select>
+
+    <select id="searchPatients" resultMap="PatientMap">
+        SELECT
+        patient_id,
+        id_card_number,
+        password,
+        name,
+        avatar,
+        phone,
+        email,
+        balance
+        FROM
+        patients
+        WHERE 1=1
+        <if test="idCardNumber!=null and idCardNumber!=''">
+            AND id_card_number = #{idCardNumber}
+        </if>
+        <if test = "name!=null and name!=''">
+            AND name = #{name}
+        </if>
+        <if test = "phone!=null and phone!=''">
+            AND phone = #{phone}
+        </if>
+
+    </select>
+    <delete id="delete">
+        DELETE FROM `hospt`.`patients` WHERE `patient_id` = #{id}
+    </delete>
+    <select id="selectById" resultMap="PatientMap">
+        select * from patients where patient_id = #{id}
+    </select>
+    <select id="getPatientMaxId" resultType="int">
+        select max(patient_id) from patients
+    </select>
+    <update id="updateById" parameterType="com.ustb.hospital.entity.Patients">
+        UPDATE patients
+        SET phone = #{phone}, balance = #{balance}
+        WHERE patient_id = #{patientId}
+    </update>
+
+    <update id="pay">
+        UPDATE patients
+        SET balance = balance + #{amount}
+        WHERE id_card_number = #{idCardNumber}
+    </update>
+    <select id="selectByEmail" resultMap="PatientMap">
+        SELECT patient_id, id_card_number, password, name, avatar, phone, email, balance
+        FROM patients
+        WHERE email = #{email}
+    </select>
+    <select id="selectByIdCardNumber" resultMap="PatientMap">
+        SELECT patient_id, id_card_number, password, name, avatar, phone, email, balance
+        FROM patients
+        WHERE id_card_number = #{idCardNumber}
+    </select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</mapper>

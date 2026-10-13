@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ustb.hospital.mapper.DepartmentsMapper">
+
+    <resultMap id="deptMap" type="com.ustb.hospital.entity.Departments">
+        <id column="department_id" property="departmentId"></id>
+        <result column="department_name" property="departmentName"></result>
+        <result column="department_pid" property="departmentPid"></result>
+        <result column="department_level" property="departmentLevel"></result>
+        <result column="department_path" property="departmentPath"></result>
+        <result column="department_description" property="departmentDescription"></result>
+    </resultMap>
+
+
+    <select id="selectAll" resultMap="deptMap">
+        select * from departments
+    </select>
+
+    <select id="selectFirstDept" resultMap="deptMap">
+        select * from departments where department_level = #{level}
+    </select>
+
+
+
+    <insert id="insertDept" >
+        insert into department(department_name,department_pid,department_level,department_path,department_description) values(#{departmentName},#{departmentPid},#{departmentLevel},#{departmentPath},#{departmentDescription})
+    </insert>
+
+
+
+    <update id="updateById" parameterType="map">
+        UPDATE departments
+        SET
+            department_name = #{departmentName},
+            department_description = #{departmentDescription}
+        WHERE
+            department_id = #{departmentId}
+    </update>
+
+    <delete id="delById">
+        delete from departments where department_id = #{departmentId}
+    </delete>
+
+    <select id="selectByPid" resultMap="deptMap">
+        select * from departments where department_pid = #{departmentPid}
+    </select>
+
+    <select id="getMaxId" resultType="int">
+        select max(department_id) from departments
+    </select>
+
+    <select id="selectByName" resultMap="deptMap">
+        select * from departments where department_name =#{name}
+    </select>
+
+    <insert id="insert" >
+        insert into `hospt`.`departments`(department_id,department_name,department_pid,department_level,department_path,department_description)
+        values(#{departmentId},#{departmentName},#{departmentPid},#{departmentLevel},#{departmentPath},#{departmentDescription})
+    </insert>
+
+    <select id="selectById" resultMap="deptMap">
+        select * from departments where department_id =#{id}
+    </select>
+
+    <select id="selectByNameWithPage" resultMap="deptMap">
+        select * from departments where department_name = #{deptname}
+    </select>
+
+    <select id="selectByParentId" resultMap="deptMap">
+        SELECT * FROM departments where department_pid = #{id}
+    </select>
+
+    <delete id="delete">
+        DELETE FROM `hospt`.`departments` WHERE `department_id` = #{id}
+    </delete>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</mapper>

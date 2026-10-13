@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ustb.hospital.mapper.AppointmentsMapper">
+    <resultMap id="appointmentMap" type="com.ustb.hospital.entity.Appointments">
+        <id column="appointment_id" property="appointmentId" />
+        <result column="patient_id" property="patientId" />
+        <result column="doctor_id" property="doctorId" />
+        <result column="appointment_date" property="appointmentDate" />
+        <result column="appointment_time" property="appointmentTime" />
+        <result column="status" property="status"/>
+        <association property="doctors" javaType="com.ustb.hospital.entity.Doctors">
+            <result column="name" property="name"/>
+        </association>
+        <association property="departments" javaType="com.ustb.hospital.entity.Departments">
+            <result column="department_name" property="departmentName"/>
+        </association>
+        <association property="professionalTitles" javaType="com.ustb.hospital.entity.ProfessionalTitles">
+            <result column="title_name" property="titleName"/>
+        </association>
+        <association property="patients" javaType="com.ustb.hospital.entity.Patients">
+            <result column="name" property="name"/>
+            <result column="id_card_number" property="idCardNumber"/>
+            <result column="phone" property="phone"/>
+            <result column="balance" property="balance"/>
+        </association>
+
+    </resultMap>
+
+    <delete id="deleteAppointmentById" parameterType="int">
+        DELETE FROM appointments WHERE appointment_id = #{appointmentId}
+    </delete>
+    <select id="selectAllWithDoctorDetails" resultMap="appointmentMap">
+        SELECT appointment_id,appointment_date,appointment_time,status,name,department_name,title_name
+        FROM appointments app,doctors doc, departments dep, professional_titles pt
+        WHERE app.doctor_id=doc.doctor_id AND doc.department_id=dep.department_id AND doc.professional_title_id = pt.id
+    </select>
+
+    <insert id="insert">
+        insert into appointments(patient_id,doctor_id,appointment_date,appointment_time,status)
+        values(#{patientId},#{doctorId},#{appointmentDate},#{appointmentTime},#{status})
+    </insert>
+    <select id="selectAll" resultMap="appointmentMap">
+        SELECT appointment_id,appointment_date,appointment_time,status,name
+        FROM appointments app,patients pa
+        WHERE app.patient_id=pa.patient_id
+    </select>
+    <update id="updateAppointment">
+        UPDATE appointments
+        SET appointment_date = #{appointmentDate},
+            appointment_time = #{appointmentTime}
+        WHERE appointment_id = #{appointmentId}
+    </update>
+    <update id="updateStatus">
+        UPDATE appointments
+        SET status = #{status}
+        WHERE appointment_id = #{appointmentId}
+    </update>
+    <update id="updateStatusIfCurrent">
+        UPDATE appointments
+        SET status = #{toStatus}
+        WHERE appointment_id = #{appointmentId}
+          AND doctor_id = #{doctorId}
+          AND status = #{fromStatus}
+    </update>
+    <update id="updateAppointmentSlot">
+        UPDATE appointments
+        SET appointment_date = #{appointmentDate},
+            appointment_time = #{appointmentTime}
+        WHERE appointment_id = #{appointmentId}
+          AND status = #{status}
+    </update>
+    <select id="countReservedByDoctorAndDate" resultType="int">
+        SELECT COUNT(1)
+        FROM appointments
+        WHERE doctor_id = #{doctorId}
+          AND appointment_date = #{appointmentDate}
+          AND status IN ('booked', 'completed')
+    </select>
+    <select id="selectByPatientIdWithDoctorDetails" resultMap="appointmentMap">
+        SELECT appointment_id, appointment_date, appointment_time, status,name, department_name, title_name
+        FROM appointments app,doctors doc, departments dep, professional_titles pt
+        WHERE app.patient_id = #{patientId} AND app.doctor_id=doc.doctor_id AND doc.department_id=dep.department_id AND doc.professional_title_id = pt.id
+    </select>
+
+    <select id="selectById" resultMap="appointmentMap">
+        select * from appointments where appointment_id = #{appointmentId}
+    </select>
+    <select id="selectByDoctorId" resultMap="appointmentMap">
+        SELECT appointment_id, appointment_date,appointment_time, status,name, id_card_number, phone,balance
+        FROM appointments app,patients pa
+        WHERE app.doctor_id = #{doctorId} AND app.patient_id=pa.patient_id
+    </select>
+    <select id="selectAppointmentById" parameterType="int" resultType="com.ustb.hospital.entity.Appointments">
+        SELECT * FROM appointments WHERE appointment_id = #{appointmentId}
+    </select>
+    <select id="selectByPatientId" resultMap="appointmentMap">
+        SELECT appointment_id, appointment_date, appointment_time, status,name
+        FROM appointments app,doctors doc
+        WHERE app.patient_id = #{patientId} AND app.doctor_id=doc.doctor_id
+    </select>
+    <select id="selectByDate" resultMap="appointmentMap">
+
+        SELECT appointment_id, patient_id, doctor_id, appointment_date, appointment_time, status
+        FROM appointments
+        WHERE appointment_date = #{date}
+          AND status = 'booked'
+
+    </select>
+
+</mapper>

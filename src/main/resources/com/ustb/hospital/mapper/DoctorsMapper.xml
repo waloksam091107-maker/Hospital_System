@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ustb.hospital.mapper.DoctorsMapper">
+    <resultMap id="docMap" type="com.ustb.hospital.entity.Doctors">
+        <id column="doctor_id" property="doctorId" />
+        <result column="job_number" property="jobNumber" />
+        <result column="password" property="password"/>
+        <result column="NAME" property="name" />
+        <result column="avatar" property="avatar" />
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="introduction" property="introduction"/>
+        <result column="registration_fee" property="registrationFee" />
+        <result column="entry_date" property="entryDate" />
+
+        <association property="departments" javaType="com.ustb.hospital.entity.Departments">
+            <result column="department_name" property="departmentName"></result>
+        </association>
+        <association property="professionalTitles" javaType="com.ustb.hospital.entity.ProfessionalTitles">
+            <result column="title_name" property="titleName"></result>
+        </association>
+        <association property="appointments" javaType="com.ustb.hospital.entity.Appointments">
+            <result column="doctor_id" property="doctorId"/>
+        </association>
+    </resultMap>
+    <resultMap id="docMap2" type="com.ustb.hospital.entity.Doctors">
+        <id column="doctor_id" property="doctorId" />
+        <result column="job_number" property="jobNumber" />
+        <result column="password" property="password" />
+        <result column="name" property="name" />
+        <result column="avatar" property="avatar" />
+        <result column="phone" property="phone"/>
+        <result column="email" property="email" />
+        <result column="introduction" property="introduction"/>
+        <result column="registration_fee" property="registrationFee" />
+        <result column="entry_date" property="entryDate" />
+        <association property="departments" javaType="com.ustb.hospital.entity.Departments">
+            <result column="department_name" property="departmentName"></result>
+        </association>
+        <association property="professionalTitles" javaType="com.ustb.hospital.entity.ProfessionalTitles">
+            <result column="title_name" property="titleName"></result>
+        </association>
+    </resultMap>
+
+
+    <delete id="delById">
+        delete from doctors where doctor_id = #{doctorId}
+    </delete>
+
+
+    <select id="selectAll" resultMap="docMap">
+        SELECT
+        doctor_id,
+        job_number,
+        NAME,
+        avatar,
+        phone,
+        registration_fee,
+        entry_date,
+        department_name,
+        title_name,
+        introduction
+        FROM
+        doctors doc,
+        departments dep,
+        professional_titles pt
+        WHERE
+        doc.department_id = dep.department_id
+        AND doc.professional_title_id = pt.id
+        <if test="jobNumber!=null and jobNumber!=''">
+            AND doc.job_number = #{jobNumber}
+        </if>
+        <if test = "name!=null and name!=''">
+            AND doc.name = #{name}
+        </if>
+        <if test = "deptId!=null and deptId!='' and deptId!=-1">
+            AND doc.department_id = #{deptId}
+        </if>
+
+    </select>
+
+    <insert id="save">
+        insert into doctors(doctor_id,job_number,password,name,avatar,phone,email,introduction,registration_fee,entry_date,department_id,professional_title_id) values(#{doctorId},#{jobNumber},#{password},#{name},#{avatar},#{phone},#{email},#{introduction},#{registrationFee},#{entryDate},#{departmentId},#{professionalTitleId})
+    </insert>
+
+    <select id="getMaxDoctorId" resultType="int">
+        select max(doctor_id) from doctors
+    </select>
+
+
+    <select id="selectByJobNumber" resultMap="docMap2">
+        select * from doctors where job_number=#{jobNumber}
+    </select>
+
+    <select id="findById" resultMap="docMap2">
+        select * from doctors  where doctor_id=#{doctorId}
+    </select>
+
+    <select id="getMaxJobNumber" resultType="String">
+        select max(job_number) from doctors
+    </select>
+
+    <update id="update">
+        UPDATE doctors
+        SET
+            password=#{password},
+            name=#{name},
+            avatar=#{avatar},
+            phone=#{phone},
+            email=#{email},
+            introduction=#{introduction},
+            registration_fee=#{registrationFee},
+            entry_date=#{entryDate},
+            department_id=#{departmentId},
+            professional_title_id=#{professionalTitleId}
+        WHERE
+            doctor_id = #{doctorId}
+    </update>
+
+    <update id="updatePassword">
+        update doctors
+        set
+            password=#{1}
+        where
+            job_number=#{0}
+    </update>
+
+    <select id="getMaxdoctorId" resultType="int">
+        select max(doctor_id) from doctors
+    </select>
+
+    <insert id="insert">
+        INSERT INTO `hospt`.`doctors`(`doctor_id`, `job_number`, `password`, `name`, `avatar`, `phone`, `email`, `introduction`, `registration_fee`, `entry_date`, `department_id`, `professional_title_id`)
+        values(#{doctorId},#{jobNumber},#{password},#{name},#{avatar},#{phone},#{email},#{introduction},#{registrationFee},#{entryDate},#{departmentId},#{professionalTitleId})
+    </insert>
+    <delete id="delete">
+        DELETE FROM `hospt`.`doctors` WHERE `doctor_id` = #{id}
+    </delete>
+    <select id="selectById" resultMap="docMap">
+
+        SELECT
+            doctor_id,
+            job_number,
+            password,
+            NAME,
+            avatar,
+            phone,
+            email,
+            introduction,
+            registration_fee,
+            entry_date,
+            department_name,
+            title_name
+        FROM
+            doctors doc,
+            departments dep,
+            professional_titles pt
+        WHERE
+            doctor_id = #{doctorId}
+          AND doc.department_id = dep.department_id
+          AND doc.professional_title_id = pt.id
+
+    </select>
+
+    <update id="updateById" parameterType="com.ustb.hospital.entity.Doctors">
+        UPDATE doctors
+        SET phone = #{phone}, registration_fee = #{registrationFee}, professional_title_id = #{professionalTitleId}
+        WHERE doctor_id = #{doctorId}
+    </update>
+    <insert id="insertDoc">
+        INSERT INTO `hospt`.`doctors`(`doctor_id`, `job_number`, `password`, `name`, `avatar`, `phone`, `email`, `introduction`, `registration_fee`, `entry_date`, `department_id`, `professional_title_id`)
+        VALUES (#{doctorId},#{jobNumber},#{password},#{name},#{avatar},#{phone},#{email},#{introduction},#{registrationFee},#{entryDate},#{departmentId},#{professionalTitleId})
+    </insert>
+    <select id="getDocMaxId" resultType="int">
+        select max(doctor_id) from doctors
+    </select>
+    <update id="updateAvatar" parameterType="map">
+        UPDATE doctors
+        SET avatar = #{avatar}
+        WHERE doctor_id = #{doctorId}
+    </update>
+    <update id="updateDoctorProfileDetails" parameterType="com.ustb.hospital.entity.Doctors">
+UPDATE doctors
+SET phone = #{phone}, email = #{email}, introduction = #{introduction}, registration_fee = #{registrationFee}, entry_date = #{entryDate}, department_id = #{departmentId}, professional_title_id = #{professionalTitleId}
+WHERE doctor_id = #{doctorId}
+</update>
+
+
+
+</mapper>

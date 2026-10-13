@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ustb.hospital.mapper.NewsMapper">
+    <resultMap id="newsMap" type="com.ustb.hospital.entity.News">
+        <id column="news_id" property="newsId"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="creation_time" property="creationTime"/>
+        <result column="creator" property="creator"/>
+        <result column="news_img" property="newsImg"/>
+    </resultMap>
+    <select id="selectAll" resultMap="newsMap">
+        SELECT * FROM news
+    </select>
+
+    <select id="selectNew" resultMap="newsMap">
+        SELECT * FROM news ORDER BY news_id DESC LIMIT 3
+    </select>
+    <select id="selectById" resultMap="newsMap">
+        SELECT * FROM news WHERE news_id = #{newsId}
+    </select>
+    <select id="selectByTitle" resultMap="newsMap">
+        SELECT * FROM news WHERE title LIKE CONCAT('%', #{newsTitle}, '%')
+    </select>
+    <select id="select" resultMap="newsMap">
+        SELECT * FROM news
+        WHERE 1=1
+        <if test="newsId!= null and newsId!= '' and newsId!= '-1'">
+            AND news_id = #{newsId}
+        </if>
+        <if test="title!= null and title!= ''">
+            AND title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="content!= null and content!= ''">
+            AND content LIKE CONCAT('%', #{content}, '%')
+        </if>
+        <if test="creator!= null and creator!= ''">
+            AND creator = #{creator}
+        </if>
+        <if test="creationTime != null and creationTime != ''">
+            AND creation_time = #{creationTime}
+        </if>
+        <if test="newsImg != null and newsImg != ''">
+            AND news_img = #{newsImg}
+        </if>
+    </select>
+    <insert id="insert">
+        INSERT INTO news(news_id, title, content, creation_time, creator, news_img)
+        VALUES(#{newsId}, #{title}, #{content}, #{creationTime}, #{creator}, #{newsImg})
+    </insert>
+    <update id="update">
+        UPDATE news
+        SET title = #{title}, content = #{content}, creation_time = #{creationTime}, creator = #{creator}, news_img = #{newsImg}
+        WHERE news_id = #{newsId}
+    </update>
+    <delete id="delete">
+        DELETE FROM news WHERE news_id = #{newsId}
+    </delete>
+    <select id="getMaxId" resultType="int">
+            SELECT MAX(news_id) FROM news
+    </select>
+
+</mapper>
