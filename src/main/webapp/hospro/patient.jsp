@@ -50,7 +50,10 @@ function appUrl(path) { return appContext + path; }
         const url = new URL(window.location.href);
         const searchParams = new URLSearchParams(url.search);
         const patientId = searchParams.get('patientId');
-        const redirectUrl = '/hospro/patientpr.html?patientId=' + encodeURIComponent(patientId);
+        if (!patientId) {
+            return;
+        }
+        const redirectUrl = appUrl('/hospro/patientpr.html?patientId=') + encodeURIComponent(patientId);
         window.location.href = redirectUrl;
     }
 
@@ -58,6 +61,16 @@ function appUrl(path) { return appContext + path; }
     document.addEventListener('DOMContentLoaded', function() {
         const btn = document.getElementById('hzgeren');
         btn.addEventListener('click', handlePersonalPageClick);
+
+        const patientId = new URLSearchParams(window.location.search).get('patientId');
+        const newAppointmentLink = document.getElementById('newAppointmentLink');
+        const patientHomeLink = document.getElementById('patientHomeLink');
+        if (patientId && newAppointmentLink) {
+            newAppointmentLink.href = 'index.html?roleCode=2&patientId=' + encodeURIComponent(patientId);
+        }
+        if (patientId && patientHomeLink) {
+            patientHomeLink.href = 'index.html?roleCode=2&patientId=' + encodeURIComponent(patientId);
+        }
     });
 </script>
 <div class="boxed_wrapper"><!-- preloader -->
@@ -302,7 +315,7 @@ function appUrl(path) { return appContext + path; }
                         <li><a href="review.html"><i class="fas fa-star"></i>医嘱详情</a></li>
 
                         <li><a href="change-password.html"><i class="fas fa-unlock-alt"></i>修改密码</a></li>
-                        <li><a href="index.html"><i class="fas fa-sign-out-alt"></i>返回主页</a></li>
+                        <li><a id="patientHomeLink" href="index.html?roleCode=2"><i class="fas fa-sign-out-alt"></i>返回主页</a></li>
                     </ul>
                 </div>
             </div>
@@ -609,23 +622,9 @@ function appUrl(path) { return appContext + path; }
                 <label for="updateAppointmentTime">请选择时间段:</label>
                 <div class="select-wrapper">
                     <select id="updateAppointmentTime" class="input select-scroll">
-                        <optgroup label="上午">
-                            <option value="09:30">09:30 AM</option>
-                            <option value="10:00">10:00 AM</option>
-                            <option value="10:30">10:30 AM</option>
-                            <option value="11:00">11:00 AM</option>
-                            <option value="11:30">11:30 AM</option>
-                        </optgroup>
-                        <optgroup label="下午">
-                            <option value="13:00">01:00 PM</option>
-                            <option value="13:30">01:30 PM</option>
-                            <option value="14:00">02:00 PM</option>
-                            <option value="14:30">02:30 PM</option>
-                            <option value="15:00">03:00 PM</option>
-                            <option value="15:30">03:30 PM</option>
-                            <option value="16:00">04:00 PM</option>
-                            <option value="16:30">04:30 PM</option>
-                        </optgroup>
+                        <option value="AM">上午</option>
+                        <option value="PM">下午</option>
+                        <option value="EVENING">晚间</option>
                     </select>
                 </div>
             </div>
@@ -679,7 +678,7 @@ function appUrl(path) { return appContext + path; }
                 <div class="title-box clearfix">
                     <div class="text pull-left"><h3>预约记录</h3></div>
                     <div class="btn-box pull-right">
-                        <a href="index.html" class="theme-btn-one">新增预约<i class="icon-image"></i></a>
+                        <a id="newAppointmentLink" href="index.html" class="theme-btn-one">新增预约<i class="icon-image"></i></a>
                     </div>
                 </div>
                 <div class="doctors-list">

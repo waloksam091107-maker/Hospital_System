@@ -19,5 +19,5 @@ public class AppointmentBookingServlet extends HttpServlet {
         AppointmentOperationResult result = new AppointmentsServiceImpl().bookAppointment(patientId.intValue(), doctorId.intValue(), request.getParameter("appointment_date"), request.getParameter("appointment_time"));
         AppointmentServletSupport.writeResult(response, result);
     }
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { doPost(request, response); }
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { AppointmentServletSupport.writeMethodNotAllowed(response); }
 }

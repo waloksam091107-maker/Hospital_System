@@ -258,7 +258,7 @@ function appUrl(path) { return appContext + path; }
     </div>
     <div class="lower-content">
       <ul class="bread-crumb clearfix">
-        <li><a href="index.html">主页</a></li>
+        <li><a id="doctorBreadcrumbHome" href="../hospro/index.html?roleCode=1">主页</a></li>
         <li>排班表</li>
       </ul>
     </div>
@@ -274,14 +274,14 @@ function appUrl(path) { return appContext + path; }
         </div>
         <div class="profile-info">
           <ul class="list clearfix">
-            <li><a href="patientpr.html"><i class="fas fa-user"></i>个人主页</a></li>
+            <li><a id="doctorProfileLink" href="../hospro/doctor-profile.html"><i class="fas fa-user"></i>个人主页</a></li>
             <li><a href="appointments.html"><i class="fas fa-wheelchair"></i>预约记录</a></li>
 
-            <li><a href="" class="current"><i class="fas fa-clock"></i>排班表</a></li>
+            <li><a id="doctorScheduleLink" href="date.html" class="current"><i class="fas fa-clock"></i>排班表</a></li>
             <li><a href="review.html"><i class="fas fa-star"></i>医嘱详情</a></li>
 
             <li><a href="change-password.html"><i class="fas fa-unlock-alt"></i>修改密码</a></li>
-            <li><a href="index.html"><i class="fas fa-sign-out-alt"></i>返回主页</a></li>
+            <li><a id="doctorHomeLink" href="../hospro/index.html?roleCode=1"><i class="fas fa-sign-out-alt"></i>返回主页</a></li>
           </ul>
         </div>
       </div>
@@ -515,8 +515,19 @@ function appUrl(path) { return appContext + path; }
         return doctorId;
       }
 
+      function updateDoctorNavigation(doctorId) {
+        if (!doctorId) {
+          return;
+        }
+        const encodedDoctorId = encodeURIComponent(doctorId);
+        $('#doctorProfileLink').attr('href', '../hospro/doctor-profile.html?doctorId=' + encodedDoctorId);
+        $('#doctorScheduleLink').attr('href', 'date.html?doctorId=' + encodedDoctorId);
+        $('#doctorHomeLink, #doctorBreadcrumbHome').attr('href', '../hospro/index.html?roleCode=1&doctorId=' + encodedDoctorId);
+      }
+
       $(function () {
         const doctorId = getPatientIdFromUrl();
+        updateDoctorNavigation(doctorId);
         $.ajax({
           url: appUrl('/doctors/details'),
           type: 'GET',

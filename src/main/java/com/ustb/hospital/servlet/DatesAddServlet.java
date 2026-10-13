@@ -21,5 +21,5 @@ public class DatesAddServlet extends HttpServlet {
         AppointmentOperationResult result = new DatesServiceImpl().addDate(doctorId.intValue(), doctor.getName(), request.getParameter("date"), request.getParameter("shang"), request.getParameter("xia"), request.getParameter("wan"));
         AppointmentServletSupport.writeResult(response, result);
     }
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { doPost(request, response); }
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { AppointmentServletSupport.writeMethodNotAllowed(response); }
 }

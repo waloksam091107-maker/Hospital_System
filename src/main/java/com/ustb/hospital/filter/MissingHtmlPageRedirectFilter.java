@@ -35,6 +35,11 @@ public class MissingHtmlPageRedirectFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         String requestPath = request.getRequestURI().substring(request.getContextPath().length());
+        if ("/hospro/login.html".equals(requestPath)) {
+            response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+            response.setHeader("Pragma", "no-cache");
+            response.setHeader("Expires", "0");
+        }
         if (!isHtmlPage(requestPath) || request.getServletContext().getResource(requestPath) != null) {
             filterChain.doFilter(request, response);
             return;

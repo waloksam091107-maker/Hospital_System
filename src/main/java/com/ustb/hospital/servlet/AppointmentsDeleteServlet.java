@@ -36,5 +36,5 @@ public class AppointmentsDeleteServlet extends HttpServlet {
             AppointmentServletSupport.writeBadRequest(response, "删除预约失败。");
         } finally { session.close(); }
     }
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { doPost(request, response); }
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { AppointmentServletSupport.writeMethodNotAllowed(response); }
 }

@@ -32,6 +32,11 @@ function appUrl(path) { return appContext + path; }
             var departmentName = $('#inputView').val();
             var departmentId = $('#departmentId').val();
 
+            if (!departmentId) {
+                alert('请选择搜索结果中的科室后再预约。');
+                return;
+            }
+
             // 构建跳转 URL
             var targetUrl = 'doctor-directory.html?departmentId=' + encodeURIComponent(departmentId) + '&departmentName=' + encodeURIComponent(departmentName);
 
@@ -155,7 +160,7 @@ function appUrl(path) { return appContext + path; }
             // 如果 patientId 存在
             if (doctorId) {
                 // 构建跳转的 URL，带上 patientId 参数
-                const redirectUrl = `appointment-records.html?doctorId=${encodeURIComponent(doctorId)}`;
+                const redirectUrl = `../doctor-schedule/appointments.html`;
                 // 跳转到指定页面
                 window.location.href = redirectUrl;
             }
@@ -203,7 +208,7 @@ function appUrl(path) { return appContext + path; }
             // 如果 patientId 存在
             if (doctorId) {
                 // 构建跳转的 URL，带上 patientId 参数
-                const redirectUrl = `date.html?doctorId=${encodeURIComponent(doctorId)}`;
+                const redirectUrl = `../doctor-schedule/date.html?doctorId=${encodeURIComponent(doctorId)}`;
                 // 跳转到指定页面
                 window.location.href = redirectUrl;
             }
@@ -214,29 +219,6 @@ function appUrl(path) { return appContext + path; }
 </script>
 
 <style>
-    #result {
-        background-color: #f9f9f9;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        max-height: 200px;
-        overflow-y: auto;
-        margin-top: 10px;
-    }
-
-    .suggestion {
-        padding: 10px 10px;
-        margin: 10px 0;
-        background-color: #ffffff;
-        border-bottom: 1px solid #eee;
-        cursor: pointer;
-        color: #125;
-    }
-
-
-    .suggestion:last-child {
-        border-bottom: none;
-    }
-
     .announcement-card {
         background: #a3b4de;
         padding: 100px;
@@ -449,7 +431,7 @@ function appUrl(path) { return appContext + path; }
 <script type="text/javascript">
     $(document).ready(function () {
         const urlParams = new URLSearchParams(window.location.search);
-        const typeId = urlParams.get('typeId');
+        const typeId = urlParams.get('roleCode') || urlParams.get('typeId');
 
         // 根据typeId显示相应的div
         if (typeId === '0') {
@@ -504,53 +486,58 @@ function appUrl(path) { return appContext + path; }
             });
         }
 
-        $("#inputView").on("input", function (event) {
+        $("#inputView").on("input", function () {
             var keyword = $.trim(this.value);
+            $('#departmentId').val('');
+            if (!keyword) {
+                $("#departmentSearchResults").empty().hide();
+                return;
+            }
+
             // ajax搜索
             $.ajax({
                 type: "GET",
-                url: appUrl('/find?keyword=') + keyword,
-                //datatype: "json", //////
-                success: function (data) {
-                    // 将返回的 JSON 字符串解析为 JavaScript 对象数组
-                    var dataArray = JSON.parse(data);
+                url: appUrl('/find'),
+                data: { keyword: keyword },
+                dataType: "json",
+                success: function (dataArray) {
 
-                    if (keyword === '') {
-                        $("#result").html("<p>关键词不得为空</p>");
-                    } else if (dataArray.length === 0) {
-                        $("#result").html("<p>暂无搜索结果</p>");
+                    if (dataArray.length === 0) {
+                        $("#departmentSearchResults").html('<p>暂无匹配的科室</p>').show();
                     } else {
-                        // 清空结果区域
-                        $("#result").empty();
-                        // 循环遍历列表
+                        $("#departmentSearchResults").empty();
                         for (var i = 0; i < dataArray.length; i++) {
 
                             var deptname = dataArray[i].departmentName;
                             var deptid = dataArray[i].departmentId; // 获取每个部门的ID
-                            var option = $('<option class="suggestion" value="' + deptid + '">' + deptname + '</option>');
-                            option.on('click', function() {
-                                // 将选中的option的文本填入输入框
-                                $("#inputView").val($(this).text());
-                                // 将选中的option的value值存入隐藏字段
-                                $("#departmentId").val($(this).val());
-                                // 清空结果区域
-                                $("#result").empty();
+                            var suggestion = $('<button type="button" class="department-suggestion"></button>');
+                            suggestion.data('department-id', deptid).text(deptname).css({
+                                display: 'block',
+                                width: '100%',
+                                margin: '4px 0 0',
+                                padding: '10px 18px',
+                                border: '1px solid #dbe7e5',
+                                borderRadius: '6px',
+                                background: '#ffffff',
+                                color: '#061a3a',
+                                textAlign: 'left',
+                                cursor: 'pointer'
                             });
-                            // 将option元素添加到结果区域
-                            $("#result").append(option);
+                            $("#departmentSearchResults").append(suggestion);
                         }
+                        $("#departmentSearchResults").show();
                     }
                 },
                 error: function () {
-                    console.log("服务器错误");
+                    $("#departmentSearchResults").html('<p>科室搜索失败，请稍后重试。</p>').show();
                 }
             });
         });
 
-        // 监听点击事件
-        $("#result").on("click", ".suggestion", function () {
-            var selectedDeptName = $(this).text();
-            $("#inputView").val(selectedDeptName);
+        $("#departmentSearchResults").on("click", ".department-suggestion", function () {
+            $("#inputView").val($(this).text());
+            $('#departmentId').val($(this).data('department-id'));
+            $("#departmentSearchResults").empty().hide();
         });
         // 轮播图
         $(".single-item-carousel").owlCarousel({
@@ -576,14 +563,16 @@ function appUrl(path) { return appContext + path; }
                 $container.empty();
                 // 遍历数据，生成一级科室HTML
                 $.each(data, function(i, v) {
+                    var departmentBookingUrl = 'doctor-directory.html?departmentId=' + encodeURIComponent(v.departmentId)
+                        + '&departmentName=' + encodeURIComponent(v.departmentName);
                     const departmentHtml = `
                     <div class="feature-block" data-department="${v.departmentId}">
                         <div class="feature-block-one">
                             <div class="inner-box pattern-1 text-center">
                                 <p>预约</p>
                                 <h3>${v.departmentName}</h3>
-                                <div class="link"><a href=""><i class="icon-Arrow-Right"></i></a></div>
-                                <div class="btn-box"><a href="" class="theme-btn-one">立即预约<i class="icon-Arrow-Right"></i></a></div>
+                                <div class="link"><a href="${departmentBookingUrl}"><i class="icon-Arrow-Right"></i></a></div>
+                                <div class="btn-box"><a class="theme-btn-one" href="${departmentBookingUrl}">立即预约<i class="icon-Arrow-Right"></i></a></div>
                             </div>
                         </div>
                         <div>
@@ -879,15 +868,14 @@ function appUrl(path) { return appContext + path; }
                     <div class="content-box">
                         <h1>医院挂号系统</h1>
                         <p>为您提供最专业的医疗服务，从专业的医生到全面的医疗服务，让您享受到最好的医疗服务。</p>
-                        <form id="departmentForm" action="" method="post">
-                            <form action="" method="post">
+                        <form id="departmentForm" action="" method="post" autocomplete="off">
                                 <div class="form-group">
-                                    <input id="inputView" type="text" name="name" placeholder="请输入科室名称：" required="">
+                                    <input id="inputView" type="text" name="name" autocomplete="off" placeholder="请输入科室名称：" required="">
                                     <input type="hidden" id="departmentId" name="departmentId">
                                     <button type="submit"><i class="icon-Arrow-Right"></i></button>
-                                    <div id="result"></div>
                                 </div>
-                            </form>
+                        </form>
+                        <div id="departmentSearchResults" aria-live="polite" style="display: none; margin-right: 100px;"></div>
                         </div>
                     </div>
                 </div>

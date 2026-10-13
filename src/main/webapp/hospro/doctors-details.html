@@ -611,107 +611,15 @@ function appUrl(path) { return appContext + path; }
 <!--&lt;!&ndash;                                            </datalist>&ndash;&gt;-->
 
                                     </div>
-                                    <div class="choose-service"><h4>Choose Time</h4>
+                                    <div class="choose-service"><h4>选择就诊时段</h4>
                                         <div class="custom-check-box">
-                                            <div class="custom-controls-stacked"><label
-                                                    class="custom-control material-checkbox"><input type="checkbox"
-                                                                                                    class="material-control-input" value="09.30am"><span
-                                                    class="material-control-indicator"></span><span class="description">09.30am <span
-                                                    class="price"></span></span></label></div>
+                                            <div class="custom-controls-stacked"><label class="custom-control material-checkbox"><input type="radio" name="appointmentTime" class="material-control-input" value="AM"><span class="material-control-indicator"></span><span class="description">上午</span></label></div>
                                         </div>
                                         <div class="custom-check-box">
-                                            <div class="custom-controls-stacked"><label
-                                                    class="custom-control material-checkbox"><input type="checkbox"
-                                                                                                    class="material-control-input"
-                                                                                                    value="10.00am"
-                                                                                                    ><span
-                                                    class="material-control-indicator"></span><span class="description">10.00am<span
-                                                    class="price"></span></span></label></div>
+                                            <div class="custom-controls-stacked"><label class="custom-control material-checkbox"><input type="radio" name="appointmentTime" class="material-control-input" value="PM"><span class="material-control-indicator"></span><span class="description">下午</span></label></div>
                                         </div>
                                         <div class="custom-check-box">
-                                            <div class="custom-controls-stacked"><label
-                                                    class="custom-control material-checkbox"><input type="checkbox"
-                                                                                                    class="material-control-input"
-                                                                                                    value="10.00am"
-                                                                                                    ><span
-                                                    class="material-control-indicator"></span><span class="description">10.30am<span
-                                                    class="price"></span></span></label></div>
-                                        </div>
-                                        <div class="custom-check-box">
-                                            <div class="custom-controls-stacked"><label
-                                                    class="custom-control material-checkbox"><input type="checkbox"
-                                                                                                    class="material-control-input"
-                                                                                                    value="10.00am"
-                                                                                                   ><span
-                                                    class="material-control-indicator"></span><span class="description">11.00am<span
-                                                    class="price"></span></span></label></div>
-                                        </div>
-                                        <div class="custom-check-box">
-                                            <div class="custom-controls-stacked"><label
-                                                    class="custom-control material-checkbox"><input type="checkbox"
-                                                                                                    class="material-control-input"
-                                                                                                    value="10.00am"
-                                                                                                    ><span
-                                                    class="material-control-indicator"></span><span class="description">11.30am<span
-                                                    class="price"></span></span></label></div>
-                                        </div>
-                                        <div class="custom-check-box">
-                                            <div class="custom-controls-stacked"><label
-                                                    class="custom-control material-checkbox"><input type="checkbox"
-                                                                                                    class="material-control-input"
-                                                                                                    value="10.00am"
-                                                                                                    ><span
-                                                    class="material-control-indicator"></span><span class="description">12.00am<span
-                                                    class="price"></span></span></label></div>
-                                        </div>
-                                        <div class="custom-check-box">
-                                            <div class="custom-controls-stacked"><label
-                                                    class="custom-control material-checkbox"><input type="checkbox"
-                                                                                                    class="material-control-input" value="01.30pm"><span
-                                                    class="material-control-indicator"></span><span class="description">01.30pm <span
-                                                    class="price"></span></span></label></div>
-                                        </div>
-                                        <div class="custom-check-box">
-                                            <div class="custom-controls-stacked"><label
-                                                    class="custom-control material-checkbox"><input type="checkbox"
-                                                                                                    class="material-control-input" value="EVENING"><span
-                                                    class="material-control-indicator"></span><span class="description">晚间时段 <span
-                                                    class="price"></span></span></label></div>
-                                        </div>
-                                        <div class="custom-check-box">
-                                            <div class="custom-controls-stacked"><label
-                                                    class="custom-control material-checkbox"><input type="checkbox"
-                                                                                                    class="material-control-input" value="02.00pm"><span
-                                                    class="material-control-indicator"></span><span class="description">02.00pm <span
-                                                    class="price"></span></span></label></div>
-                                        </div>
-                                        <div class="custom-check-box">
-                                            <div class="custom-controls-stacked"><label
-                                                    class="custom-control material-checkbox"><input type="checkbox"
-                                                                                                    class="material-control-input" value="01.30pm"><span
-                                                    class="material-control-indicator"></span><span class="description">02.30pm <span
-                                                    class="price"></span></span></label></div>
-                                        </div>
-                                        <div class="custom-check-box">
-                                            <div class="custom-controls-stacked"><label
-                                                    class="custom-control material-checkbox"><input type="checkbox"
-                                                                                                    class="material-control-input" value="01.30pm"><span
-                                                    class="material-control-indicator"></span><span class="description">03.00pm <span
-                                                    class="price"></span></span></label></div>
-                                        </div>
-                                        <div class="custom-check-box">
-                                            <div class="custom-controls-stacked"><label
-                                                    class="custom-control material-checkbox"><input type="checkbox"
-                                                                                                    class="material-control-input" value="01.30pm"><span
-                                                    class="material-control-indicator"></span><span class="description">03.30pm <span
-                                                    class="price"></span></span></label></div>
-                                        </div>
-                                        <div class="custom-check-box">
-                                            <div class="custom-controls-stacked"><label
-                                                    class="custom-control material-checkbox"><input type="checkbox"
-                                                                                                    class="material-control-input" value="01.30pm"><span
-                                                    class="material-control-indicator"></span><span class="description">04.00pm <span
-                                                    class="price"></span></span></label></div>
+                                            <div class="custom-controls-stacked"><label class="custom-control material-checkbox"><input type="radio" name="appointmentTime" class="material-control-input" value="EVENING"><span class="material-control-indicator"></span><span class="description">晚间</span></label></div>
                                         </div>
 
 <!--                                            Appoinment<i class="icon-Arrow-Right"></i></a>-->

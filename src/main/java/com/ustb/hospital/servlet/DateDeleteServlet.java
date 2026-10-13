@@ -19,5 +19,5 @@ public class DateDeleteServlet extends HttpServlet {
         AppointmentOperationResult result = new DatesServiceImpl().deleteForDoctor(doctorId.intValue(), dateId.intValue());
         AppointmentServletSupport.writeResult(response, result);
     }
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { doPost(request, response); }
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { AppointmentServletSupport.writeMethodNotAllowed(response); }
 }

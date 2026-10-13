@@ -12,6 +12,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -21,6 +24,34 @@ import static org.junit.Assert.assertTrue;
 
 /** Ensures missing internal pages are handled before Tomcat emits its default 404 view. */
 public class MissingHtmlPageFallbackTest {
+    @Test
+    public void loginPageResponseDisablesCachingSoAnOldFormCannotSubmitAnEmptyRole() throws Exception {
+        Map<String, String> headers = new HashMap<String, String>();
+        AtomicBoolean chainCalled = new AtomicBoolean(false);
+        ServletContext servletContext = (ServletContext) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{ServletContext.class},
+                (proxy, method, arguments) -> "getResource".equals(method.getName()) ? new URL("file:/login.html") : null);
+        HttpServletRequest request = (HttpServletRequest) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{HttpServletRequest.class},
+                (proxy, method, arguments) -> {
+                    if ("getRequestURI".equals(method.getName())) return "/ustbhospital/hospro/login.html";
+                    if ("getContextPath".equals(method.getName())) return "/ustbhospital";
+                    if ("getServletContext".equals(method.getName())) return servletContext;
+                    return null;
+                });
+        HttpServletResponse response = (HttpServletResponse) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{HttpServletResponse.class},
+                (proxy, method, arguments) -> {
+                    if ("setHeader".equals(method.getName())) headers.put((String) arguments[0], (String) arguments[1]);
+                    return null;
+                });
+        FilterChain chain = (request1, response1) -> chainCalled.set(true);
+
+        new MissingHtmlPageRedirectFilter().doFilter(request, response, chain);
+
+        assertEquals("no-store, no-cache, must-revalidate", headers.get("Cache-Control"));
+        assertEquals("no-cache", headers.get("Pragma"));
+        assertEquals("0", headers.get("Expires"));
+        assertTrue("现有登录页仍应继续由静态资源处理", chainCalled.get());
+    }
+
     @Test
     public void missingHtmlPageRequestsHaveADedicatedFallbackFilter() throws Exception {
         Path filterSource = Paths.get("src", "main", "java", "com", "ustb", "hospital", "filter", "MissingHtmlPageRedirectFilter.java");

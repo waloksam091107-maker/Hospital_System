@@ -61,6 +61,15 @@ final class AppointmentServletSupport {
         body.put("message", message);
         writeJson(response, body);
     }
+    static void writeMethodNotAllowed(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        response.setHeader("Allow", "POST");
+        Map<String, Object> body = new HashMap<String, Object>();
+        body.put("success", Boolean.FALSE);
+        body.put("code", "METHOD_NOT_ALLOWED");
+        body.put("message", "该操作仅支持 POST 请求。");
+        writeJson(response, body);
+    }
     private static void writeAuthError(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
         boolean loggedIn = session != null && session.getAttribute(SessionIdentity.CURRENT_USER_ROLE) != null;

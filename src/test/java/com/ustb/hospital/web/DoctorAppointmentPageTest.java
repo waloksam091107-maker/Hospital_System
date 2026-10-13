@@ -24,4 +24,13 @@ public class DoctorAppointmentPageTest {
         assertTrue("医生预约页应查询当前医生的预约", appointmentPageHtml.contains("/appointments/doctor"));
         assertTrue("医生预约页应提供完成接诊操作", appointmentPageHtml.contains("/appointments/complete"));
     }
+
+    @Test
+    public void legacyScheduleSidebarRoutesAppointmentRecordsToTheCanonicalDoctorPage() throws Exception {
+        Path legacySchedulePage = Paths.get("src", "main", "webapp", "hospro", "date.html");
+        String schedulePage = new String(Files.readAllBytes(legacySchedulePage), StandardCharsets.UTF_8);
+
+        assertTrue("旧排班入口的预约记录必须跳转至可用的医生预约页",
+                schedulePage.contains("href=\"../doctor-schedule/appointments.html\"><i class=\"fas fa-wheelchair\"></i>预约记录"));
+    }
 }

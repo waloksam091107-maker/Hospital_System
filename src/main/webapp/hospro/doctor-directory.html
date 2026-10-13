@@ -1047,7 +1047,8 @@ function appUrl(path) { return appContext + path; }
         loadDepartmentOptions();
     })
     function findDoc(departmentId,pageNum) {//index=1
-
+        var clinicListContent = $("#clinicListContent");
+        clinicListContent.empty().append('<p class="doctor-list-loading">正在加载医生列表…</p>');
 
         $.ajax({
             type: "GET",
@@ -1058,7 +1059,6 @@ function appUrl(path) { return appContext + path; }
 
                 console.log("res", res)
                 // $("#subMenu" + index + " tbody").empty()
-                var clinicListContent = $("#clinicListContent"); // 假设你的容器ID是clinicListContent
                 clinicListContent.empty(); // 清空当前内容
                 $.each(res.list, function (i, v) {
 
@@ -1070,16 +1070,17 @@ function appUrl(path) { return appContext + path; }
                     var imageBox = $('<figure class="image-box"><img src="/hos_images/' + v.avatar + '" alt=""></figure>');
                     var contentBox = $('<div class="content-box"></div>');
                     var contentBox_3=$('<span class="designation">工号：'+v.jobNumber+'</span>')
-                    var likeBox = $('<div class="like-box"><a href="doctors-details.html?doctorId=' + v.doctorId + '"><i class="far fa-heart"></i></a></div>');
+                    var doctorDetailsUrl = 'doctors-details.html?doctorId=' + encodeURIComponent(v.doctorId);
+                    var likeBox = $('<div class="like-box"><a href="' + doctorDetailsUrl + '"><i class="far fa-heart"></i></a></div>');
                     var nameBox = $('<ul class="name-box clearfix"></ul>');
-                    var nameBox_1=$('<li class="name"><h3><a href="doctors-details.html">'+v.name+'</a></h3></li>');
+                    var nameBox_1=$('<li class="name"><h3><a href="' + doctorDetailsUrl + '">'+v.name+'</a></h3></li>');
                     var nameBox_2=$('<li><i class="icon-Trust-1"></i></li>');
                     var nameBox_3=$('<li><i class="icon-Trust-2"></i></li>');
                     var contentBox_4=$('<div class="text"></div>');
                     var contentBox_4_1=$('<p>电话：'+v.phone+'</p>');
                     var contentBox_4_2=$('<p>职称：'+v.professionalTitles.titleName+'</p>');
                     var contentBox_4_3=$('<p>'+v.introduction+'</p>');
-                    var contentBox_5=$('<ul class="rating clearfix"><li><i class="icon-Star"></i></li><li><i class="icon-Star"></i></li><li><i class="icon-Star"></i></li><li><i class="icon-Star"></i></li><li><i class="icon-Star"></i></li></ul><div class="link"><a href="doctors-details.html">24/7 Available</a></div></div>')
+                    var contentBox_5=$('<ul class="rating clearfix"><li><i class="icon-Star"></i></li><li><i class="icon-Star"></i></li><li><i class="icon-Star"></i></li><li><i class="icon-Star"></i></li><li><i class="icon-Star"></i></li></ul><div class="link"><a href="' + doctorDetailsUrl + '">24/7 Available</a></div></div>')
                     contentBox_4.append(contentBox_4_1);
                     contentBox_4.append(contentBox_4_2);
                     contentBox_4.append(contentBox_4_3);
@@ -1097,7 +1098,7 @@ function appUrl(path) { return appContext + path; }
                     contentBox.append(contentBox_3);
                     contentBox.append(contentBox_4);
                     contentBox.append(contentBox_5);
-                    var visitButton = $('<div class="btn-box"><a href="doctors-details.html?doctorId=' + encodeURIComponent(v.doctorId) + '&departmentName=' + encodeURIComponent(v.departments.departmentName) + '&titleName=' + encodeURIComponent(v.professionalTitles.titleName) + '&avatar=' + encodeURIComponent(v.avatar) + '">Visit Now</a></div>');
+                    var visitButton = $('<div class="btn-box"><a href="' + doctorDetailsUrl + '&departmentName=' + encodeURIComponent(v.departments.departmentName) + '&titleName=' + encodeURIComponent(v.professionalTitles.titleName) + '&avatar=' + encodeURIComponent(v.avatar) + '">Visit Now</a></div>');
                     contentBox.append(visitButton)
                     innerBox.append(contentBox);
 
@@ -1125,6 +1126,9 @@ function appUrl(path) { return appContext + path; }
                 }
 
 
+            },
+            error: function () {
+                clinicListContent.empty().append('<p class="doctor-list-loading">医生列表加载失败，请稍后重试。</p>');
             }
         });
 
