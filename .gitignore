@@ -36,5 +36,8 @@ build/
 ### VS Code ###
 .vscode/
 
+# Local Git worktrees used for isolated development.
+.worktrees/
+
 ### Mac OS ###
 .DS_Store
