@@ -8,6 +8,7 @@
         <id column="patient_id" property="patientId"></id>
         <result column="id_card_number" property="idCardNumber"></result>
         <result column="password" property="password"></result>
+        <result column="password_hash" property="passwordHash"></result>
         <result column="name" property="name"></result>
         <result column="avatar" property="avatar"></result>
         <result column="phone" property="phone"></result>
@@ -50,8 +51,8 @@
 
 
     <insert id="save">
-        insert into patients(patient_id,id_card_number,password,name,avatar,phone,email,balance)
-        values(#{patientId},#{idCardNumber},#{password},#{name},#{avatar},#{phone},#{email},#{balance})
+        insert into patients(patient_id,id_card_number,password,password_hash,name,avatar,phone,email,balance)
+        values(#{patientId},#{idCardNumber},NULL,#{password},#{name},#{avatar},#{phone},#{email},#{balance})
     </insert>
 
     <select id="getMaxId" resultType="int">
@@ -61,7 +62,8 @@
     <update id="updatePassword">
         update patients
         set
-            password=#{1}
+            password=NULL,
+            password_hash=#{1}
         where
             name=#{0}
     </update>
@@ -130,6 +132,10 @@
         SET phone = #{phone}, balance = #{balance}
         WHERE patient_id = #{patientId}
     </update>
+    <update id="upgradePasswordHash">
+        UPDATE patients SET password_hash = #{passwordHash}, password = NULL WHERE patient_id = #{patientId}
+    </update>
+    <select id="selectForPasswordUpdate" resultMap="PatientMap">SELECT * FROM patients WHERE patient_id = #{patientId} FOR UPDATE</select>
 
     <update id="pay">
         UPDATE patients

@@ -9,6 +9,8 @@ import java.util.Map;
 
 public interface DoctorsMapper {
     public void updatePassword(String jobNumber,String password);
+    int upgradePasswordHash(@Param("doctorId") int doctorId, @Param("passwordHash") String passwordHash);
+    Doctors selectForPasswordUpdate(@Param("doctorId") int doctorId);
 
     public Doctors selectByJobNumber(String jobNumber);
     public Doctors findById(int doctorId);

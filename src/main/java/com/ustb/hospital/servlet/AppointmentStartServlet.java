@@ -1,0 +1,32 @@
+package com.ustb.hospital.servlet;
+
+import com.ustb.hospital.service.AppointmentsServiceImpl;
+import com.ustb.hospital.utils.AppointmentOperationResult;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+@WebServlet("/appointments/start")
+public class AppointmentStartServlet extends HttpServlet {
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Integer doctorId = AppointmentServletSupport.requireDoctor(request, response);
+        Integer appointmentId = AppointmentServletSupport.parsePositiveInt(request.getParameter("appointmentId"));
+        if (doctorId == null) return;
+        if (appointmentId == null) {
+            AppointmentServletSupport.writeBadRequest(response, "预约编号无效。");
+            return;
+        }
+        AppointmentOperationResult result = new AppointmentsServiceImpl().startAppointment(doctorId.intValue(), appointmentId.intValue(), com.ustb.hospital.service.AuditContext.fromRequest(request));
+        AppointmentServletSupport.writeResult(response, result);
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        AppointmentServletSupport.writeMethodNotAllowed(response);
+    }
+}

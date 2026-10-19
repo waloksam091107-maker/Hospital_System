@@ -39,5 +39,8 @@ build/
 # Local Git worktrees used for isolated development.
 .worktrees/
 
+# Local SMS credentials; never commit this directory.
+.hospital-local/
+
 ### Mac OS ###
 .DS_Store

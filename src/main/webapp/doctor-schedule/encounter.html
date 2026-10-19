@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>填写就诊记录</title>
+  <script src="../hospro/static/js/jquery.js"></script>
+  <style>
+    body{font-family:Arial,"Microsoft YaHei",sans-serif;background:#f4fbfa;color:#17345c;margin:0}.wrap{max-width:920px;margin:40px auto;background:#fff;padding:32px;border-radius:12px;box-shadow:0 8px 24px #1a535c20}fieldset{border:0;padding:0;margin:0;min-width:0}label{display:block;font-weight:bold;margin:16px 0 6px}input,textarea{box-sizing:border-box;width:100%;padding:10px;border:1px solid #cbd7df;border-radius:6px;font:inherit}textarea{min-height:92px}.order{display:grid;grid-template-columns:2fr 1fr 1fr .8fr 2fr auto;gap:8px;margin:8px 0}.button{display:inline-block;border:0;border-radius:6px;background:#35c9bf;color:#fff;padding:10px 15px;cursor:pointer;text-decoration:none;font-weight:bold}.button:disabled{background:#aab7bc;cursor:not-allowed}.secondary{background:#64748b}.danger{background:#e75c4b}.message{min-height:24px;margin-top:14px}.error{color:#bd3126}.success{color:#117a5d}@media(max-width:750px){.order{grid-template-columns:1fr}.wrap{margin:15px;padding:20px}}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <p><a href="appointments.html">← 返回预约记录</a></p>
+  <h1>填写就诊记录</h1>
+  <p id="appointmentHint">正在读取预约信息…</p>
+  <form id="encounterForm">
+    <fieldset id="encounterFields" disabled>
+    <input type="hidden" name="appointmentId" id="appointmentId">
+    <input type="hidden" name="version" id="recordVersion" disabled>
+    <label for="diagnosis">诊断 <span aria-hidden="true">*</span></label>
+    <textarea id="diagnosis" name="diagnosis" maxlength="500" required></textarea>
+    <label for="treatmentPlan">诊疗方案 <span aria-hidden="true">*</span></label>
+    <textarea id="treatmentPlan" name="treatmentPlan" maxlength="5000" required></textarea>
+    <label for="medicalAdvice">医嘱说明</label>
+    <textarea id="medicalAdvice" name="medicalAdvice" maxlength="5000"></textarea>
+    <h2>处方/检查项目（可选）</h2>
+    <div id="orders"></div>
+    <button type="button" id="addOrder" class="button secondary">新增医嘱项目</button>
+    <p><button id="draftButton" type="button" class="button secondary" disabled>保存草稿</button> <button id="submitButton" type="submit" class="button" disabled>保存记录并完成接诊</button></p>
+    </fieldset>
+  </form>
+  <p id="message" class="message" role="alert"></p>
+</main>
+<script>
+(function () {
+  var contextPath = window.location.pathname.substring(0, window.location.pathname.indexOf('/doctor-schedule/')) || '';
+  var token = '';
+  var appointmentReady = false;
+  var recordLoaded = false;
+  var submitting = false;
+  var params = new URLSearchParams(window.location.search);
+  var appointmentId = params.get('appointmentId');
+  var message = $('#message');
+  function api(path) { return contextPath + path; }
+  function error(text) { message.removeClass('success').addClass('error').text(text); }
+  function updateSubmitButton() { $('#encounterFields').prop('disabled', !recordLoaded || submitting); $('#submitButton, #draftButton').prop('disabled', !appointmentReady || !token || submitting); }
+  function orderRow() {
+    return '<div class="order"><input name="orderItem" maxlength="200" placeholder="项目名称"><input name="orderDosage" maxlength="100" placeholder="剂量"><input name="orderFrequency" maxlength="100" placeholder="频次"><input name="orderQuantity" type="number" min="1" placeholder="数量"><input name="orderInstruction" maxlength="500" placeholder="用法/说明"><button type="button" class="button danger removeOrder">删除</button></div>';
+  }
+  if (!appointmentId || !/^\d+$/.test(appointmentId)) { error('预约编号无效，请从预约记录页面进入。'); $('#submitButton').prop('disabled', true); return; }
+  $('#appointmentId').val(appointmentId);
+  $('#addOrder').on('click', function () { $('#orders').append(orderRow()); });
+  $('#orders').on('click', '.removeOrder', function () { $(this).closest('.order').remove(); });
+  $.getJSON(api('/security/csrf')).done(function (response) {
+    token = response.token || '';
+    if (!token) error('无法获取安全校验信息，请刷新页面后重试。');
+    updateSubmitButton();
+  }).fail(function (xhr) { error((xhr.responseJSON && xhr.responseJSON.message) || '安全校验信息获取失败，请重新登录或稍后重试。'); updateSubmitButton(); });
+  $.ajax({url: api('/appointments/doctor/detail'), data: {appointmentId: appointmentId}, dataType: 'json'}).done(function (found) {
+    if (String(found.appointmentId) !== appointmentId) { $('#appointmentHint').text('预约信息读取失败。'); error('预约信息不匹配，请返回预约记录重新进入。'); return; }
+    if (found.status !== 'IN_PROGRESS') { $('#appointmentHint').text('预约 #' + appointmentId); error('该预约当前不是“接诊中”状态，不能填写正式记录。'); return; }
+    $('#appointmentHint').text('预约 #' + found.appointmentId + '，日期：' + found.appointmentDate + '，时段：' + found.appointmentTime);
+    $.ajax({url: api('/medical-records/doctor'), data: {appointmentId: appointmentId}, dataType: 'json'}).done(function (record) {
+      if (record.recordStatus !== 'DRAFT') { error('该就诊记录已正式提交，不能修改。'); return; }
+      $('#diagnosis').val(record.diagnosis || '');
+      $('#treatmentPlan').val(record.treatmentPlan || '');
+      $('#medicalAdvice').val(record.medicalAdvice || '');
+      $('#recordVersion').val(record.version).prop('disabled', false);
+      (record.orders || []).forEach(function (order) {
+        var row = $(orderRow());
+        row.find('[name=orderItem]').val(order.itemName || '');
+        row.find('[name=orderDosage]').val(order.dosage || '');
+        row.find('[name=orderFrequency]').val(order.frequency || '');
+        row.find('[name=orderQuantity]').val(order.quantity == null ? '' : order.quantity);
+        row.find('[name=orderInstruction]').val(order.instructionText || '');
+        $('#orders').append(row);
+      });
+      recordLoaded = true; appointmentReady = true; updateSubmitButton();
+    }).fail(function (xhr) {
+      if (xhr.status === 404) { recordLoaded = true; appointmentReady = true; updateSubmitButton(); return; }
+      error((xhr.responseJSON && xhr.responseJSON.message) || '读取病历草稿失败，请刷新页面重试。');
+    });
+  }).fail(function (xhr) { $('#appointmentHint').text('预约信息读取失败。'); error((xhr.responseJSON && xhr.responseJSON.message) || '读取预约失败，请稍后重试。'); updateSubmitButton(); });
+  function submitRecord(isDraft) {
+    if (!appointmentReady || !token || submitting) return;
+    message.removeClass('error success').text('');
+    var formData = $('#encounterForm').serialize();
+    submitting = true;
+    updateSubmitButton();
+    $.ajax({url: api(isDraft ? '/medical-records/draft' : '/medical-records/finalize'), type: 'POST', dataType: 'json', data: formData, headers: {'X-CSRF-Token': token}})
+      .done(function (response) {
+        message.removeClass('error').addClass('success').text(response.message || '保存成功。');
+        if (isDraft) { $('#recordVersion').val(response.version).prop('disabled', false); submitting = false; updateSubmitButton(); }
+        else setTimeout(function () { window.location.href = 'appointments.html'; }, 700);
+      })
+      .fail(function (xhr) {
+        var result = xhr.responseJSON || {};
+        if (xhr.status === 401 || xhr.status === 403 || result.code === 'INVALID_STATE' || result.code === 'DUPLICATE_RECORD') appointmentReady = false;
+        error(result.message || '保存失败，请稍后重试。');
+        submitting = false;
+        updateSubmitButton();
+      });
+  }
+  $('#draftButton').on('click', function () { submitRecord(true); });
+  $('#encounterForm').on('submit', function (event) { event.preventDefault(); submitRecord(false); });
+}());
+</script>
+</body>
+</html>

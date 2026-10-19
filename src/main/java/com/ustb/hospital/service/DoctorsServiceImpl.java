@@ -5,6 +5,7 @@ import com.github.pagehelper.PageInfo;
 import com.ustb.hospital.entity.Doctors;
 import com.ustb.hospital.mapper.DepartmentsMapper;
 import com.ustb.hospital.mapper.DoctorsMapper;
+import com.ustb.hospital.security.PasswordService;
 import com.ustb.hospital.utils.MybatisUtil;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.session.SqlSession;
@@ -16,7 +17,14 @@ public class DoctorsServiceImpl {
     public void updatePassword(String jobNumber,String password){
         SqlSession sqlSession = MybatisUtil.getSqlSession();
         DoctorsMapper mapper = sqlSession.getMapper(DoctorsMapper.class);
-        mapper.updatePassword(jobNumber,password);
+        try { mapper.updatePassword(jobNumber, PasswordService.hash(password)); }
+        finally { sqlSession.close(); }
+    }
+
+    public void upgradePasswordHash(int doctorId, String passwordHash) {
+        SqlSession session = MybatisUtil.getSqlSession();
+        try { session.getMapper(DoctorsMapper.class).upgradePasswordHash(doctorId, passwordHash); }
+        finally { session.close(); }
     }
 
     public Doctors selectByJobNumber(String jobNumber){
@@ -78,7 +86,7 @@ public class DoctorsServiceImpl {
         jobNumber = Integer.toString(jobNumber_);
 
 
-        mapper.save( doctorId,   jobNumber,   password,   name,  avatar,   phone,  email,  introduction,   registrationFee, entryDate, departmentId,  professionalTitleId);
+        mapper.save( doctorId,   jobNumber,   PasswordService.hash(password),   name,  avatar,   phone,  email,  introduction,   registrationFee, entryDate, departmentId,  professionalTitleId);
         return jobNumber_;  //返回工号
 
 
@@ -100,7 +108,8 @@ public class DoctorsServiceImpl {
             doctorsNew.setJobNumber(newJobNumberStr);
             doctorsNew.setName(docName);
             doctorsNew.setAvatar(avatar);
-            doctorsNew.setPassword(password);
+            doctorsNew.setPassword(null);
+            doctorsNew.setPasswordHash(PasswordService.hash(password));
             doctorsNew.setPhone(phone);
             doctorsNew.setEmail(email);
             doctorsNew.setIntroduction(introduction);

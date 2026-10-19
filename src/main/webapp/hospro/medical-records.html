@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>就诊记录与医嘱</title><script src="static/js/jquery.js"></script>
+  <style>body{font-family:Arial,"Microsoft YaHei",sans-serif;background:#f5fbfb;color:#183354;margin:0}.wrap{max-width:900px;margin:40px auto;padding:28px;background:white;border-radius:12px;box-shadow:0 8px 22px #1a535c1c}.record{border:1px solid #d6e3e7;border-radius:9px;padding:18px;margin:16px 0}.record h2{margin-top:0}.orders{padding-left:20px}.error{color:#bd3126}.empty{color:#526779}</style>
+</head>
+<body><main class="wrap"><p><a href="patient.jsp">← 返回预约记录</a></p><h1>就诊记录与医嘱</h1><div id="records">正在加载…</div></main>
+<script>
+(function(){
+  var contextPath=window.location.pathname.substring(0,window.location.pathname.indexOf('/hospro/'))||'';
+  function esc(value){return $('<div>').text(value == null ? '' : value).html();}
+  function recordHtml(record){var orders=record.orders||[];var rows=orders.length?'<ul class="orders">'+orders.map(function(o){return '<li><strong>'+esc(o.itemName)+'</strong> '+esc(o.dosage)+' '+esc(o.frequency)+(o.quantity==null?'':' × '+esc(o.quantity))+(o.instructionText?'：'+esc(o.instructionText):'')+'</li>';}).join('')+'</ul>':'<p>暂无处方或检查项目。</p>';return '<article class="record"><h2>预约 #'+esc(record.appointmentId)+'</h2><p><strong>诊断：</strong>'+esc(record.diagnosis)+'</p><p><strong>诊疗方案：</strong>'+esc(record.treatmentPlan||'未填写')+'</p><p><strong>医嘱说明：</strong>'+esc(record.medicalAdvice||'未填写')+'</p><p><strong>记录时间：</strong>'+esc(record.createdAt)+'</p><h3>项目</h3>'+rows+'</article>';}
+  $.getJSON(contextPath+'/medical-records/patient').done(function(records){$('#records').html(records.length?records.map(recordHtml).join(''):'<p class="empty">暂无已完成的就诊记录。</p>');}).fail(function(xhr){$('#records').html('<p class="error">'+esc((xhr.responseJSON&&xhr.responseJSON.message)||'加载失败，请先登录患者账号。')+'</p>');});
+}());
+</script></body></html>

@@ -42,12 +42,23 @@ final class AppointmentServletSupport {
         return parsed == null ? 1 : parsed.intValue();
     }
     static void writeResult(HttpServletResponse response, AppointmentOperationResult result) throws IOException {
-        response.setStatus(result.isSuccessful() ? HttpServletResponse.SC_OK : HttpServletResponse.SC_BAD_REQUEST);
+        response.setStatus(result.isSuccessful() ? HttpServletResponse.SC_OK : statusFor(result.getCode()));
         Map<String, Object> body = new HashMap<String, Object>();
         body.put("success", Boolean.valueOf(result.isSuccessful()));
         body.put("code", result.getCode());
         body.put("message", result.getMessage());
         writeJson(response, body);
+    }
+    private static int statusFor(String code) {
+        if ("BOOKING_FAILED".equals(code) || "CANCEL_FAILED".equals(code) || "RESCHEDULE_FAILED".equals(code)
+                || "START_FAILED".equals(code) || "SCHEDULE_CREATE_FAILED".equals(code)
+                || "SCHEDULE_UPDATE_FAILED".equals(code) || "SCHEDULE_DELETE_FAILED".equals(code)) return HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+        if ("FORBIDDEN".equals(code)) return HttpServletResponse.SC_FORBIDDEN;
+        if ("NOT_FOUND".equals(code)) return HttpServletResponse.SC_NOT_FOUND;
+        if ("SLOT_UNAVAILABLE".equals(code) || "INVALID_STATE".equals(code) || "NO_CHANGE".equals(code)) {
+            return HttpServletResponse.SC_CONFLICT;
+        }
+        return HttpServletResponse.SC_BAD_REQUEST;
     }
     static void writeJson(HttpServletResponse response, Object body) throws IOException {
         response.setContentType("application/json;charset=UTF-8");

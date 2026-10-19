@@ -9,6 +9,7 @@ public class Doctors {
     private int doctorId;
     private String jobNumber;
     private String password;
+    private String passwordHash;
     private String name;
     private String avatar;
     private String phone;
@@ -46,6 +47,10 @@ public class Doctors {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    @JsonIgnore
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
 
     public String getName() {
         return name;

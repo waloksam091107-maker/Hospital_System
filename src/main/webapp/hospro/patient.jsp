@@ -66,7 +66,7 @@ function appUrl(path) { return appContext + path; }
         const newAppointmentLink = document.getElementById('newAppointmentLink');
         const patientHomeLink = document.getElementById('patientHomeLink');
         if (patientId && newAppointmentLink) {
-            newAppointmentLink.href = 'index.html?roleCode=2&patientId=' + encodeURIComponent(patientId);
+            newAppointmentLink.href = 'appointment-departments.html?patientId=' + encodeURIComponent(patientId);
         }
         if (patientId && patientHomeLink) {
             patientHomeLink.href = 'index.html?roleCode=2&patientId=' + encodeURIComponent(patientId);
@@ -312,7 +312,7 @@ function appUrl(path) { return appContext + path; }
                         <li><a id="hzyuyue" class="current"><i class="fas fa-wheelchair"></i>预约记录</a></li>
                         <li><a href="exit.jsp"><i class="fas fa-plus-circle"></i>修改信息</a></li>
 
-                        <li><a href="review.html"><i class="fas fa-star"></i>医嘱详情</a></li>
+                        <li><a href="medical-records.html"><i class="fas fa-star"></i>就诊记录与医嘱</a></li>
 
                         <li><a href="change-password.html"><i class="fas fa-unlock-alt"></i>修改密码</a></li>
                         <li><a id="patientHomeLink" href="index.html?roleCode=2"><i class="fas fa-sign-out-alt"></i>返回主页</a></li>
@@ -424,6 +424,10 @@ function appUrl(path) { return appContext + path; }
                 font-size: 16px;
             }
 
+            .appointment-periods { display: flex; flex-wrap: wrap; gap: 10px; }
+            .appointment-periods label { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 8px 10px; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; }
+            .appointment-periods input { position: static; opacity: 1; width: auto; height: auto; margin: 0; }
+
             .input:focus {
                 border-color: #007bff;
                 outline: none;
@@ -485,6 +489,13 @@ function appUrl(path) { return appContext + path; }
             }
         });
     });
+    let csrfToken = '';
+    function loadCsrfToken(callback) {
+        $.getJSON(appUrl('/security/csrf')).done(function (response) {
+            csrfToken = response.token || '';
+            callback();
+        }).fail(function () { alert('页面安全校验初始化失败，请刷新后重试。'); });
+    }
     function loadAppointmentsPage(p) {
         $.ajax({
             url: appUrl('/appointments/patient'),
@@ -501,20 +512,20 @@ function appUrl(path) { return appContext + path; }
                     trObj.append($("<td>" + v.departments.departmentName + "</td>"));
                     trObj.append($("<td>" + v.appointmentDate + "</td>"));
                     trObj.append($("<td>" + v.appointmentTime + "</td>"));
-                    trObj.append($("<td>" + v.status + "</td>"));
+                    trObj.append($("<td>" + appointmentStatusText(v.status) + "</td>"));
                     var buttonGroup = $("<td><div class='button-group'></div></td>");
-                    // 修改按钮
-                    if (v.status === "booked") {
-                        buttonGroup.find('.button-group').append($("<a class='button border-main' href='javascript:void(0)' onclick='showUpdateModal(" + v.appointmentId + ", \"" + v.appointmentDate + "\", \"" + v.appointmentTime + "\")'><span class='icon-edit'></span> 修改</a>"));
-                    } else {
-                        buttonGroup.find('.button-group').append($("<a class='button border-main' href='javascript:void(0)' disabled><span class='icon-edit'></span> 修改</a>"));
-                    }
-                    // 取消按钮
-                    if (v.status === "booked" ) {
-                        buttonGroup.find('.button-group').append($("<a class='button border-red' href='javascript:void(0)' onclick='return confirmCancellation(" + v.appointmentId + ")'><span class='icon-trash-o'></span> 取消</a>"));
-                    } else {
-                        buttonGroup.find('.button-group').append($("<a class='button border-red' href='javascript:void(0)' disabled><span class='icon-trash-o'></span> 取消</a>"));
-                    }
+                    var rescheduleButton = $("<button type='button' class='button border-main'><span class='icon-edit'></span> 修改</button>");
+                    rescheduleButton.on('click', function () {
+                        if (v.status === "BOOKED") {
+                            showUpdateModal(v.appointmentId, v.appointmentDate, v.appointmentTime);
+                        } else { alert(patientActionUnavailable(v.status)); }
+                    });
+                    var cancelButton = $("<button type='button' class='button border-red'><span class='icon-trash-o'></span> 取消</button>");
+                    cancelButton.on('click', function () {
+                        if (v.status === "BOOKED") { confirmCancellation(v.appointmentId); }
+                        else { alert(patientActionUnavailable(v.status)); }
+                    });
+                    buttonGroup.find('.button-group').append(rescheduleButton, cancelButton);
                     trObj.append(buttonGroup);
                     trObj.appendTo($("#appBody"));
                 });
@@ -534,9 +545,24 @@ function appUrl(path) { return appContext + path; }
         });
     }
 
+    function appointmentStatusText(status) {
+        return { BOOKED: '已预约', IN_PROGRESS: '接诊中', COMPLETED: '已完成接诊', CANCELLED: '已取消', RESCHEDULED: '已改期' }[status] || status;
+    }
+
+    function patientActionUnavailable(status) {
+        if (status === 'RESCHEDULED') return '该预约已改期，请操作新的预约记录。';
+        if (status === 'CANCELLED') return '该预约已取消，无法继续操作。';
+        return '当前预约状态不允许此操作。';
+    }
+
+    function appointmentRequestError(xhr, fallback) {
+        return (xhr.responseJSON && xhr.responseJSON.message) || fallback;
+    }
+
 
     $(document).ready(function() {
-        loadAppointmentsPage(1, "", "");
+        $('#updateModal').appendTo('body');
+        loadCsrfToken(function () { loadAppointmentsPage(1, "", ""); });
     });
     function changePage(p){
         loadAppointmentsPage(p)
@@ -549,7 +575,9 @@ function appUrl(path) { return appContext + path; }
     function showUpdateModal(appointmentId, appointmentDate, appointmentTime) {
         $("#updateAppointmentId").val(appointmentId);
         $("#updateAppointmentDate").val(appointmentDate);
-        $("#updateAppointmentTime").val(appointmentTime);
+        $("input[name='updateAppointmentTime']").prop('checked', false).filter(function () {
+            return this.value === appointmentTime;
+        }).prop('checked', true);
         $("#updateModal").show();
     }
 
@@ -560,9 +588,13 @@ function appUrl(path) { return appContext + path; }
     function updateAppointment() {
         var appointmentId = $('#updateAppointmentId').val();
         var appointmentDate = $('#updateAppointmentDate').val();
-        var appointmentTime = $('#updateAppointmentTime').val();
+        var appointmentTime = $("input[name='updateAppointmentTime']:checked").val();
         if (appointmentDate.trim() === "") {
             alert("请选择日期！");
+            return;
+        }
+        if (!appointmentTime) {
+            alert("请选择时间段！");
             return;
         }
         $.ajax({
@@ -570,6 +602,7 @@ function appUrl(path) { return appContext + path; }
             type: 'POST',
             data: {appointmentId: appointmentId, appointmentDate: appointmentDate, appointmentTime: appointmentTime },
             dataType: 'json',
+            headers: { 'X-CSRF-Token': csrfToken },
             success: function(response) {
                 if (response.success) {
                     alert(response.message);
@@ -578,8 +611,8 @@ function appUrl(path) { return appContext + path; }
                     alert(response.message || '更新失败');
                 }
             },
-            error: function() {
-                alert('更新失败');
+            error: function(xhr) {
+                alert(appointmentRequestError(xhr, '更新失败，请稍后重试。'));
             }
         });
     }
@@ -593,6 +626,7 @@ function appUrl(path) { return appContext + path; }
                     "appointmentId": appointmentId
                 },
                 dataType: 'json',
+                headers: { 'X-CSRF-Token': csrfToken },
                 success: function (response) {
                     if (response.success) {
                         alert(response.message);
@@ -603,8 +637,8 @@ function appUrl(path) { return appContext + path; }
 
                     }
                 },
-                error: function () {
-                    alert("取消预约失败！");
+                error: function (xhr) {
+                    alert(appointmentRequestError(xhr, "取消预约失败，请稍后重试。"));
                 }
             });
         }
@@ -619,53 +653,16 @@ function appUrl(path) { return appContext + path; }
             </div>
             <h3><p>修改就诊时间</p ></h3>
             <div class="form-group">
-                <label for="updateAppointmentTime">请选择时间段:</label>
-                <div class="select-wrapper">
-                    <select id="updateAppointmentTime" class="input select-scroll">
-                        <option value="AM">上午</option>
-                        <option value="PM">下午</option>
-                        <option value="EVENING">晚间</option>
-                    </select>
+                <span>请选择时间段:</span>
+                <div class="appointment-periods" role="radiogroup" aria-label="请选择时间段">
+                    <label><input type="radio" name="updateAppointmentTime" value="AM"> 上午</label>
+                    <label><input type="radio" name="updateAppointmentTime" value="PM"> 下午</label>
+                    <label><input type="radio" name="updateAppointmentTime" value="EVENING"> 晚间</label>
                 </div>
             </div>
             <button type="button" class="button border-main" onclick="updateAppointment()">提交</button>
             <button type="button" class="button border-gray" onclick="hideUpdateModal()">取消</button>
         </div>
-        <style>
-            .select-wrapper {
-                position: relative;
-                display: inline-block;
-                width: 100%;
-            }
-
-            .select-scroll {
-                appearance: none;
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath d='M0 2l4 4 4-4z' fill='%23000000'/%3E%3C/svg%3E") no-repeat right 0.75rem center/8px 10px;
-                padding-right: 2rem;
-            }
-
-            .select-scroll::-ms-expand {
-                display: none;
-            }
-
-            .select-scroll option {
-                padding: 0.5rem;
-            }
-
-            .select-scroll optgroup {
-                font-weight: bold;
-                color: #333;
-            }
-
-            @media screen and (min-width: 768px) {
-                .select-scroll {
-                    max-height: 200px;
-                    overflow-y: auto;
-                }
-            }
-        </style>
         <style> table {
             width: 100%;
             border-collapse: collapse;
@@ -678,7 +675,7 @@ function appUrl(path) { return appContext + path; }
                 <div class="title-box clearfix">
                     <div class="text pull-left"><h3>预约记录</h3></div>
                     <div class="btn-box pull-right">
-                        <a id="newAppointmentLink" href="index.html" class="theme-btn-one">新增预约<i class="icon-image"></i></a>
+                        <a id="newAppointmentLink" href="appointment-departments.html" class="theme-btn-one">新增预约<i class="icon-image"></i></a>
                     </div>
                 </div>
                 <div class="doctors-list">

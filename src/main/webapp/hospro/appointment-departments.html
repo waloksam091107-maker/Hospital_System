@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>选择科室预约</title>
+    <style>
+        body { margin: 0; color: #0d2b53; background: #eefafa; font-family: Arial, sans-serif; }
+        header { background: #fff; padding: 22px max(20px, calc((100% - 1000px) / 2)); }
+        header a { color: #0d2b53; margin-left: 20px; }
+        main { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        h1 { font-size: 28px; }
+        .departments { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+        .department { background: white; border-radius: 10px; padding: 22px; box-shadow: 0 4px 18px rgba(13,43,83,.08); }
+        .department h2 { font-size: 21px; margin: 0 0 14px; }
+        .department a { display: block; color: #087a73; padding: 8px 0; }
+        .hint { color: #667085; }
+    </style>
+</head>
+<body>
+<header><strong>医院预约挂号管理系统</strong><a id="recordsLink" href="patient.jsp">返回预约记录</a></header>
+<main>
+    <h1>选择科室预约</h1>
+    <p>请选择科室，再选择医生及可预约时段。</p>
+    <div id="departments" class="departments" aria-live="polite"><p class="hint">正在加载科室…</p></div>
+</main>
+<script>
+    (function () {
+        const appContext = window.location.pathname.split('/hospro/')[0];
+        const patientId = new URLSearchParams(window.location.search).get('patientId');
+        if (patientId) document.getElementById('recordsLink').href = 'patient.jsp?patientId=' + encodeURIComponent(patientId);
+        const container = document.getElementById('departments');
+        function doctorLink(department) {
+            const link = document.createElement('a');
+            link.href = 'doctor-directory.html?departmentId=' + encodeURIComponent(department.departmentId)
+                + '&departmentName=' + encodeURIComponent(department.departmentName);
+            link.textContent = department.departmentName;
+            return link;
+        }
+        function loadChildren(card, department) {
+            fetch(appContext + '/second?deptPid=' + encodeURIComponent(department.departmentId))
+                .then(function (response) { if (!response.ok) throw new Error('load failed'); return response.json(); })
+                .then(function (children) { children.forEach(function (child) { card.appendChild(doctorLink(child)); }); })
+                .catch(function () { const hint = document.createElement('p'); hint.className = 'hint'; hint.textContent = '子科室加载失败，请稍后重试。'; card.appendChild(hint); });
+        }
+        fetch(appContext + '/first')
+            .then(function (response) { if (!response.ok) throw new Error('load failed'); return response.json(); })
+            .then(function (departments) {
+                container.textContent = '';
+                if (!departments.length) { container.textContent = '暂无可选择的科室。'; return; }
+                departments.forEach(function (department) {
+                    const card = document.createElement('section');
+                    card.className = 'department';
+                    const title = document.createElement('h2');
+                    title.appendChild(doctorLink(department));
+                    card.appendChild(title);
+                    container.appendChild(card);
+                    loadChildren(card, department);
+                });
+            })
+            .catch(function () { container.textContent = '科室加载失败，请刷新页面后重试。'; });
+    }());
+</script>
+</body>
+</html>

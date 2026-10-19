@@ -35,7 +35,10 @@ public class MissingHtmlPageRedirectFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         String requestPath = request.getRequestURI().substring(request.getContextPath().length());
-        if ("/hospro/login.html".equals(requestPath)) {
+        // Maven's reproducible WAR timestamp makes Tomcat advertise 1980 as the
+        // last-modified value for static pages.  Without these headers browsers
+        // can therefore keep an obsolete business page after a new WAR deploy.
+        if (isHtmlPage(requestPath)) {
             response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
             response.setHeader("Pragma", "no-cache");
             response.setHeader("Expires", "0");

@@ -8,6 +8,7 @@
         <id column="admin_id" property="adminId"></id>
         <result column="username" property="username"></result>
         <result column="password" property="password"></result>
+        <result column="password_hash" property="passwordHash"></result>
         <result column="name" property="name"></result>
         <result column="avatar" property="avatar"></result>
         <result column="phone" property="phone"></result>
@@ -20,7 +21,8 @@
     <update id="updatePassword">
         update admins
         set
-            password=#{1}
+            password=NULL,
+            password_hash=#{1}
         where
             username=#{0}
     </update>
@@ -28,7 +30,7 @@
 
 
     <insert id="save">
-        insert into admins(admin_id,username,password,name,avatar,phone,email) values(#{adminId},#{username},#{password},#{name},#{avatar},#{phone},#{email})
+        insert into admins(admin_id,username,password,password_hash,name,avatar,phone,email) values(#{adminId},#{username},NULL,#{password},#{name},#{avatar},#{phone},#{email})
     </insert>
 
     <select id="selectByUsername" resultMap="adminMap">
@@ -73,5 +75,9 @@
         UPDATE admins
         SET avatar = #{avatar}
         WHERE admin_id = #{adminId} </update>
+    <update id="upgradePasswordHash">
+        UPDATE admins SET password_hash = #{passwordHash}, password = NULL WHERE admin_id = #{adminId}
+    </update>
+    <select id="selectForPasswordUpdate" resultMap="adminMap">SELECT * FROM admins WHERE admin_id = #{adminId} FOR UPDATE</select>
 
 </mapper>

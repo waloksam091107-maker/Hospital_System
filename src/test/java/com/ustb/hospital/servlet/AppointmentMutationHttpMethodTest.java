@@ -23,6 +23,7 @@ public class AppointmentMutationHttpMethodTest {
                 new AppointmentBookingServlet(),
                 new AppointmentsUpdateStatusServlet(),
                 new AppointmentsEditServlet(),
+                new AppointmentStartServlet(),
                 new AppointmentCompletionServlet(),
                 new AppointmentsDeleteServlet(),
                 new DatesAddServlet(),

@@ -40,8 +40,8 @@ public class CoreRegistrationNavigationTest {
         String page = readWebFile("hospro", "patient.jsp");
 
         assertTrue("患者新增预约入口必须由当前患者编号生成", page.contains("id=\"newAppointmentLink\""));
-        assertTrue("患者新增预约入口必须保留患者身份和角色", page.contains(
-                "index.html?roleCode=2&patientId=' + encodeURIComponent(patientId)"));
+        assertTrue("患者新增预约入口必须打开科室选择并保留患者页面参数", page.contains(
+                "appointment-departments.html?patientId=' + encodeURIComponent(patientId)"));
         assertTrue("患者返回主页入口必须由当前患者编号生成", page.contains("id=\"patientHomeLink\""));
     }
 

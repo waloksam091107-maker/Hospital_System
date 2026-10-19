@@ -53,6 +53,34 @@ public class MissingHtmlPageFallbackTest {
     }
 
     @Test
+    public void existingBusinessHtmlPageDisablesCachingSoDeployedPageChangesAreVisible() throws Exception {
+        Map<String, String> headers = new HashMap<String, String>();
+        AtomicBoolean chainCalled = new AtomicBoolean(false);
+        ServletContext servletContext = (ServletContext) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{ServletContext.class},
+                (proxy, method, arguments) -> "getResource".equals(method.getName()) ? new URL("file:/appointments.html") : null);
+        HttpServletRequest request = (HttpServletRequest) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{HttpServletRequest.class},
+                (proxy, method, arguments) -> {
+                    if ("getRequestURI".equals(method.getName())) return "/ustbhospital/doctor-schedule/appointments.html";
+                    if ("getContextPath".equals(method.getName())) return "/ustbhospital";
+                    if ("getServletContext".equals(method.getName())) return servletContext;
+                    return null;
+                });
+        HttpServletResponse response = (HttpServletResponse) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{HttpServletResponse.class},
+                (proxy, method, arguments) -> {
+                    if ("setHeader".equals(method.getName())) headers.put((String) arguments[0], (String) arguments[1]);
+                    return null;
+                });
+        FilterChain chain = (request1, response1) -> chainCalled.set(true);
+
+        new MissingHtmlPageRedirectFilter().doFilter(request, response, chain);
+
+        assertEquals("no-store, no-cache, must-revalidate", headers.get("Cache-Control"));
+        assertEquals("no-cache", headers.get("Pragma"));
+        assertEquals("0", headers.get("Expires"));
+        assertTrue("存在的业务 HTML 页面仍应继续由静态资源处理", chainCalled.get());
+    }
+
+    @Test
     public void missingHtmlPageRequestsHaveADedicatedFallbackFilter() throws Exception {
         Path filterSource = Paths.get("src", "main", "java", "com", "ustb", "hospital", "filter", "MissingHtmlPageRedirectFilter.java");
         assertTrue("缺失页面应有兼容处理过滤器", Files.isRegularFile(filterSource));

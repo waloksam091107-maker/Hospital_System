@@ -7,6 +7,7 @@
         <id column="doctor_id" property="doctorId" />
         <result column="job_number" property="jobNumber" />
         <result column="password" property="password"/>
+        <result column="password_hash" property="passwordHash"/>
         <result column="NAME" property="name" />
         <result column="avatar" property="avatar" />
         <result column="phone" property="phone"/>
@@ -29,6 +30,7 @@
         <id column="doctor_id" property="doctorId" />
         <result column="job_number" property="jobNumber" />
         <result column="password" property="password" />
+        <result column="password_hash" property="passwordHash" />
         <result column="name" property="name" />
         <result column="avatar" property="avatar" />
         <result column="phone" property="phone"/>
@@ -82,7 +84,7 @@
     </select>
 
     <insert id="save">
-        insert into doctors(doctor_id,job_number,password,name,avatar,phone,email,introduction,registration_fee,entry_date,department_id,professional_title_id) values(#{doctorId},#{jobNumber},#{password},#{name},#{avatar},#{phone},#{email},#{introduction},#{registrationFee},#{entryDate},#{departmentId},#{professionalTitleId})
+        insert into doctors(doctor_id,job_number,password,password_hash,name,avatar,phone,email,introduction,registration_fee,entry_date,department_id,professional_title_id) values(#{doctorId},#{jobNumber},NULL,#{password},#{name},#{avatar},#{phone},#{email},#{introduction},#{registrationFee},#{entryDate},#{departmentId},#{professionalTitleId})
     </insert>
 
     <select id="getMaxDoctorId" resultType="int">
@@ -105,7 +107,6 @@
     <update id="update">
         UPDATE doctors
         SET
-            password=#{password},
             name=#{name},
             avatar=#{avatar},
             phone=#{phone},
@@ -122,7 +123,8 @@
     <update id="updatePassword">
         update doctors
         set
-            password=#{1}
+            password=NULL,
+            password_hash=#{1}
         where
             job_number=#{0}
     </update>
@@ -132,8 +134,8 @@
     </select>
 
     <insert id="insert">
-        INSERT INTO `hospt`.`doctors`(`doctor_id`, `job_number`, `password`, `name`, `avatar`, `phone`, `email`, `introduction`, `registration_fee`, `entry_date`, `department_id`, `professional_title_id`)
-        values(#{doctorId},#{jobNumber},#{password},#{name},#{avatar},#{phone},#{email},#{introduction},#{registrationFee},#{entryDate},#{departmentId},#{professionalTitleId})
+        INSERT INTO `hospt`.`doctors`(`doctor_id`, `job_number`, `password`, `password_hash`, `name`, `avatar`, `phone`, `email`, `introduction`, `registration_fee`, `entry_date`, `department_id`, `professional_title_id`)
+        values(#{doctorId},#{jobNumber},NULL,#{passwordHash},#{name},#{avatar},#{phone},#{email},#{introduction},#{registrationFee},#{entryDate},#{departmentId},#{professionalTitleId})
     </insert>
     <delete id="delete">
         DELETE FROM `hospt`.`doctors` WHERE `doctor_id` = #{id}
@@ -144,6 +146,7 @@
             doctor_id,
             job_number,
             password,
+            password_hash,
             NAME,
             avatar,
             phone,
@@ -170,8 +173,8 @@
         WHERE doctor_id = #{doctorId}
     </update>
     <insert id="insertDoc">
-        INSERT INTO `hospt`.`doctors`(`doctor_id`, `job_number`, `password`, `name`, `avatar`, `phone`, `email`, `introduction`, `registration_fee`, `entry_date`, `department_id`, `professional_title_id`)
-        VALUES (#{doctorId},#{jobNumber},#{password},#{name},#{avatar},#{phone},#{email},#{introduction},#{registrationFee},#{entryDate},#{departmentId},#{professionalTitleId})
+        INSERT INTO `hospt`.`doctors`(`doctor_id`, `job_number`, `password`, `password_hash`, `name`, `avatar`, `phone`, `email`, `introduction`, `registration_fee`, `entry_date`, `department_id`, `professional_title_id`)
+        VALUES (#{doctorId},#{jobNumber},NULL,#{passwordHash},#{name},#{avatar},#{phone},#{email},#{introduction},#{registrationFee},#{entryDate},#{departmentId},#{professionalTitleId})
     </insert>
     <select id="getDocMaxId" resultType="int">
         select max(doctor_id) from doctors
@@ -181,6 +184,10 @@
         SET avatar = #{avatar}
         WHERE doctor_id = #{doctorId}
     </update>
+    <update id="upgradePasswordHash">
+        UPDATE doctors SET password_hash = #{passwordHash}, password = NULL WHERE doctor_id = #{doctorId}
+    </update>
+    <select id="selectForPasswordUpdate" resultMap="docMap2">SELECT * FROM doctors WHERE doctor_id = #{doctorId} FOR UPDATE</select>
     <update id="updateDoctorProfileDetails" parameterType="com.ustb.hospital.entity.Doctors">
 UPDATE doctors
 SET phone = #{phone}, email = #{email}, introduction = #{introduction}, registration_fee = #{registrationFee}, entry_date = #{entryDate}, department_id = #{departmentId}, professional_title_id = #{professionalTitleId}

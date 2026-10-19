@@ -3,6 +3,7 @@ package com.ustb.hospital.servlet;
 import com.ustb.hospital.service.AdminsServiceImpl;
 import com.ustb.hospital.service.DoctorsServiceImpl;
 import com.ustb.hospital.service.PatientsServiceImpl;
+import com.ustb.hospital.security.PasswordService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -22,6 +23,12 @@ public class AccountRegistrationServlet extends HttpServlet {
         String roleCode = req.getParameter("roleCode");
         if (roleCode == null) {
             roleCode = req.getParameter("typeId");
+        }
+        try {
+            PasswordService.validateNewPassword(password);
+        } catch (IllegalArgumentException exception) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, exception.getMessage());
+            return;
         }
         if (roleCode != null) {
             if (roleCode.equals("1")) {
@@ -58,6 +65,6 @@ resp.sendRedirect(req.getContextPath() + "/hospro/index.html?jobNum="+generatedD
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        this.doPost(req,resp);
+        resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "仅支持 POST 注册请求");
     }
 }

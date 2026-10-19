@@ -289,39 +289,13 @@ function appUrl(path) { return appContext + path; }
             <div class="auto-container">
                 <div class="content-box">
                     <div class="form-inner clearfix">
-                        <form action="archive/index.html" method="post">
+                        <form id="directoryDepartmentForm" autocomplete="off">
                             <div id="hei" class="form-group clearfix">
-                                <select  class="wide">
-                                   <option data-display="Select Location">Select Location</option>
-                                   <option value="1">California</option>
-                                   <option value="2">New York</option>
-                                   <option value="3">Sun Francis</option>
-                                   <option value="4">Shicago</option>
-                                </select>
-                                <input type="text" name="name" placeholder="Ex. Name, Specialization..." required="">
-                                <button type="submit"><i class="icon-Arrow-Right"></i></button>
+                                <input id="directorySearchInput" type="text" name="name" placeholder="请输入科室名称" autocomplete="off">
+                                <button type="submit" aria-label="搜索科室"><i class="icon-Arrow-Right"></i></button>
                             </div>
                         </form>
-                        <ul class="select-box clearfix">
-                            <li>
-                                <div class="single-checkbox">
-                                    <input type="radio" name="check-box" id="check1">
-                                    <label for="check1"><span></span>All</label>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="single-checkbox">
-                                    <input type="radio" name="check-box" id="check2" checked="">
-                                    <label for="check2"><span></span>Doctor</label>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="single-checkbox">
-                                    <input type="radio" name="check-box" id="check3">
-                                    <label for="check3"><span></span>Clinic</label>
-                                </div>
-                            </li>
-                        </ul>
+                        <div id="directorySearchResults" aria-live="polite"></div>
                     </div>
                 </div>
             </div>
@@ -367,8 +341,8 @@ function appUrl(path) { return appContext + path; }
 
                                         <button type="button" id="searchButton" >搜索</button>
                                         <!-- 隐藏的input标签，用于存储部门ID -->
-                                        <input type="hidden" id="hiddenDepartmentId" value="your_department_id">
-                                        <div id="result"></div>
+                                        <input type="hidden" id="hiddenDepartmentId" value="">
+                                        <div id="result" aria-live="polite"></div>
                                     </div>
                                 </div>
 
@@ -1033,20 +1007,24 @@ function appUrl(path) { return appContext + path; }
 </html>
 
 <script>
+    var doctorLoadVersion = 0;
     $(function(){
         const url = new URL(window.location);
         const searchParams = new URLSearchParams(url.search);
         const departmentName = searchParams.get('departmentName');
         const departmentId=searchParams.get('departmentId');
         if (departmentName) {
-            $('#inputView').val(departmentName);
+            $('#inputView, #directorySearchInput').val(departmentName);
         }
-        $("#hiddenDepartmentId").val(departmentId); // assuming you want to set departmentName
-        findDoc(departmentId);
-
-        loadDepartmentOptions();
+        $("#hiddenDepartmentId").val(departmentId || '');
+        if (departmentId) {
+            findDoc(departmentId, 1);
+        } else {
+            $('#clinicListContent').empty().text('请输入科室名称搜索医生。');
+        }
     })
     function findDoc(departmentId,pageNum) {//index=1
+        var loadVersion = ++doctorLoadVersion;
         var clinicListContent = $("#clinicListContent");
         clinicListContent.empty().append('<p class="doctor-list-loading">正在加载医生列表…</p>');
 
@@ -1056,10 +1034,14 @@ function appUrl(path) { return appContext + path; }
             data: {"departmentId": departmentId,"pageNum":pageNum},
             dataType: "json",
             success: function (res) {
+                if (loadVersion !== doctorLoadVersion) return;
 
                 console.log("res", res)
                 // $("#subMenu" + index + " tbody").empty()
                 clinicListContent.empty(); // 清空当前内容
+                if (!res.list || res.list.length === 0) {
+                    clinicListContent.append('<p>该科室暂无医生。</p>');
+                }
                 $.each(res.list, function (i, v) {
 
                     var clinicBlock = $('<div class="clinic-block-one"></div>');
@@ -1128,6 +1110,7 @@ function appUrl(path) { return appContext + path; }
 
             },
             error: function () {
+                if (loadVersion !== doctorLoadVersion) return;
                 clinicListContent.empty().append('<p class="doctor-list-loading">医生列表加载失败，请稍后重试。</p>');
             }
         });
@@ -1149,62 +1132,77 @@ function appUrl(path) { return appContext + path; }
 
 <!-- 监听输入框 -->
 <script type="text/javascript">
-    $(document).ready(function() {
-        $("#inputView").on("input", function(event) {
-            var keyword = $.trim(this.value);
-            // ajax搜索
-            $.ajax({
-                type: "GET",
-                url: appUrl('/find?keyword=') + keyword,
-                //datatype: "json", //////
-                success: function(data) {
-                    // 将返回的 JSON 字符串解析为 JavaScript 对象数组
-                    // alert("001100")
-                    var dataArray = JSON.parse(data);
+    var departmentSearchVersion = 0;
+    function clearDoctorResults(message) {
+        ++doctorLoadVersion;
+        $('#clinicListContent').empty().text(message);
+        $("#yeMa li").not(':first').not(':last').remove();
+    }
+    function selectDepartment(department) {
+        ++departmentSearchVersion;
+        $('#hiddenDepartmentId').val(department.departmentId);
+        $('#inputView, #directorySearchInput').val(department.departmentName);
+        $('#result, #directorySearchResults').empty();
+        var url = new URL(window.location.href);
+        url.searchParams.set('departmentId', department.departmentId);
+        url.searchParams.set('departmentName', department.departmentName);
+        window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+        findDoc(department.departmentId, 1);
+    }
 
-                    if (keyword === '') {
-                        $("#result").html("<p>关键词不得为空</p>");
-                    } else if (dataArray.length === 0) {
-                        $("#result").html("<p>暂无搜索结果</p>");
-                    } else {
-                        // 清空结果区域
-                        $("#result").empty();
-                        // 循环遍历列表
-                        for (var i = 0; i < dataArray.length; i++) {
-                            var deptname = dataArray[i].departmentName;
-                            var deptid = dataArray[i].departmentId; // 获取每个部门的ID
-
-                            // 将deptid设置为option元素的value属性
-                            $("#result").append('<option class="suggestion" value="' + deptid + '">' + deptname + "</option>");
-                        }
-                    }
-                },
-                error: function() {
-                    console.log("服务器错误");
+    function searchDepartments(input, result, submit) {
+        var keyword = $.trim($(input).val());
+        var searchVersion = ++departmentSearchVersion;
+        var results = $(result).empty();
+        if (!keyword) {
+            if (submit) results.text('请输入科室名称。');
+            return;
+        }
+        if (submit) results.text('正在搜索科室…');
+        $.ajax({
+            type: 'GET',
+            url: appUrl('/find'),
+            data: { keyword: keyword },
+            dataType: 'json',
+            success: function (departments) {
+                if (searchVersion !== departmentSearchVersion || $.trim($(input).val()) !== keyword) return;
+                results.empty();
+                if (!departments.length) {
+                    results.text('暂无匹配的科室。');
+                    if (submit) clearDoctorResults('没有可显示的医生，请重新搜索科室。');
+                } else if (submit && departments.length === 1) {
+                    selectDepartment(departments[0]);
+                } else {
+                    if (submit) results.append($('<p></p>').text('找到多个科室，请选择：'));
+                    $.each(departments, function (_, department) {
+                        results.append($('<button type="button" class="suggestion"></button>')
+                            .text(department.departmentName).data('department', department));
+                    });
                 }
-            });
+            },
+            error: function () {
+                if (searchVersion === departmentSearchVersion) {
+                    results.text('科室搜索失败，请稍后重试。');
+                    if (submit) clearDoctorResults('医生列表未更新，请重试搜索。');
+                }
+            }
         });
+    }
 
-        // 监听点击事件
-        $("#result").on("click", ".suggestion", function() {
-            var selectedDeptName = $(this).text();
-            var selectedDeptId = $(this).val();
-            $("#inputView").val(selectedDeptName);
-            $("#hiddenDepartmentId").val(selectedDeptId);
-
-        });
-    });
-
-
-    // 你的JavaScript代码
     $(document).ready(function() {
-        // 绑定点击事件到按钮上
-        $('#searchButton').on('click', function() {
-            // 获取输入框的值
-            var keyword = $('#hiddenDepartmentId').val();
-
-            // 调用findDoc函数，并传递keyword和departmentId作为参数
-            findDoc(keyword);
+        $('#inputView, #directorySearchInput').on('input', function () {
+            $('#hiddenDepartmentId').val('');
+            searchDepartments(this, this.id === 'inputView' ? '#result' : '#directorySearchResults', false);
+        });
+        $('#directoryDepartmentForm').on('submit', function (event) {
+            event.preventDefault();
+            searchDepartments('#directorySearchInput', '#directorySearchResults', true);
+        });
+        $('#searchButton').on('click', function () {
+            searchDepartments('#inputView', '#result', true);
+        });
+        $('#result, #directorySearchResults').on('click', '.suggestion', function () {
+            selectDepartment($(this).data('department'));
         });
     });
 

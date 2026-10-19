@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface AdminsMapper {
     void updatePassword(String name,String password);
+    int upgradePasswordHash(@Param("adminId") int adminId, @Param("passwordHash") String passwordHash);
+    Admins selectForPasswordUpdate(@Param("adminId") int adminId);
 
 
     void save(@Param("adminId") int adminId,@Param("username") String username,@Param("password") String password,@Param("name") String name,@Param("avatar") String avatar,@Param("phone") String phone,@Param("email") String email);

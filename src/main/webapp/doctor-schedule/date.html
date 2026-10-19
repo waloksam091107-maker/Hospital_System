@@ -502,6 +502,13 @@ function appUrl(path) { return appContext + path; }
     </style>
 
     <script type="text/javascript">
+      var csrfToken = '';
+      $(function () { $.getJSON(appUrl('/security/csrf')).done(function (response) { csrfToken = response.token || ''; }); });
+      $(document).ajaxSend(function (event, xhr, settings) {
+        if (/^(POST|PUT|PATCH|DELETE)$/i.test(settings.type || '') && (settings.url || '').indexOf('/schedules/') >= 0) {
+          xhr.setRequestHeader('X-CSRF-Token', csrfToken);
+        }
+      });
       function getPatientIdFromUrl() {
         // 获取当前页面的 URL 对象
         const url = new URL(window.location.href);

@@ -5,6 +5,7 @@ import com.github.pagehelper.PageInfo;
 import com.ustb.hospital.entity.Admins;
 import com.ustb.hospital.mapper.AdminsMapper;
 import com.ustb.hospital.mapper.PatientsMapper;
+import com.ustb.hospital.security.PasswordService;
 import com.ustb.hospital.utils.MybatisUtil;
 import org.apache.ibatis.session.SqlSession;
 
@@ -14,7 +15,13 @@ public class AdminsServiceImpl {
     public void updatePassword(String name,String password){
         SqlSession sqlSession= MybatisUtil.getSqlSession();
         AdminsMapper mapper=sqlSession.getMapper(AdminsMapper.class);
-        mapper.updatePassword(name,password);
+        try { mapper.updatePassword(name, PasswordService.hash(password)); }
+        finally { sqlSession.close(); }
+    }
+    public void upgradePasswordHash(int adminId, String passwordHash) {
+        SqlSession session = MybatisUtil.getSqlSession();
+        try { session.getMapper(AdminsMapper.class).upgradePasswordHash(adminId, passwordHash); }
+        finally { session.close(); }
     }
     public Admins queryByUsername(String username){
         SqlSession sqlSession= MybatisUtil.getSqlSession();
@@ -30,7 +37,7 @@ public class AdminsServiceImpl {
         AdminsMapper mapper=sqlSession.getMapper(AdminsMapper.class);
         int adminId=0;
         adminId= mapper.getMaxId()+1;
-        mapper.save(adminId,username,password,name,avatar,phone,email);
+        mapper.save(adminId,username,PasswordService.hash(password),name,avatar,phone,email);
     }
     public PageInfo<Admins> queryByPage(int pageNum, int pageSize, String username, String name, String phone){
         SqlSession sqlSession = MybatisUtil.getSqlSession();

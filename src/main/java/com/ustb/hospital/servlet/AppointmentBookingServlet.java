@@ -16,7 +16,7 @@ public class AppointmentBookingServlet extends HttpServlet {
         if (patientId == null) return;
         Integer doctorId = AppointmentServletSupport.parsePositiveInt(request.getParameter("doctorId"));
         if (doctorId == null) { AppointmentServletSupport.writeBadRequest(response, "医生编号无效。"); return; }
-        AppointmentOperationResult result = new AppointmentsServiceImpl().bookAppointment(patientId.intValue(), doctorId.intValue(), request.getParameter("appointment_date"), request.getParameter("appointment_time"));
+        AppointmentOperationResult result = new AppointmentsServiceImpl().bookAppointment(patientId.intValue(), doctorId.intValue(), request.getParameter("appointment_date"), request.getParameter("appointment_time"), com.ustb.hospital.service.AuditContext.fromRequest(request));
         AppointmentServletSupport.writeResult(response, result);
     }
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { AppointmentServletSupport.writeMethodNotAllowed(response); }

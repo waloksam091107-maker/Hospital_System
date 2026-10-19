@@ -18,7 +18,7 @@ public class DatesAddServlet extends HttpServlet {
         if (doctorId == null) return;
         Doctors doctor = new DoctorsServiceImpl().findById(doctorId.intValue());
         if (doctor == null) { AppointmentServletSupport.writeBadRequest(response, "当前医生不存在。"); return; }
-        AppointmentOperationResult result = new DatesServiceImpl().addDate(doctorId.intValue(), doctor.getName(), request.getParameter("date"), request.getParameter("shang"), request.getParameter("xia"), request.getParameter("wan"));
+        AppointmentOperationResult result = new DatesServiceImpl().addDate(doctorId.intValue(), doctor.getName(), request.getParameter("date"), request.getParameter("shang"), request.getParameter("xia"), request.getParameter("wan"), com.ustb.hospital.service.AuditContext.fromRequest(request));
         AppointmentServletSupport.writeResult(response, result);
     }
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException { AppointmentServletSupport.writeMethodNotAllowed(response); }

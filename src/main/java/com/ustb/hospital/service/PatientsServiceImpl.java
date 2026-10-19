@@ -4,6 +4,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.ustb.hospital.entity.Patients;
 import com.ustb.hospital.mapper.PatientsMapper;
+import com.ustb.hospital.security.PasswordService;
 import com.ustb.hospital.utils.MybatisUtil;
 import org.apache.ibatis.session.SqlSession;
 
@@ -92,8 +93,15 @@ public class PatientsServiceImpl {
     public void updatePassword(String name,String password){
         SqlSession sqlSession = MybatisUtil.getSqlSession();
         PatientsMapper mapper=sqlSession.getMapper(PatientsMapper.class);
-        mapper.updatePassword(name,password);
+        try { mapper.updatePassword(name, PasswordService.hash(password)); }
+        finally { sqlSession.close(); }
 
+    }
+
+    public void upgradePasswordHash(int patientId, String passwordHash) {
+        SqlSession session = MybatisUtil.getSqlSession();
+        try { session.getMapper(PatientsMapper.class).upgradePasswordHash(patientId, passwordHash); }
+        finally { session.close(); }
     }
 
     //                patient_id
@@ -114,7 +122,7 @@ public class PatientsServiceImpl {
         patientId= mapper.getMaxId()+1;
 
 
-        mapper.save(patientId,"",password,name,"","","","");
+        mapper.save(patientId,"",PasswordService.hash(password),name,"","","","");
 
     }
     public Patients selectByName(String name){

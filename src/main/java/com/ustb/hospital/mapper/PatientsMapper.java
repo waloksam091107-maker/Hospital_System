@@ -14,6 +14,8 @@ public interface PatientsMapper {
     int deductBalanceIfEnough(@Param("patientId") int patientId, @Param("fee") double fee);
     public Patients getBalById(int patientId);
     void updatePassword(String name,String password);
+    int upgradePasswordHash(@Param("patientId") int patientId, @Param("passwordHash") String passwordHash);
+    Patients selectForPasswordUpdate(@Param("patientId") int patientId);
     int getMaxId();
     void updateAvatar(@Param("patientId") int patientId, @Param("avatar") String avatar);
     public int updatePatientProfileById(@Param("patientId")int patientId,@Param("phone")String phone, @Param("balance")String balance, @Param("email")String email);

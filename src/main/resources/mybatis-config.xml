@@ -41,6 +41,9 @@
         <mapper resource="com/ustb/hospital/mapper/DoctorsMapper.xml"/>
         <mapper resource="com/ustb/hospital/mapper/MenuMapper.xml"/>
         <mapper resource="com/ustb/hospital/mapper/AppointmentsMapper.xml"/>
+        <mapper resource="com/ustb/hospital/mapper/ScheduleSlotsMapper.xml"/>
+        <mapper resource="com/ustb/hospital/mapper/MedicalRecordsMapper.xml"/>
+        <mapper resource="com/ustb/hospital/mapper/AuditLogsMapper.xml"/>
         <mapper resource="com/ustb/hospital/mapper/OrdersMapper.xml"/>
         <mapper resource="com/ustb/hospital/mapper/DatesMapper.xml"/>
         <mapper resource="com/ustb/hospital/mapper/AnnouncementsMapper.xml"/>

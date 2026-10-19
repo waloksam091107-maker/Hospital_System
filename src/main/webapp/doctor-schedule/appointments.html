@@ -59,8 +59,15 @@
         return {'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[character];
       });
     }
+    let csrfToken = '';
     function statusText(status) {
-      return { booked: '已预约', completed: '已完成接诊', cancelled: '已取消' }[status] || status;
+      return { BOOKED: '已预约', IN_PROGRESS: '接诊中', COMPLETED: '已完成接诊', CANCELLED: '已取消', RESCHEDULED: '已改期' }[status] || status;
+    }
+    function loadCsrfToken(callback) {
+      $.getJSON(appUrl('/security/csrf')).done(function(response) {
+        csrfToken = response.token || '';
+        callback();
+      }).fail(function(xhr) { displayError(xhr); });
     }
     function renderAppointments(page) {
       const rows = $('#appointmentRows').empty();
@@ -71,8 +78,10 @@
         appointments.forEach(function(appointment) {
           const patient = appointment.patients || {};
           const status = appointment.status || '';
-          const action = status === 'booked'
-            ? '<button type="button" class="complete-button" data-appointment-id="' + appointment.appointmentId + '">完成接诊</button>'
+          const action = status === 'BOOKED'
+            ? '<button type="button" class="complete-button appointment-action" data-action="start" data-appointment-id="' + appointment.appointmentId + '">开始接诊</button>'
+            : status === 'IN_PROGRESS'
+            ? '<a class="complete-button" href="encounter.html?appointmentId=' + encodeURIComponent(appointment.appointmentId) + '">填写就诊记录</a>'
             : '<button type="button" class="complete-button" disabled>不可操作</button>';
           rows.append('<tr><td>' + escapeHtml(appointment.appointmentId) + '</td><td>' + escapeHtml(patient.name || '未命名患者') + '</td><td>' + escapeHtml(patient.phone || '-') + '</td><td>' + escapeHtml(appointment.appointmentDate) + '</td><td>' + escapeHtml(appointment.appointmentTime) + '</td><td><span class="status status-' + escapeHtml(status) + '">' + escapeHtml(statusText(status)) + '</span></td><td>' + action + '</td></tr>');
         });
@@ -95,19 +104,19 @@
         .done(renderAppointments)
         .fail(displayError);
     }
-    $('#appointmentRows').on('click', '.complete-button:not(:disabled)', function() {
+    $('#appointmentRows').on('click', '.appointment-action', function() {
       const appointmentId = $(this).data('appointment-id');
-      if (!window.confirm('确认已完成该患者的接诊吗？')) return;
-      $.ajax({ url: appUrl('/appointments/complete'), type: 'POST', dataType: 'json', data: { appointmentId: appointmentId } })
+      if (!window.confirm('确认开始本次接诊吗？')) return;
+      $.ajax({ url: appUrl('/appointments/start'), type: 'POST', dataType: 'json', data: { appointmentId: appointmentId }, headers: { 'X-CSRF-Token': csrfToken } })
         .done(function(response) {
           alert(response.message || '接诊状态已更新。');
           if (response.success) loadAppointments(1);
         })
         .fail(function(xhr) {
-          alert((xhr.responseJSON && xhr.responseJSON.message) || '完成接诊失败，请稍后重试。');
+          alert((xhr.responseJSON && xhr.responseJSON.message) || '接诊状态更新失败，请稍后重试。');
         });
     });
-    $(function() { loadAppointments(1); });
+    $(function() { loadCsrfToken(function() { loadAppointments(1); }); });
   </script>
 </body>
 </html>

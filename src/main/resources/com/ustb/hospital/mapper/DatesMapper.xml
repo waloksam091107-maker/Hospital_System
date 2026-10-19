@@ -46,8 +46,8 @@
     <delete id="deleteDateById" parameterType="int">
         DELETE FROM dates WHERE date_id = #{dateId}
     </delete>
-    <insert id="insertDate">
-        INSERT INTO `hospt`.`dates` (`doctor_id`, `doctor_name`, `date`, `shang`, `xia`, `wan`)
+    <insert id="insertDate" useGeneratedKeys="true" keyProperty="dateId">
+        INSERT INTO `dates` (`doctor_id`, `doctor_name`, `date`, `shang`, `xia`, `wan`)
         VALUES (#{doctorId}, #{doctorName}, #{Date}, #{shang}, #{xia}, #{wan})
     </insert>
     <update id="reserveSlot">

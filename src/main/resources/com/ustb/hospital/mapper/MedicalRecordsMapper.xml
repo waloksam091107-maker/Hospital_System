@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ustb.hospital.mapper.MedicalRecordsMapper">
+    <resultMap id="medicalRecordMap" type="com.ustb.hospital.entity.MedicalRecord">
+        <id column="medical_record_id" property="medicalRecordId"/>
+        <result column="appointment_id" property="appointmentId"/>
+        <result column="doctor_id" property="doctorId"/>
+        <result column="patient_id" property="patientId"/>
+        <result column="diagnosis" property="diagnosis"/>
+        <result column="treatment_plan" property="treatmentPlan"/>
+        <result column="medical_advice" property="medicalAdvice"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="record_status" property="recordStatus"/>
+        <result column="version" property="version"/>
+        <result column="finalized_at" property="finalizedAt"/>
+    </resultMap>
+    <resultMap id="medicalOrderMap" type="com.ustb.hospital.entity.MedicalOrder">
+        <id column="medical_order_id" property="medicalOrderId"/>
+        <result column="medical_record_id" property="medicalRecordId"/>
+        <result column="item_name" property="itemName"/>
+        <result column="dosage" property="dosage"/>
+        <result column="frequency" property="frequency"/>
+        <result column="quantity" property="quantity"/>
+        <result column="instruction_text" property="instructionText"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <insert id="insertRecord" useGeneratedKeys="true" keyProperty="medicalRecordId">
+        INSERT INTO medical_records(appointment_id, doctor_id, patient_id, diagnosis, treatment_plan, medical_advice, record_status, version, finalized_at)
+        VALUES (#{appointmentId}, #{doctorId}, #{patientId}, #{diagnosis}, #{treatmentPlan}, #{medicalAdvice}, #{recordStatus}, 0,
+                CASE WHEN #{recordStatus} = 'FINAL' THEN CURRENT_TIMESTAMP ELSE NULL END)
+    </insert>
+    <update id="updateDraft">
+        UPDATE medical_records SET diagnosis = #{record.diagnosis}, treatment_plan = #{record.treatmentPlan},
+            medical_advice = #{record.medicalAdvice}, record_status = #{record.recordStatus}, version = version + 1,
+            finalized_at = CASE WHEN #{record.recordStatus} = 'FINAL' THEN CURRENT_TIMESTAMP ELSE NULL END,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE medical_record_id = #{record.medicalRecordId} AND doctor_id = #{record.doctorId}
+          AND record_status = 'DRAFT' AND version = #{expectedVersion}
+    </update>
+    <delete id="deleteOrdersByRecordId">DELETE FROM medical_orders WHERE medical_record_id = #{medicalRecordId}</delete>
+    <insert id="insertOrders">
+        INSERT INTO medical_orders(medical_record_id, item_name, dosage, frequency, quantity, instruction_text)
+        VALUES
+        <foreach collection="orders" item="order" separator=",">
+            (#{order.medicalRecordId}, #{order.itemName}, #{order.dosage}, #{order.frequency}, #{order.quantity}, #{order.instructionText})
+        </foreach>
+    </insert>
+    <select id="selectByAppointmentForUpdate" resultMap="medicalRecordMap">
+        SELECT * FROM medical_records WHERE appointment_id = #{appointmentId} FOR UPDATE
+    </select>
+    <select id="selectForDoctor" resultMap="medicalRecordMap">
+        SELECT mr.* FROM medical_records mr
+        INNER JOIN appointments a ON a.appointment_id = mr.appointment_id
+        WHERE mr.appointment_id = #{appointmentId} AND a.doctor_id = #{doctorId}
+    </select>
+    <select id="selectForPatient" resultMap="medicalRecordMap">
+        SELECT mr.* FROM medical_records mr
+        INNER JOIN appointments a ON a.appointment_id = mr.appointment_id
+        WHERE mr.appointment_id = #{appointmentId} AND a.patient_id = #{patientId} AND mr.record_status = 'FINAL'
+    </select>
+    <select id="selectAllForPatient" resultMap="medicalRecordMap">
+        SELECT * FROM medical_records WHERE patient_id = #{patientId} AND record_status = 'FINAL' ORDER BY created_at DESC
+    </select>
+    <select id="selectOrdersByRecordId" resultMap="medicalOrderMap">
+        SELECT * FROM medical_orders WHERE medical_record_id = #{medicalRecordId} ORDER BY medical_order_id
+    </select>
+</mapper>

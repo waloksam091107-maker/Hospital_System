@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ustb.hospital.mapper.ScheduleSlotsMapper">
+    <resultMap id="scheduleSlotMap" type="com.ustb.hospital.entity.ScheduleSlot">
+        <id column="schedule_slot_id" property="scheduleSlotId"/>
+        <result column="doctor_id" property="doctorId"/>
+        <result column="schedule_date" property="scheduleDate"/>
+        <result column="slot_period" property="slotPeriod"/>
+        <result column="slot_status" property="slotStatus"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="selectByDoctorDatePeriod" resultMap="scheduleSlotMap">
+        SELECT schedule_slot_id, doctor_id, schedule_date, slot_period, slot_status, created_at, updated_at
+        FROM schedule_slots
+        WHERE doctor_id = #{doctorId}
+          AND schedule_date = #{scheduleDate}
+          AND slot_period = #{slotPeriod}
+    </select>
+
+    <update id="reserveAvailableSlot">
+        UPDATE schedule_slots
+        SET slot_status = 'BOOKED'
+        WHERE doctor_id = #{doctorId}
+          AND schedule_date = #{scheduleDate}
+          AND slot_period = #{slotPeriod}
+          AND slot_status = 'AVAILABLE'
+    </update>
+
+    <update id="releaseBookedSlot">
+        UPDATE schedule_slots
+        SET slot_status = 'AVAILABLE'
+        WHERE schedule_slot_id = #{scheduleSlotId}
+          AND slot_status = 'BOOKED'
+    </update>
+    <insert id="insertSlot">
+        INSERT INTO schedule_slots(doctor_id, schedule_date, slot_period, slot_status)
+        VALUES (#{doctorId}, #{scheduleDate}, #{slotPeriod}, #{slotStatus})
+    </insert>
+    <delete id="deleteByDoctorAndDate">
+        DELETE FROM schedule_slots WHERE doctor_id = #{doctorId} AND schedule_date = #{scheduleDate}
+    </delete>
+</mapper>

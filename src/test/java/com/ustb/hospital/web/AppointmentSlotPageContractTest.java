@@ -31,7 +31,7 @@ public class AppointmentSlotPageContractTest {
         String page = read("patient.jsp");
 
         assertEquals("改期页的可选时段必须与后端排班粒度完全一致", canonicalSlots(),
-                extractValues(page, "<option value=\"([^\"]+)\">(?:上午|下午|晚间)</option>"));
+                extractValues(page, "<input[^>]*name=\"updateAppointmentTime\"[^>]*value=\"([^\"]+)\""));
         assertTrue("改期页应以 POST 提交改期请求", page.contains("url: appUrl('/appointments/reschedule')") && page.contains("type: 'POST'"));
     }
 

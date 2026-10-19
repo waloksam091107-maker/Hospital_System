@@ -1,6 +1,11 @@
 package com.ustb.hospital.utils;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Properties;
 import com.aliyuncs.DefaultAcsClient;
 import com.aliyuncs.IAcsClient;
 import com.aliyuncs.dysmsapi.model.v20170525.SendSmsRequest;
@@ -21,8 +26,9 @@ public class SMSUtils {
         final String product = "Dysmsapi";//短信API产品名称（短信产品名固定，无需修改）
         final String domain = "dysmsapi.aliyuncs.com";//短信API产品域名（接口地址固定，无需修改）
         //替换成你的AK
-        final String accessKeyId = "[REDACTED]";//你的accessKeyId
-        final String accessKeySecret = "[REDACTED]";//你的accessKeySecret
+        String[] credentials = loadCredentials(credentialsPath());
+        final String accessKeyId = credentials[0];
+        final String accessKeySecret = credentials[1];
         //初始化ascClient,暂时不支持多region（请勿修改）
         IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", accessKeyId,
                 accessKeySecret);
@@ -46,6 +52,29 @@ public class SMSUtils {
         System.out.print(sendSmsResponse.getCode()); //返回码，可得知发送状态
         return sendSmsResponse.getCode();
     }
+    private static Path credentialsPath() {
+        String path = System.getProperty("hospital.sms.config");
+        if (path == null || path.trim().isEmpty()) path = System.getenv("HOSPITAL_SMS_CONFIG");
+        return path == null || path.trim().isEmpty()
+                ? Paths.get(".hospital-local", "sms.properties")
+                : Paths.get(path.trim());
+    }
+
+    static String[] loadCredentials(Path path) {
+        Properties values = new Properties();
+        try (InputStream stream = Files.newInputStream(path)) {
+            values.load(stream);
+        } catch (IOException e) {
+            throw new IllegalStateException("无法读取短信本地配置，请设置 hospital.sms.config 或 HOSPITAL_SMS_CONFIG。", e);
+        }
+        String id = values.getProperty("accessKeyId", "").trim();
+        String secret = values.getProperty("accessKeySecret", "").trim();
+        if (id.isEmpty() || secret.isEmpty()) {
+            throw new IllegalStateException("短信本地配置缺少 AccessKey ID 或 AccessKey Secret。");
+        }
+        return new String[] {id, secret};
+    }
+
     public static void main(String[] args) throws Exception {
 
     String randomCode = String.valueOf((int) (Math.random() * 9000 + 1000)); //4位数验证码

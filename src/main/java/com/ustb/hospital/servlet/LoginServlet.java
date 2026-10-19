@@ -6,6 +6,9 @@ import com.ustb.hospital.entity.Patients;
 import com.ustb.hospital.service.AdminsServiceImpl;
 import com.ustb.hospital.service.DoctorsServiceImpl;
 import com.ustb.hospital.service.PatientsServiceImpl;
+import com.ustb.hospital.security.CsrfTokenService;
+import com.ustb.hospital.security.PasswordService;
+import com.ustb.hospital.service.AuditService;
 import com.ustb.hospital.utils.SessionIdentity;
 
 import javax.print.Doc;
@@ -38,15 +41,19 @@ public class LoginServlet extends HttpServlet {
                 Doctors doctors=service.selectByJobNumber(user);
 
                 if(doctors==null){
+                    auditLoginFailure(req);
                     resp.sendRedirect(req.getContextPath() + "/hospro/login.html?typeId=1");
 
                 }else{
-                    if(!doctors.getPassword().equals(password)){  //不成立的情况
+                    if(!PasswordService.matches(password, doctors.getPasswordHash(), doctors.getPassword())){
+                        auditLoginFailure(req);
                         resp.sendRedirect(req.getContextPath() + "/hospro/login.html?typeId=1");
 
                     }else{
-                        HttpSession session = req.getSession(true);
-                        SessionIdentity.set(session, SessionIdentity.ROLE_DOCTOR, doctors.getDoctorId(), doctors.getName());
+                        if (PasswordService.needsUpgrade(doctors.getPasswordHash())) {
+                            if (!upgradeLegacy(req, resp, SessionIdentity.ROLE_DOCTOR, doctors.getDoctorId(), password)) return;
+                        }
+                        establishSession(req, SessionIdentity.ROLE_DOCTOR, doctors.getDoctorId(), doctors.getName());
                         resp.sendRedirect(req.getContextPath() + "/hospro/index.html?roleCode=1&doctorId=" + doctors.getDoctorId());
 
 
@@ -60,15 +67,19 @@ public class LoginServlet extends HttpServlet {
                 Patients patients=service.selectByName(user);
 
                 if(patients==null){
+                    auditLoginFailure(req);
                     resp.sendRedirect(req.getContextPath() + "/hospro/login.html?typeId=2");
 
                 }else{
-                    if(!patients.getPassword().equals(password)){  //不成立的情况
+                    if(!PasswordService.matches(password, patients.getPasswordHash(), patients.getPassword())){
+                        auditLoginFailure(req);
                         resp.sendRedirect(req.getContextPath() + "/hospro/login.html?typeId=2");
 
                     }else{
-                        HttpSession session = req.getSession(true);
-                        SessionIdentity.set(session, SessionIdentity.ROLE_PATIENT, patients.getPatientId(), patients.getName());
+                        if (PasswordService.needsUpgrade(patients.getPasswordHash())) {
+                            if (!upgradeLegacy(req, resp, SessionIdentity.ROLE_PATIENT, patients.getPatientId(), password)) return;
+                        }
+                        establishSession(req, SessionIdentity.ROLE_PATIENT, patients.getPatientId(), patients.getName());
                         resp.sendRedirect(req.getContextPath() + "/hospro/index.html?roleCode=2&patientId=" + patients.getPatientId());
                     }
                 }
@@ -82,15 +93,19 @@ public class LoginServlet extends HttpServlet {
 
 
                 if(admins==null){
+                    auditLoginFailure(req);
                     resp.sendRedirect(req.getContextPath() + "/hospro/login.html?typeId=3");
 
                 }else{
-                    if(!admins.getPassword().equals(password)){  //不成立的情况
+                    if(!PasswordService.matches(password, admins.getPasswordHash(), admins.getPassword())){
+                        auditLoginFailure(req);
                         resp.sendRedirect(req.getContextPath() + "/hospro/login.html?typeId=3");
 
                     }else{
-                        HttpSession session = req.getSession(true);
-                        SessionIdentity.set(session, SessionIdentity.ROLE_ADMIN, admins.getAdminId(), admins.getUsername());
+                        if (PasswordService.needsUpgrade(admins.getPasswordHash())) {
+                            if (!upgradeLegacy(req, resp, SessionIdentity.ROLE_ADMIN, admins.getAdminId(), password)) return;
+                        }
+                        establishSession(req, SessionIdentity.ROLE_ADMIN, admins.getAdminId(), admins.getUsername());
                         resp.sendRedirect(req.getContextPath() + "/hospro/index.html?roleCode=3&adminId=" + admins.getAdminId());
                     }
                 }
@@ -115,6 +130,27 @@ resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "typeId is required");
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        this.doPost(req,resp);
+        resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "仅支持 POST 登录请求");
+    }
+
+    private static void establishSession(HttpServletRequest request, String role, int userId, String name) {
+        HttpSession session = request.getSession(true);
+        request.changeSessionId();
+        session.setMaxInactiveInterval(30 * 60);
+        SessionIdentity.set(session, role, userId, name);
+        CsrfTokenService.issue(session);
+        new AuditService().record(request, "LOGIN", "ACCOUNT", String.valueOf(userId), "SUCCESS");
+    }
+
+    private static void auditLoginFailure(HttpServletRequest request) {
+        new AuditService().record(request, "LOGIN", "ACCOUNT", null, "FAILURE");
+    }
+    private static boolean upgradeLegacy(HttpServletRequest request, HttpServletResponse response, String role, int id, String password) throws IOException {
+        com.ustb.hospital.service.AuditContext context = new com.ustb.hospital.service.AuditContext(role, Integer.valueOf(id), "POST", "/auth/login", request.getRemoteAddr());
+        com.ustb.hospital.utils.AppointmentOperationResult result = new com.ustb.hospital.service.PasswordChangeService().upgradeLegacy(role, id, password, context);
+        if (result.isSuccessful()) return true;
+        auditLoginFailure(request);
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "登录暂时不可用，请稍后重试。");
+        return false;
     }
 }

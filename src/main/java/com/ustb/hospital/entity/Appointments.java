@@ -6,7 +6,14 @@ public class Appointments {
     private int doctorId;
     private String appointmentDate;
     private String appointmentTime;
+    private Long scheduleSlotId;
+    private Integer previousAppointmentId;
     private String status;
+    private String startedAt;
+    private String completedAt;
+    private String cancelledAt;
+    private String updatedAt;
+    private int version;
     private Patients patients;
     public Patients getPatients() {
         return patients;
@@ -61,6 +68,11 @@ public class Appointments {
         this.appointmentTime = appointmentTime;
     }
 
+    public Long getScheduleSlotId() { return scheduleSlotId; }
+    public void setScheduleSlotId(Long scheduleSlotId) { this.scheduleSlotId = scheduleSlotId; }
+    public Integer getPreviousAppointmentId() { return previousAppointmentId; }
+    public void setPreviousAppointmentId(Integer previousAppointmentId) { this.previousAppointmentId = previousAppointmentId; }
+
     public String getStatus() {
         return status;
     }
@@ -68,6 +80,17 @@ public class Appointments {
     public void setStatus(String status) {
         this.status = status;
     }
+
+    public String getStartedAt() { return startedAt; }
+    public void setStartedAt(String startedAt) { this.startedAt = startedAt; }
+    public String getCompletedAt() { return completedAt; }
+    public void setCompletedAt(String completedAt) { this.completedAt = completedAt; }
+    public String getCancelledAt() { return cancelledAt; }
+    public void setCancelledAt(String cancelledAt) { this.cancelledAt = cancelledAt; }
+    public String getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
+    public int getVersion() { return version; }
+    public void setVersion(int version) { this.version = version; }
 
     public Doctors getDoctors() {
         return doctors;

@@ -9,7 +9,14 @@
         <result column="doctor_id" property="doctorId" />
         <result column="appointment_date" property="appointmentDate" />
         <result column="appointment_time" property="appointmentTime" />
+        <result column="schedule_slot_id" property="scheduleSlotId" />
+        <result column="previous_appointment_id" property="previousAppointmentId" />
         <result column="status" property="status"/>
+        <result column="started_at" property="startedAt"/>
+        <result column="completed_at" property="completedAt"/>
+        <result column="cancelled_at" property="cancelledAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="version" property="version"/>
         <association property="doctors" javaType="com.ustb.hospital.entity.Doctors">
             <result column="name" property="name"/>
         </association>
@@ -41,6 +48,16 @@
         insert into appointments(patient_id,doctor_id,appointment_date,appointment_time,status)
         values(#{patientId},#{doctorId},#{appointmentDate},#{appointmentTime},#{status})
     </insert>
+    <insert id="insertWithSlot">
+        INSERT INTO appointments(patient_id, doctor_id, appointment_date, appointment_time,
+                                 schedule_slot_id, previous_appointment_id, status)
+        VALUES (#{patientId}, #{doctorId}, #{appointmentDate}, #{appointmentTime},
+                #{scheduleSlotId}, #{previousAppointmentId}, #{status})
+    </insert>
+    <insert id="insertWithSlotRecord" useGeneratedKeys="true" keyProperty="appointmentId">
+        INSERT INTO appointments(patient_id, doctor_id, appointment_date, appointment_time, schedule_slot_id, previous_appointment_id, status)
+        VALUES (#{patientId}, #{doctorId}, #{appointmentDate}, #{appointmentTime}, #{scheduleSlotId}, #{previousAppointmentId}, #{status})
+    </insert>
     <select id="selectAll" resultMap="appointmentMap">
         SELECT appointment_id,appointment_date,appointment_time,status,name
         FROM appointments app,patients pa
@@ -64,6 +81,25 @@
           AND doctor_id = #{doctorId}
           AND status = #{fromStatus}
     </update>
+    <update id="updateStatusForPatientIfCurrent">
+        UPDATE appointments
+        SET status = #{toStatus},
+            cancelled_at = CASE WHEN #{toStatus} = 'CANCELLED' THEN CURRENT_TIMESTAMP ELSE cancelled_at END,
+            version = version + 1
+        WHERE appointment_id = #{appointmentId}
+          AND patient_id = #{patientId}
+          AND status = #{fromStatus}
+    </update>
+    <update id="updateStatusForDoctorIfCurrent">
+        UPDATE appointments
+        SET status = #{toStatus},
+            started_at = CASE WHEN #{toStatus} = 'IN_PROGRESS' THEN CURRENT_TIMESTAMP ELSE started_at END,
+            completed_at = CASE WHEN #{toStatus} = 'COMPLETED' THEN CURRENT_TIMESTAMP ELSE completed_at END,
+            version = version + 1
+        WHERE appointment_id = #{appointmentId}
+          AND doctor_id = #{doctorId}
+          AND status = #{fromStatus}
+    </update>
     <update id="updateAppointmentSlot">
         UPDATE appointments
         SET appointment_date = #{appointmentDate},
@@ -76,16 +112,29 @@
         FROM appointments
         WHERE doctor_id = #{doctorId}
           AND appointment_date = #{appointmentDate}
-          AND status IN ('booked', 'completed')
+          AND status IN ('BOOKED', 'IN_PROGRESS', 'COMPLETED')
+    </select>
+    <select id="countByDoctorAndDate" resultType="int">
+        SELECT COUNT(1) FROM appointments
+        WHERE doctor_id = #{doctorId} AND appointment_date = #{appointmentDate}
     </select>
     <select id="selectByPatientIdWithDoctorDetails" resultMap="appointmentMap">
-        SELECT appointment_id, appointment_date, appointment_time, status,name, department_name, title_name
+        SELECT appointment_id, appointment_date, appointment_time, status, app.previous_appointment_id,
+               name, department_name, title_name
         FROM appointments app,doctors doc, departments dep, professional_titles pt
         WHERE app.patient_id = #{patientId} AND app.doctor_id=doc.doctor_id AND doc.department_id=dep.department_id AND doc.professional_title_id = pt.id
     </select>
 
     <select id="selectById" resultMap="appointmentMap">
         select * from appointments where appointment_id = #{appointmentId}
+    </select>
+    <select id="selectDetailForDoctor" resultMap="appointmentMap">
+        SELECT appointment_id, appointment_date, appointment_time, status
+        FROM appointments
+        WHERE appointment_id = #{appointmentId} AND doctor_id = #{doctorId}
+    </select>
+    <select id="selectByIdForUpdate" resultMap="appointmentMap">
+        SELECT * FROM appointments WHERE appointment_id = #{appointmentId} FOR UPDATE
     </select>
     <select id="selectByDoctorId" resultMap="appointmentMap">
         SELECT appointment_id, appointment_date,appointment_time, status,name, id_card_number, phone,balance
@@ -105,7 +154,7 @@
         SELECT appointment_id, patient_id, doctor_id, appointment_date, appointment_time, status
         FROM appointments
         WHERE appointment_date = #{date}
-          AND status = 'booked'
+          AND status = 'BOOKED'
 
     </select>
 

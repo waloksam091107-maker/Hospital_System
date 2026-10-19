@@ -23,6 +23,28 @@
 <script>
 const appContext = window.location.pathname.split('/hospro/')[0];
 function appUrl(path) { return appContext + path; }
+var departmentSearchSequence = 0;
+function showDepartmentSuggestions(departments) {
+    var results = $('#departmentSearchResults').empty();
+    if (!departments.length) {
+        results.text('暂无匹配的科室。').show();
+        return;
+    }
+    $.each(departments, function (_, department) {
+        var suggestion = $('<button type="button" class="department-suggestion"></button>');
+        suggestion.data('department-id', department.departmentId).text(department.departmentName).css({
+            display: 'block', width: '100%', margin: '4px 0 0', padding: '10px 18px',
+            border: '1px solid #dbe7e5', borderRadius: '6px', background: '#ffffff',
+            color: '#061a3a', textAlign: 'left', cursor: 'pointer'
+        });
+        $("#departmentSearchResults").append(suggestion);
+    });
+    results.show();
+}
+function openDepartmentDirectory(departmentName, departmentId) {
+    var targetUrl = 'doctor-directory.html?departmentId=' + encodeURIComponent(departmentId) + '&departmentName=' + encodeURIComponent(departmentName);
+    window.location.href = targetUrl;
+}
 </script>
 <script>
     $(document).ready(function() {
@@ -32,16 +54,32 @@ function appUrl(path) { return appContext + path; }
             var departmentName = $('#inputView').val();
             var departmentId = $('#departmentId').val();
 
-            if (!departmentId) {
-                alert('请选择搜索结果中的科室后再预约。');
+            if (departmentId) {
+                openDepartmentDirectory(departmentName, departmentId);
                 return;
             }
-
-            // 构建跳转 URL
-            var targetUrl = 'doctor-directory.html?departmentId=' + encodeURIComponent(departmentId) + '&departmentName=' + encodeURIComponent(departmentName);
-
-            // 执行页面跳转
-            window.location.href = targetUrl;
+            var keyword = $.trim(departmentName);
+            var sequence = ++departmentSearchSequence;
+            if (!keyword) {
+                $('#departmentSearchResults').text('请输入科室名称。').show();
+                return;
+            }
+            $('#departmentSearchResults').text('正在搜索科室…').show();
+            $.ajax({
+                type: 'GET', url: appUrl('/find'), data: { keyword: keyword }, dataType: 'json',
+                success: function (departments) {
+                    if (sequence !== departmentSearchSequence || $.trim($('#inputView').val()) !== keyword) return;
+                    if (departments.length === 1) {
+                        openDepartmentDirectory(departments[0].departmentName, departments[0].departmentId);
+                    } else {
+                        showDepartmentSuggestions(departments);
+                        if (departments.length > 1) $('#departmentSearchResults').prepend($('<p></p>').text('请选择搜索结果中的科室后再预约。'));
+                    }
+                },
+                error: function () {
+                    if (sequence === departmentSearchSequence) $('#departmentSearchResults').text('科室搜索失败，请稍后重试。').show();
+                }
+            });
         });
     });
 
@@ -488,6 +526,7 @@ function appUrl(path) { return appContext + path; }
 
         $("#inputView").on("input", function () {
             var keyword = $.trim(this.value);
+            var sequence = ++departmentSearchSequence;
             $('#departmentId').val('');
             if (!keyword) {
                 $("#departmentSearchResults").empty().hide();
@@ -501,40 +540,17 @@ function appUrl(path) { return appContext + path; }
                 data: { keyword: keyword },
                 dataType: "json",
                 success: function (dataArray) {
-
-                    if (dataArray.length === 0) {
-                        $("#departmentSearchResults").html('<p>暂无匹配的科室</p>').show();
-                    } else {
-                        $("#departmentSearchResults").empty();
-                        for (var i = 0; i < dataArray.length; i++) {
-
-                            var deptname = dataArray[i].departmentName;
-                            var deptid = dataArray[i].departmentId; // 获取每个部门的ID
-                            var suggestion = $('<button type="button" class="department-suggestion"></button>');
-                            suggestion.data('department-id', deptid).text(deptname).css({
-                                display: 'block',
-                                width: '100%',
-                                margin: '4px 0 0',
-                                padding: '10px 18px',
-                                border: '1px solid #dbe7e5',
-                                borderRadius: '6px',
-                                background: '#ffffff',
-                                color: '#061a3a',
-                                textAlign: 'left',
-                                cursor: 'pointer'
-                            });
-                            $("#departmentSearchResults").append(suggestion);
-                        }
-                        $("#departmentSearchResults").show();
-                    }
+                    if (sequence !== departmentSearchSequence) return;
+                    showDepartmentSuggestions(dataArray);
                 },
                 error: function () {
-                    $("#departmentSearchResults").html('<p>科室搜索失败，请稍后重试。</p>').show();
+                    if (sequence === departmentSearchSequence) $("#departmentSearchResults").text('科室搜索失败，请稍后重试。').show();
                 }
             });
         });
 
         $("#departmentSearchResults").on("click", ".department-suggestion", function () {
+            ++departmentSearchSequence;
             $("#inputView").val($(this).text());
             $('#departmentId').val($(this).data('department-id'));
             $("#departmentSearchResults").empty().hide();

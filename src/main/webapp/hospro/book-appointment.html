@@ -24,13 +24,22 @@ function appUrl(path) { return appContext + path; }
 </script>
     <script>
         $(document).ready(function() {
-            $('#005').click(function(e) {
-                e.preventDefault();
-                const urlParams = new URLSearchParams(window.location.search);
+            let csrfToken = '';
+            const urlParams = new URLSearchParams(window.location.search);
+
+            function loadCsrfToken() {
+                return $.getJSON(appUrl('/security/csrf'))
+                    .done(function(response) {
+                        csrfToken = response && response.token ? response.token : '';
+                    });
+            }
+
+            function submitBooking() {
                 $.ajax({
                     url: appUrl('/appointments/book'),
                     type: 'POST',
                     dataType: 'json',
+                    headers: {'X-CSRF-Token': csrfToken},
                     data: {
                         doctorId: urlParams.get('doctor_id'),
                         appointment_date: urlParams.get('date'),
@@ -48,6 +57,27 @@ function appUrl(path) { return appContext + path; }
                         alert(response && response.message ? response.message : '预约失败，请先确认已登录患者账号。');
                     }
                 });
+            }
+
+            loadCsrfToken();
+
+            $('#005').click(function(e) {
+                e.preventDefault();
+                if (csrfToken) {
+                    submitBooking();
+                    return;
+                }
+                loadCsrfToken()
+                    .done(function() {
+                        if (csrfToken) {
+                            submitBooking();
+                        } else {
+                            alert('页面安全校验初始化失败，请刷新页面后重试。');
+                        }
+                    })
+                    .fail(function() {
+                        alert('页面安全校验初始化失败，请刷新页面后重试。');
+                    });
             });
         });
 
@@ -64,10 +94,22 @@ function appUrl(path) { return appContext + path; }
             // 更新 span 元素的文本内容为 timeParam 的值
             $('#time').text(timeParam);
 
-            const doctorNameParam = urlParams.get('doctor_name');
-
-            // 更新 span 元素的文本内容为 doctorNameParam 的值
-            $('#docname').text(doctorNameParam);
+            const doctorId = urlParams.get('doctor_id');
+            // 医生姓名只以服务端数据为准，绝不显示 URL 中可被篡改或过期的姓名。
+            $('#docname').text('加载中...');
+            if (doctorId) {
+                $.getJSON(appUrl('/doctors/details'), {doctorId: doctorId})
+                    .done(function(doctor) {
+                        if (doctor && doctor.name) {
+                            $('#docname').text(doctor.name);
+                        }
+                    })
+                    .fail(function() {
+                        $('#docname').text('医生信息加载失败');
+                    });
+            } else {
+                $('#docname').text('医生信息无效');
+            }
 
             // 挂号费由服务端按医生配置结算，页面不接收 URL 中的费用。
             $('#004').text('以系统结算为准');

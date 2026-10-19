@@ -5,10 +5,11 @@ import com.github.pagehelper.PageInfo;
 import com.ustb.hospital.entity.Appointments;
 import com.ustb.hospital.entity.Doctors;
 import com.ustb.hospital.entity.Patients;
+import com.ustb.hospital.entity.ScheduleSlot;
 import com.ustb.hospital.mapper.AppointmentsMapper;
-import com.ustb.hospital.mapper.DatesMapper;
 import com.ustb.hospital.mapper.DoctorsMapper;
 import com.ustb.hospital.mapper.PatientsMapper;
+import com.ustb.hospital.mapper.ScheduleSlotsMapper;
 import com.ustb.hospital.utils.AppointmentOperationResult;
 import com.ustb.hospital.utils.AppointmentSlot;
 import com.ustb.hospital.utils.MybatisUtil;
@@ -16,13 +17,20 @@ import org.apache.ibatis.session.SqlSession;
 
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.function.Supplier;
 
 /** Appointment operations keep schedule, balance and appointment rows in one transaction. */
 public class AppointmentsServiceImpl {
-    public static final String STATUS_BOOKED = "booked";
-    public static final String STATUS_CANCELLED = "cancelled";
-    public static final String STATUS_COMPLETED = "completed";
+    public static final String STATUS_BOOKED = AppointmentStatus.BOOKED;
+    public static final String STATUS_RESCHEDULED = AppointmentStatus.RESCHEDULED;
+    public static final String STATUS_CANCELLED = AppointmentStatus.CANCELLED;
+    public static final String STATUS_IN_PROGRESS = AppointmentStatus.IN_PROGRESS;
+    public static final String STATUS_COMPLETED = AppointmentStatus.COMPLETED;
     private static final Pattern ISO_DATE = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
+    private final Supplier<SqlSession> transactionSessions;
+    private final AuditService auditService;
+    public AppointmentsServiceImpl() { this(MybatisUtil::getTransactionSqlSession, new AuditService()); }
+    public AppointmentsServiceImpl(Supplier<SqlSession> sessions, AuditService auditService) { this.transactionSessions = sessions; this.auditService = auditService; }
 
     /** Retained for the existing order-summary screen; it does not participate in patient booking. */
     public List<Appointments> queryByDate(String date) {
@@ -33,16 +41,19 @@ public class AppointmentsServiceImpl {
     }
 
     public AppointmentOperationResult bookAppointment(int patientId, int doctorId, String appointmentDate, String requestedSlot) {
+        return bookAppointment(patientId, doctorId, appointmentDate, requestedSlot, synthetic("PATIENT", patientId, "/appointments/book"));
+    }
+    public AppointmentOperationResult bookAppointment(int patientId, int doctorId, String appointmentDate, String requestedSlot, AuditContext audit) {
         String slot = AppointmentSlot.fromRequestValue(requestedSlot);
         if (!isValidDate(appointmentDate) || slot == null) {
             return AppointmentOperationResult.failure("INVALID_REQUEST", "日期或时段无效。");
         }
         SqlSession sqlSession = null;
         try {
-            sqlSession = MybatisUtil.getTransactionSqlSession();
+            sqlSession = transactionSessions.get();
             DoctorsMapper doctorsMapper = sqlSession.getMapper(DoctorsMapper.class);
             PatientsMapper patientsMapper = sqlSession.getMapper(PatientsMapper.class);
-            DatesMapper datesMapper = sqlSession.getMapper(DatesMapper.class);
+            ScheduleSlotsMapper scheduleSlotsMapper = sqlSession.getMapper(ScheduleSlotsMapper.class);
             AppointmentsMapper appointmentsMapper = sqlSession.getMapper(AppointmentsMapper.class);
             Doctors doctor = doctorsMapper.findById(doctorId);
             Patients patient = patientsMapper.selectById(patientId);
@@ -53,13 +64,20 @@ public class AppointmentsServiceImpl {
             if (registrationFee < 0) {
                 return rollback(sqlSession, "INVALID_FEE", "医生挂号费配置无效。");
             }
-            if (datesMapper.reserveSlot(doctorId, appointmentDate, slot) != 1) {
+            if (scheduleSlotsMapper.reserveAvailableSlot(doctorId, appointmentDate, slot) != 1) {
                 return rollback(sqlSession, "SLOT_UNAVAILABLE", "所选时段不存在或已被占用。");
+            }
+            ScheduleSlot scheduleSlot = scheduleSlotsMapper.selectByDoctorDatePeriod(doctorId, appointmentDate, slot);
+            if (scheduleSlot == null) {
+                return rollback(sqlSession, "SCHEDULE_MISMATCH", "排班时段异常，未创建预约。");
             }
             if (patientsMapper.deductBalanceIfEnough(patientId, registrationFee) != 1) {
                 return rollback(sqlSession, "INSUFFICIENT_BALANCE", "余额不足，未创建预约。");
             }
-            appointmentsMapper.insert(patientId, doctorId, appointmentDate, slot, STATUS_BOOKED);
+            Appointments created = newAppointment(patientId, doctorId, appointmentDate, slot, scheduleSlot.getScheduleSlotId(), null);
+            if (appointmentsMapper.insertWithSlotRecord(created) != 1 || created.getAppointmentId() <= 0)
+                return rollback(sqlSession, "BOOKING_FAILED", "预约未完成，请稍后重试。");
+            auditService.writeSuccess(sqlSession, audit, "APPOINTMENTS_BOOK", "APPOINTMENT", Integer.toString(created.getAppointmentId()));
             sqlSession.commit();
             return AppointmentOperationResult.success("预约成功。");
         } catch (Exception exception) {
@@ -68,22 +86,30 @@ public class AppointmentsServiceImpl {
     }
 
     public AppointmentOperationResult cancelAppointment(int patientId, int appointmentId) {
+        return cancelAppointment(patientId, appointmentId, synthetic("PATIENT", patientId, "/appointments/cancel"));
+    }
+    public AppointmentOperationResult cancelAppointment(int patientId, int appointmentId, AuditContext audit) {
         SqlSession sqlSession = null;
         try {
-            sqlSession = MybatisUtil.getTransactionSqlSession();
+            sqlSession = transactionSessions.get();
             AppointmentsMapper appointmentsMapper = sqlSession.getMapper(AppointmentsMapper.class);
-            DatesMapper datesMapper = sqlSession.getMapper(DatesMapper.class);
-            Appointments appointment = appointmentsMapper.selectById(appointmentId);
+            ScheduleSlotsMapper scheduleSlotsMapper = sqlSession.getMapper(ScheduleSlotsMapper.class);
+            Appointments appointment = appointmentsMapper.selectByIdForUpdate(appointmentId);
             if (appointment == null) return rollback(sqlSession, "NOT_FOUND", "预约不存在。");
             if (appointment.getPatientId() != patientId) return rollback(sqlSession, "FORBIDDEN", "不能取消其他患者的预约。");
-            String slot = AppointmentSlot.fromRequestValue(appointment.getAppointmentTime());
-            if (slot == null) return rollback(sqlSession, "INVALID_SLOT", "原预约时段无法恢复，请联系工作人员处理。");
-            if (appointmentsMapper.updateStatusIfCurrent(appointmentId, appointment.getDoctorId(), STATUS_BOOKED, STATUS_CANCELLED) != 1) {
-                return rollback(sqlSession, "INVALID_STATE", "只有已预约的记录可以取消。");
+            if (!AppointmentStatus.canCancel(appointment.getStatus())) {
+                return rollback(sqlSession, "INVALID_STATE", AppointmentStatus.patientMutationFailureMessage(appointment.getStatus()));
             }
-            if (datesMapper.releaseSlot(appointment.getDoctorId(), appointment.getAppointmentDate(), slot) != 1) {
+            if (appointment.getScheduleSlotId() == null) {
+                return rollback(sqlSession, "SCHEDULE_MISMATCH", "原预约缺少排班时段，未取消预约。");
+            }
+            if (appointmentsMapper.updateStatusForPatientIfCurrent(appointmentId, patientId, STATUS_BOOKED, STATUS_CANCELLED) != 1) {
+                return rollback(sqlSession, "INVALID_STATE", "预约状态已变化，未取消预约。");
+            }
+            if (scheduleSlotsMapper.releaseBookedSlot(appointment.getScheduleSlotId().longValue()) != 1) {
                 return rollback(sqlSession, "SCHEDULE_MISMATCH", "排班状态异常，未取消预约。");
             }
+            auditService.writeSuccess(sqlSession, audit, "APPOINTMENTS_CANCEL", "APPOINTMENT", Integer.toString(appointmentId));
             sqlSession.commit();
             return AppointmentOperationResult.success("预约已取消。当前系统取消预约不自动退款。");
         } catch (Exception exception) {
@@ -92,23 +118,38 @@ public class AppointmentsServiceImpl {
     }
 
     public AppointmentOperationResult rescheduleAppointment(int patientId, int appointmentId, String newDate, String requestedSlot) {
+        return rescheduleAppointment(patientId, appointmentId, newDate, requestedSlot, synthetic("PATIENT", patientId, "/appointments/reschedule"));
+    }
+    public AppointmentOperationResult rescheduleAppointment(int patientId, int appointmentId, String newDate, String requestedSlot, AuditContext audit) {
         String newSlot = AppointmentSlot.fromRequestValue(requestedSlot);
         if (!isValidDate(newDate) || newSlot == null) return AppointmentOperationResult.failure("INVALID_REQUEST", "新的日期或时段无效。");
         SqlSession sqlSession = null;
         try {
-            sqlSession = MybatisUtil.getTransactionSqlSession();
+            sqlSession = transactionSessions.get();
             AppointmentsMapper appointmentsMapper = sqlSession.getMapper(AppointmentsMapper.class);
-            DatesMapper datesMapper = sqlSession.getMapper(DatesMapper.class);
-            Appointments appointment = appointmentsMapper.selectById(appointmentId);
+            ScheduleSlotsMapper scheduleSlotsMapper = sqlSession.getMapper(ScheduleSlotsMapper.class);
+            Appointments appointment = appointmentsMapper.selectByIdForUpdate(appointmentId);
             if (appointment == null) return rollback(sqlSession, "NOT_FOUND", "预约不存在。");
             if (appointment.getPatientId() != patientId) return rollback(sqlSession, "FORBIDDEN", "不能修改其他患者的预约。");
-            if (!STATUS_BOOKED.equals(appointment.getStatus())) return rollback(sqlSession, "INVALID_STATE", "只有已预约的记录可以改期。");
+            if (!AppointmentStatus.canReschedule(appointment.getStatus())) return rollback(sqlSession, "INVALID_STATE", AppointmentStatus.patientMutationFailureMessage(appointment.getStatus()));
             String oldSlot = AppointmentSlot.fromRequestValue(appointment.getAppointmentTime());
             if (oldSlot == null) return rollback(sqlSession, "INVALID_SLOT", "原预约时段无法恢复，请联系工作人员处理。");
             if (newDate.equals(appointment.getAppointmentDate()) && newSlot.equals(oldSlot)) return rollback(sqlSession, "NO_CHANGE", "新时段与原预约相同。");
-            if (datesMapper.reserveSlot(appointment.getDoctorId(), newDate, newSlot) != 1) return rollback(sqlSession, "SLOT_UNAVAILABLE", "新的时段不存在或已被占用。");
-            if (appointmentsMapper.updateAppointmentSlot(appointmentId, newDate, newSlot, STATUS_BOOKED) != 1) return rollback(sqlSession, "INVALID_STATE", "预约状态已变化，未改期。");
-            if (datesMapper.releaseSlot(appointment.getDoctorId(), appointment.getAppointmentDate(), oldSlot) != 1) return rollback(sqlSession, "SCHEDULE_MISMATCH", "原排班状态异常，未改期。");
+            if (appointment.getScheduleSlotId() == null) return rollback(sqlSession, "SCHEDULE_MISMATCH", "原预约缺少排班时段，未改期。");
+            if (scheduleSlotsMapper.reserveAvailableSlot(appointment.getDoctorId(), newDate, newSlot) != 1) return rollback(sqlSession, "SLOT_UNAVAILABLE", "该医生在所选日期或时段没有排班，或该时段已被预约。");
+            ScheduleSlot newScheduleSlot = scheduleSlotsMapper.selectByDoctorDatePeriod(appointment.getDoctorId(), newDate, newSlot);
+            if (newScheduleSlot == null) return rollback(sqlSession, "SCHEDULE_MISMATCH", "新排班时段异常，未改期。");
+            Appointments created = newAppointment(patientId, appointment.getDoctorId(), newDate, newSlot,
+                    newScheduleSlot.getScheduleSlotId(), Integer.valueOf(appointmentId));
+            if (appointmentsMapper.insertWithSlotRecord(created) != 1 || created.getAppointmentId() <= 0) {
+                return rollback(sqlSession, "RESCHEDULE_FAILED", "新预约未创建，原预约保持不变。");
+            }
+            if (appointmentsMapper.updateStatusForPatientIfCurrent(appointmentId, patientId, STATUS_BOOKED, STATUS_RESCHEDULED) != 1) {
+                return rollback(sqlSession, "INVALID_STATE", "预约状态已变化，未改期。");
+            }
+            if (scheduleSlotsMapper.releaseBookedSlot(appointment.getScheduleSlotId().longValue()) != 1) return rollback(sqlSession, "SCHEDULE_MISMATCH", "原排班状态异常，未改期。");
+            auditService.writeSuccess(sqlSession, audit, "APPOINTMENTS_RESCHEDULE", "APPOINTMENT", Integer.toString(appointmentId));
+            auditService.writeSuccess(sqlSession, audit, "APPOINTMENTS_RESCHEDULE_NEW", "APPOINTMENT", Integer.toString(created.getAppointmentId()));
             sqlSession.commit();
             return AppointmentOperationResult.success("预约已改期。");
         } catch (Exception exception) {
@@ -117,17 +158,25 @@ public class AppointmentsServiceImpl {
     }
 
     public AppointmentOperationResult completeAppointment(int doctorId, int appointmentId) {
+        return AppointmentOperationResult.failure("MEDICAL_RECORD_REQUIRED", "请填写并提交就诊记录后完成接诊。");
+    }
+
+    public AppointmentOperationResult startAppointment(int doctorId, int appointmentId) {
+        return startAppointment(doctorId, appointmentId, synthetic("DOCTOR", doctorId, "/appointments/start"));
+    }
+    public AppointmentOperationResult startAppointment(int doctorId, int appointmentId, AuditContext audit) {
         SqlSession sqlSession = null;
         try {
-            sqlSession = MybatisUtil.getTransactionSqlSession();
+            sqlSession = transactionSessions.get();
             AppointmentsMapper mapper = sqlSession.getMapper(AppointmentsMapper.class);
-            if (mapper.updateStatusIfCurrent(appointmentId, doctorId, STATUS_BOOKED, STATUS_COMPLETED) != 1) {
-                return rollback(sqlSession, "INVALID_STATE", "预约不存在、不属于当前医生，或当前不能完成接诊。");
+            if (mapper.updateStatusForDoctorIfCurrent(appointmentId, doctorId, STATUS_BOOKED, STATUS_IN_PROGRESS) != 1) {
+                return rollback(sqlSession, "INVALID_STATE", "预约不存在、不属于当前医生，或当前不能开始接诊。");
             }
+            auditService.writeSuccess(sqlSession, audit, "APPOINTMENTS_START", "APPOINTMENT", Integer.toString(appointmentId));
             sqlSession.commit();
-            return AppointmentOperationResult.success("接诊已完成。");
+            return AppointmentOperationResult.success("已开始接诊。");
         } catch (Exception exception) {
-            return rollback(sqlSession, "COMPLETE_FAILED", "完成接诊失败，请稍后重试。");
+            return rollback(sqlSession, "START_FAILED", "开始接诊失败，请稍后重试。");
         } finally { close(sqlSession); }
     }
 
@@ -165,6 +214,14 @@ public class AppointmentsServiceImpl {
     }
 
     private static boolean isValidDate(String date) { return date != null && ISO_DATE.matcher(date).matches(); }
+    private static AuditContext synthetic(String role, int id, String path) { return new AuditContext(role, Integer.valueOf(id), "POST", path, null); }
+    private static Appointments newAppointment(int patient, int doctor, String date, String slot, long slotId, Integer previousId) {
+        Appointments appointment = new Appointments();
+        appointment.setPatientId(patient); appointment.setDoctorId(doctor); appointment.setAppointmentDate(date);
+        appointment.setAppointmentTime(slot); appointment.setScheduleSlotId(Long.valueOf(slotId));
+        appointment.setPreviousAppointmentId(previousId); appointment.setStatus(STATUS_BOOKED);
+        return appointment;
+    }
     private static int safePage(int pageNum) { return pageNum > 0 ? pageNum : 1; }
     private static double parseRegistrationFee(String value) {
         if (value == null) return -1;
