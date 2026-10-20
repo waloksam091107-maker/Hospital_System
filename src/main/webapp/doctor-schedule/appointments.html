@@ -8,6 +8,7 @@
   <link href="../hospro/static/css/style.css" rel="stylesheet">
   <link href="../hospro/static/css/responsive.css" rel="stylesheet">
   <script src="../hospro/static/js/jquery.js"></script>
+  <script src="doctor-api.js"></script>
   <style>
     body { background: #eefafa; color: #0d2b53; }
     .doctor-header { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 18px 0; }
@@ -95,8 +96,7 @@
       }
     }
     function displayError(xhr) {
-      let message = '预约记录加载失败，请稍后重试。';
-      if (xhr.responseJSON && xhr.responseJSON.message) message = xhr.responseJSON.message;
+      const message = doctorApiErrorMessage(xhr, '预约记录加载失败，请稍后重试。');
       $('#appointmentRows').html('<tr><td class="error-message" colspan="7">' + escapeHtml(message) + '</td></tr>');
     }
     function loadAppointments(pageNumber) {
@@ -113,7 +113,7 @@
           if (response.success) loadAppointments(1);
         })
         .fail(function(xhr) {
-          alert((xhr.responseJSON && xhr.responseJSON.message) || '接诊状态更新失败，请稍后重试。');
+          alert(doctorApiErrorMessage(xhr, '接诊状态更新失败，请稍后重试。'));
         });
     });
     $(function() { loadCsrfToken(function() { loadAppointments(1); }); });

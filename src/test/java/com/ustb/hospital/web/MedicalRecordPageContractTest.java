@@ -28,4 +28,12 @@ public class MedicalRecordPageContractTest {
         assertTrue(new String(Files.readAllBytes(doctorPage), StandardCharsets.UTF_8).contains("/medical-records/finalize"));
         assertTrue(new String(Files.readAllBytes(patientPage), StandardCharsets.UTF_8).contains("/medical-records/patient"));
     }
+
+    @Test
+    public void encounterPageUsesTheSharedFriendlyErrorMapperForProtectedApis() throws Exception {
+        Path doctorPage = Paths.get("src/main/webapp/doctor-schedule/encounter.html");
+        String html = new String(Files.readAllBytes(doctorPage), StandardCharsets.UTF_8);
+        assertTrue(html.contains("doctor-api.js"));
+        assertTrue(html.contains("doctorApiErrorMessage(xhr,"));
+    }
 }

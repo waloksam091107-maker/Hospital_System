@@ -18,17 +18,15 @@ import java.util.List;
 public class SearchServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // 设置请求和响应的字符编码
-        req.setCharacterEncoding("UTF-8");
-        resp.setContentType("text/html;charset=UTF-8");
-
+        String keyword = req.getParameter("keyword");
+        if (keyword == null || keyword.trim().isEmpty()) {
+            AppointmentServletSupport.writeBadRequest(resp, "科室关键词不能为空。");
+            return;
+        }
 
         DepartmentsServiceImpl service=new DepartmentsServiceImpl();
         List<Departments> list = service.queryAllSecondLevelDepartments();
         ObjectMapper objectMapper=new ObjectMapper();
-
-        String keyword = req.getParameter("keyword");
-
 
         List<Departments> matchingDepartments = new ArrayList<>();
                 // 遍历原始列表，找到名称包含关键字的部门对象
@@ -38,7 +36,7 @@ public class SearchServlet extends HttpServlet {
             }
         }
         String jsonStr=objectMapper.writeValueAsString(matchingDepartments);
-        resp.setCharacterEncoding("utf-8");
+        resp.setContentType("application/json;charset=UTF-8");
         resp.getWriter().write(jsonStr);
     }
 

@@ -4,6 +4,7 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>填写就诊记录</title>
   <script src="../hospro/static/js/jquery.js"></script>
+  <script src="doctor-api.js"></script>
   <style>
     body{font-family:Arial,"Microsoft YaHei",sans-serif;background:#f4fbfa;color:#17345c;margin:0}.wrap{max-width:920px;margin:40px auto;background:#fff;padding:32px;border-radius:12px;box-shadow:0 8px 24px #1a535c20}fieldset{border:0;padding:0;margin:0;min-width:0}label{display:block;font-weight:bold;margin:16px 0 6px}input,textarea{box-sizing:border-box;width:100%;padding:10px;border:1px solid #cbd7df;border-radius:6px;font:inherit}textarea{min-height:92px}.order{display:grid;grid-template-columns:2fr 1fr 1fr .8fr 2fr auto;gap:8px;margin:8px 0}.button{display:inline-block;border:0;border-radius:6px;background:#35c9bf;color:#fff;padding:10px 15px;cursor:pointer;text-decoration:none;font-weight:bold}.button:disabled{background:#aab7bc;cursor:not-allowed}.secondary{background:#64748b}.danger{background:#e75c4b}.message{min-height:24px;margin-top:14px}.error{color:#bd3126}.success{color:#117a5d}@media(max-width:750px){.order{grid-template-columns:1fr}.wrap{margin:15px;padding:20px}}
   </style>
@@ -55,7 +56,7 @@
     token = response.token || '';
     if (!token) error('无法获取安全校验信息，请刷新页面后重试。');
     updateSubmitButton();
-  }).fail(function (xhr) { error((xhr.responseJSON && xhr.responseJSON.message) || '安全校验信息获取失败，请重新登录或稍后重试。'); updateSubmitButton(); });
+  }).fail(function (xhr) { error(doctorApiErrorMessage(xhr, '安全校验信息获取失败，请重新登录或稍后重试。')); updateSubmitButton(); });
   $.ajax({url: api('/appointments/doctor/detail'), data: {appointmentId: appointmentId}, dataType: 'json'}).done(function (found) {
     if (String(found.appointmentId) !== appointmentId) { $('#appointmentHint').text('预约信息读取失败。'); error('预约信息不匹配，请返回预约记录重新进入。'); return; }
     if (found.status !== 'IN_PROGRESS') { $('#appointmentHint').text('预约 #' + appointmentId); error('该预约当前不是“接诊中”状态，不能填写正式记录。'); return; }
@@ -78,9 +79,9 @@
       recordLoaded = true; appointmentReady = true; updateSubmitButton();
     }).fail(function (xhr) {
       if (xhr.status === 404) { recordLoaded = true; appointmentReady = true; updateSubmitButton(); return; }
-      error((xhr.responseJSON && xhr.responseJSON.message) || '读取病历草稿失败，请刷新页面重试。');
+      error(doctorApiErrorMessage(xhr, '读取病历草稿失败，请刷新页面重试。'));
     });
-  }).fail(function (xhr) { $('#appointmentHint').text('预约信息读取失败。'); error((xhr.responseJSON && xhr.responseJSON.message) || '读取预约失败，请稍后重试。'); updateSubmitButton(); });
+  }).fail(function (xhr) { $('#appointmentHint').text('预约信息读取失败。'); error(doctorApiErrorMessage(xhr, '读取预约失败，请稍后重试。')); updateSubmitButton(); });
   function submitRecord(isDraft) {
     if (!appointmentReady || !token || submitting) return;
     message.removeClass('error success').text('');
@@ -96,7 +97,7 @@
       .fail(function (xhr) {
         var result = xhr.responseJSON || {};
         if (xhr.status === 401 || xhr.status === 403 || result.code === 'INVALID_STATE' || result.code === 'DUPLICATE_RECORD') appointmentReady = false;
-        error(result.message || '保存失败，请稍后重试。');
+        error(doctorApiErrorMessage(xhr, result.message || '保存失败，请稍后重试。'));
         submitting = false;
         updateSubmitButton();
       });

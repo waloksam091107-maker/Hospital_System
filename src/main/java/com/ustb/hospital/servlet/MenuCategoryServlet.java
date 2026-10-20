@@ -1,9 +1,6 @@
 package com.ustb.hospital.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ustb.hospital.entity.Departments;
-import com.ustb.hospital.entity.Menu;
-import com.ustb.hospital.service.DepartmentsServiceImpl;
 import com.ustb.hospital.service.MenuServiceImpl;
 
 import javax.servlet.ServletException;
@@ -12,20 +9,24 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
 @WebServlet("/menu/categories")
 public class MenuCategoryServlet extends HttpServlet {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        this.doPost(req,resp);
+        writeCategories(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("utf-8");
-        resp.setContentType("test/json;charset=utf-8");
+        writeCategories(req, resp);
+    }
 
-        MenuServiceImpl service=new MenuServiceImpl();
+    private void writeCategories(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        req.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json;charset=UTF-8");
+        OBJECT_MAPPER.writeValue(resp.getWriter(), new MenuServiceImpl().queryCategories());
     }
 }

@@ -52,8 +52,8 @@ public class EncodingFilterTest {
 
         new EncodingFilter().doFilter(request, response, chain);
 
-        assertEquals("utf-8", requestEncoding.get());
-        assertNull("Static resources must keep Tomcat's own response encoding.", responseEncoding.get());
+        assertEquals("UTF-8", requestEncoding.get());
+        assertEquals("UTF-8", responseEncoding.get());
         assertNull("A global encoding filter must not label CSS and JavaScript as HTML.",
                 responseContentType.get());
         assertTrue(chainCalled.get());

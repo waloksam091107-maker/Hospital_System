@@ -18,6 +18,11 @@ form{display:flex;flex-wrap:wrap;gap:12px;align-items:end}label{display:flex;fle
   var contextPath=window.location.pathname.substring(0,window.location.pathname.indexOf('/hospro/'))||'';
   var currentPage=1, pages=1, loading=false;
   function dateValue(id){var value=$(id).val(); if(!value)return ''; value=value.replace('T',' '); return value.length===16?value+':00':value;}
+  function apiMessage(xhr,fallback){
+    if(xhr&&xhr.responseJSON&&xhr.responseJSON.message)return xhr.responseJSON.message;
+    if(xhr&&xhr.responseText){try{var body=JSON.parse(xhr.responseText);if(body&&body.message)return body.message;}catch(ignore){}}
+    return fallback;
+  }
   function query(page){
     if(loading)return; loading=true; $('#message').removeClass('error').text('正在加载…'); $('#previousPage,#nextPage').prop('disabled',true);
     var data={start:dateValue('#start'),end:dateValue('#end'),role:$('#role').val(),actorId:$('#actorId').val(),action:$('#action').val().trim(),outcome:$('#outcome').val(),page:page,pageSize:20};
@@ -26,7 +31,7 @@ form{display:flex;flex-wrap:wrap;gap:12px;align-items:end}label{display:flex;fle
       result.rows.forEach(function(item){var row=$('<tr>'); [item.createdAt,item.actorRole||'匿名',item.actorId==null?'-':item.actorId,item.action,item.targetType||'-',item.targetId||'-',item.outcome].forEach(function(value){row.append($('<td>').text(value==null?'':value));});body.append(row);});
       $('#message').text(result.total?'共 '+result.total+' 条记录。':'没有符合条件的记录。'); $('#pageInfo').text('第 '+currentPage+' / '+pages+' 页');
       $('#previousPage').prop('disabled',currentPage<=1); $('#nextPage').prop('disabled',currentPage>=pages);
-    }).fail(function(xhr){$('#auditRows').empty();$('#pageInfo').text('');$('#message').addClass('error').text((xhr.responseJSON&&xhr.responseJSON.message)||'查询失败，请稍后重试。');}).always(function(){loading=false;});
+    }).fail(function(xhr){$('#auditRows').empty();$('#pageInfo').text('');$('#message').addClass('error').text(apiMessage(xhr,'查询失败，请稍后重试。'));}).always(function(){loading=false;});
   }
   $('#queryForm').on('submit',function(event){event.preventDefault();query(1);});
   $('#resetButton').on('click',function(){$('#queryForm')[0].reset();query(1);});

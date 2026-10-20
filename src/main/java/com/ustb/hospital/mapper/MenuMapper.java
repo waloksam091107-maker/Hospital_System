@@ -10,5 +10,6 @@ public interface MenuMapper {
     public void delById(String id);
     public List<Menu> selectAll();
     public List<Menu> selectByClass(String fenlei);
+    public List<String> selectCategories();
     public void updateById(@Param("id") String id,@Param("price") String price,@Param("fenlei") String fenlei);
 }

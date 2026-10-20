@@ -24,8 +24,9 @@ public class DoctorsSaveServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        req.setCharacterEncoding("utf-8");
-        resp.setContentType("test/json;charset=utf-8");
+        req.setCharacterEncoding("UTF-8");
+        // This is a multipart form endpoint that forwards/redirects to HTML rather than a JSON API.
+        resp.setContentType("text/html;charset=UTF-8");
         String password = req.getParameter("password");
         String name = req.getParameter("name");
         String entryDate = req.getParameter("entryDate");

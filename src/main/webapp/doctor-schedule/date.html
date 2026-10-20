@@ -18,6 +18,7 @@
   <link href="../hospro/static/css/style.css" rel="stylesheet">
   <link href="../hospro/static/css/responsive.css" rel="stylesheet">
   <script src="../hospro/static/js/jquery.js"></script>
+  <script src="doctor-api.js"></script>
 <script>
 const appContext = window.location.pathname.split('/doctor-schedule/')[0];
 function appUrl(path) { return appContext + path; }
@@ -503,7 +504,11 @@ function appUrl(path) { return appContext + path; }
 
     <script type="text/javascript">
       var csrfToken = '';
-      $(function () { $.getJSON(appUrl('/security/csrf')).done(function (response) { csrfToken = response.token || ''; }); });
+      $(function () {
+        $.getJSON(appUrl('/security/csrf'))
+          .done(function (response) { csrfToken = response.token || ''; })
+          .fail(function (xhr) { alert(doctorApiErrorMessage(xhr, '安全校验信息获取失败，请重新登录或稍后重试。')); });
+      });
       $(document).ajaxSend(function (event, xhr, settings) {
         if (/^(POST|PUT|PATCH|DELETE)$/i.test(settings.type || '') && (settings.url || '').indexOf('/schedules/') >= 0) {
           xhr.setRequestHeader('X-CSRF-Token', csrfToken);
@@ -585,8 +590,8 @@ function appUrl(path) { return appContext + path; }
               $(".pagination").append($li);
             }
           },
-          error: function () {
-            alert("加载失败！");
+          error: function (xhr) {
+            alert(doctorApiErrorMessage(xhr, '加载排班失败，请稍后重试。'));
           }
         });
       }
@@ -639,11 +644,7 @@ function appUrl(path) { return appContext + path; }
             }
           },
           error: function(xhr) {
-            var response = xhr.responseJSON;
-            if (!response && xhr.responseText) {
-              try { response = JSON.parse(xhr.responseText); } catch (ignore) { }
-            }
-            alert((response && response.message) || '更新失败');
+            alert(doctorApiErrorMessage(xhr, '更新失败，请稍后重试。'));
           }
         });
       }
@@ -664,8 +665,8 @@ function appUrl(path) { return appContext + path; }
                 alert(response.message || "删除日程失败！");
               }
             },
-            error: function () {
-              alert("删除日程失败！");
+            error: function (xhr) {
+              alert(doctorApiErrorMessage(xhr, '删除日程失败，请稍后重试。'));
             }
           });
         }
@@ -715,10 +716,8 @@ function appUrl(path) { return appContext + path; }
                   alert(response.message || "日程添加失败！");
                 }
               },
-              error: function (xhr, status, error) {
-                console.error("AJAX 错误:", status, error);
-                const errorMessage = xhr.responseText || error;
-                alert("日程添加失败！请稍后重试。错误详情: " + errorMessage);
+              error: function (xhr) {
+                alert(doctorApiErrorMessage(xhr, '日程添加失败，请稍后重试。'));
               }
             });
           });

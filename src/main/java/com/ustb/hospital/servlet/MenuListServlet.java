@@ -13,28 +13,31 @@ import java.io.IOException;
 
 @WebServlet("/menu/list")
 public class MenuListServlet extends HttpServlet {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        this.doPost(req,resp);
+        writePage(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("utf-8");
-        resp.setContentType("test/json;charset=utf-8");
+        writePage(req, resp);
+    }
 
-        String fenlei = req.getParameter("fenlei");
-        String pageNum_ = req.getParameter("pageNum");
-        int pageNum=Integer.parseInt(pageNum_);
-MenuServiceImpl service=new MenuServiceImpl();
+    private void writePage(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        req.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json;charset=UTF-8");
 
-        PageInfo pageInfo=service.queryByPage(pageNum,fenlei);
+        Integer pageNum = AppointmentServletSupport.parsePositiveInt(req.getParameter("pageNum"));
+        if (pageNum == null) {
+            AppointmentServletSupport.writeBadRequest(resp, "页码必须为正整数。");
+            return;
+        }
+        String category = req.getParameter("fenlei");
+        if (category == null || category.trim().isEmpty()) category = "-1";
 
-        ObjectMapper objectMapper=new ObjectMapper();
-        String jsonStr=objectMapper.writeValueAsString(pageInfo);
-
-resp.getWriter().write(jsonStr);
-
-
+        PageInfo pageInfo = new MenuServiceImpl().queryByPage(pageNum.intValue(), category);
+        OBJECT_MAPPER.writeValue(resp.getWriter(), pageInfo);
     }
 }

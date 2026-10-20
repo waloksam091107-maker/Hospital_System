@@ -34,4 +34,24 @@ public class DoctorAppointmentPageTest {
         assertTrue("旧排班入口的预约记录必须跳转至可用的医生预约页",
                 schedulePage.contains("href=\"../doctor-schedule/appointments.html\"><i class=\"fas fa-wheelchair\"></i>预约记录"));
     }
+
+    @Test
+    public void doctorWorkflowPagesUseOneFriendlyApiErrorContract() throws Exception {
+        Path webRoot = Paths.get("src", "main", "webapp", "doctor-schedule");
+        for (String pageName : new String[]{"date.html", "appointments.html", "encounter.html"}) {
+            String page = new String(Files.readAllBytes(webRoot.resolve(pageName)), StandardCharsets.UTF_8);
+            assertTrue(pageName + " 应加载统一的医生端接口错误提示工具", page.contains("doctor-api.js"));
+        }
+
+        Path helper = webRoot.resolve("doctor-api.js");
+        assertTrue("医生端接口错误提示工具应存在", Files.isRegularFile(helper));
+        String source = new String(Files.readAllBytes(helper), StandardCharsets.UTF_8);
+        assertTrue(source.contains("function doctorApiErrorMessage"));
+        assertTrue(source.contains("xhr.status === 401"));
+        assertTrue(source.contains("xhr.status === 403"));
+        assertTrue(source.contains("xhr.status === 404"));
+        assertTrue(source.contains("xhr.status === 409"));
+        assertTrue(source.contains("请先登录医生账号。"));
+        assertTrue(source.contains("当前账号无权执行此操作。"));
+    }
 }

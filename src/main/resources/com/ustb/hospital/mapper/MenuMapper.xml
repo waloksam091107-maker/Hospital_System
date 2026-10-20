@@ -31,6 +31,10 @@
         select * from menu where fenlei = #{fenlei}
     </select>
 
+    <select id="selectCategories" resultType="string">
+        select distinct fenlei from menu where fenlei is not null and trim(fenlei) &lt;&gt; '' order by fenlei
+    </select>
+
 
     <update id="updateById" >
         UPDATE menu

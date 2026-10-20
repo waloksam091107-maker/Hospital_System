@@ -30,7 +30,7 @@ public class MenuServiceImpl {
         SqlSession sqlSession = MybatisUtil.getSqlSession();
         MenuMapper mapper = sqlSession.getMapper(MenuMapper.class);
         PageHelper.startPage(pageNum,2);
-        if(fenlei.equals("-1")){
+        if("-1".equals(fenlei)){
             //全选
             List<Menu> list=mapper.selectAll();
             PageInfo<Menu> pageInfo=new PageInfo<>(list);
@@ -48,5 +48,11 @@ public class MenuServiceImpl {
 
 
 
+    }
+
+    public List<String> queryCategories() {
+        SqlSession sqlSession = MybatisUtil.getSqlSession();
+        MenuMapper mapper = sqlSession.getMapper(MenuMapper.class);
+        return mapper.selectCategories();
     }
 }

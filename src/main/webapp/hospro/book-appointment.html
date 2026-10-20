@@ -35,16 +35,17 @@ function appUrl(path) { return appContext + path; }
             }
 
             function submitBooking() {
+                const bookingRequest = buildBookingRequest();
+                if (!bookingRequest) {
+                    alert('预约信息不完整或已失效，请返回医生页面重新选择。');
+                    return;
+                }
                 $.ajax({
                     url: appUrl('/appointments/book'),
                     type: 'POST',
                     dataType: 'json',
                     headers: {'X-CSRF-Token': csrfToken},
-                    data: {
-                        doctorId: urlParams.get('doctor_id'),
-                        appointment_date: urlParams.get('date'),
-                        appointment_time: urlParams.get('time')
-                    },
+                    data: bookingRequest,
                     success: function(response) {
                         if (response.success) {
                             window.location.href = appUrl('/doctor-schedule/confirm.html');
@@ -57,6 +58,23 @@ function appUrl(path) { return appContext + path; }
                         alert(response && response.message ? response.message : '预约失败，请先确认已登录患者账号。');
                     }
                 });
+            }
+
+            function buildBookingRequest() {
+                const doctorId = urlParams.get('doctor_id');
+                const appointmentDate = urlParams.get('date');
+                const appointmentTime = urlParams.get('time');
+                const allowedTimes = ['AM', 'PM', 'EVENING'];
+                if (!/^[1-9]\d*$/.test(doctorId || '')
+                    || !/^\d{4}-\d{2}-\d{2}$/.test(appointmentDate || '')
+                    || allowedTimes.indexOf(appointmentTime) < 0) {
+                    return null;
+                }
+                return {
+                    doctorId: doctorId,
+                    appointment_date: appointmentDate,
+                    appointment_time: appointmentTime
+                };
             }
 
             loadCsrfToken();
@@ -615,4 +633,5 @@ function appUrl(path) { return appContext + path; }
 <script src="static/js/gmaps.js"></script>
 <script src="static/js/map-helper.js"></script><!-- main-js -->
 <script src="static/js/script.js"></script>
+<script src="static/js/legacy-navigation-guard.js"></script>
 </body><!-- End of .page_wrapper --></html>

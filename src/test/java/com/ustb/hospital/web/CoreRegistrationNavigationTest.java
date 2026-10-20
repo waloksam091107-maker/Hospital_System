@@ -140,6 +140,15 @@ public class CoreRegistrationNavigationTest {
                 "<input id=\"inputView\" type=\"text\" name=\"name\" autocomplete=\"off\""));
     }
 
+    @Test
+    public void patientFacingTemplatePagesLoadTheLegacyNavigationGuard() throws Exception {
+        String[] pages = {"index.html", "doctor-directory.html", "book-appointment.html", "appointment-records.html"};
+        for (String file : pages) {
+            assertTrue(file + " 必须加载统一的旧模板导航保护脚本", readWebFile("hospro", file)
+                    .contains("static/js/legacy-navigation-guard.js"));
+        }
+    }
+
     private String readWebFile(String directory, String fileName) throws Exception {
         Path page = Paths.get("src", "main", "webapp", directory, fileName);
         return new String(Files.readAllBytes(page), StandardCharsets.UTF_8);
