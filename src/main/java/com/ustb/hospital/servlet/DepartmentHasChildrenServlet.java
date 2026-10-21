@@ -16,9 +16,8 @@ public class DepartmentHasChildrenServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-req.setCharacterEncoding("utf-8");
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
+        req.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json;charset=UTF-8");
 
         String deptId = req.getParameter("deptId");
         if (deptId == null) {

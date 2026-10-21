@@ -18,7 +18,7 @@ public class DepartmentsSecondAllServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
 
-        resp.setContentType("text/json;charset=utf-8");
+        resp.setContentType("application/json;charset=UTF-8");
 
 
         DepartmentsServiceImpl service = new DepartmentsServiceImpl();

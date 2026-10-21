@@ -19,7 +19,7 @@ public class DepartmentsSecondListServlet extends HttpServlet {
         //
         //请求乱码
         req.setCharacterEncoding("utf-8");
-        resp.setContentType("text/html;charset=utf-8");
+        resp.setContentType("application/json;charset=UTF-8");
         String deptPid = req.getParameter("deptPid");
         DepartmentsServiceImpl service = new DepartmentsServiceImpl();
         List<Departments> list = service.querySecondByPid(Integer.parseInt(deptPid));

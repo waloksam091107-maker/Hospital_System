@@ -15,8 +15,8 @@ import java.io.IOException;
 public class PatientGetById extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("utf-8");
-        resp.setContentType("test/json;charset=utf-8");
+        req.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json;charset=UTF-8");
 
         String patientId = req.getParameter("patientId");
         PatientsServiceImpl service =new PatientsServiceImpl();

@@ -20,7 +20,7 @@ public class AdminsListServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("utf-8");
-        resp.setContentType("text/html;charset=utf-8");
+        resp.setContentType("application/json;charset=UTF-8");
         String pageNum=req.getParameter("pageNum");
         String pageSize=req.getParameter("pageSize");
         int i = 1;

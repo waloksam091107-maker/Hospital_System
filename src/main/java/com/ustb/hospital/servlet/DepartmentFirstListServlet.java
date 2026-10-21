@@ -19,7 +19,7 @@ public class DepartmentFirstListServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("utf-8");
 //响应乱码
-        resp.setContentType("text/html;charset=utf-8");
+        resp.setContentType("application/json;charset=UTF-8");
         DepartmentsServiceImpl service = new DepartmentsServiceImpl();
         List<Departments> list = service.queryFirstDept();
 //ajax返回

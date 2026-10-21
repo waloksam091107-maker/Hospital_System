@@ -19,7 +19,7 @@ public class NewsListServlet extends HttpServlet {
         //请求乱码
         req.setCharacterEncoding("utf-8");
         //响应乱码
-        resp.setContentType("text/html;charset=utf-8");
+        resp.setContentType("application/json;charset=UTF-8");
 
         NewsServiceImpl service = new NewsServiceImpl();
         List<News> newsList = service.queryAll();

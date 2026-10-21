@@ -23,7 +23,7 @@ public class DoctorsFindById extends HttpServlet {
         ObjectMapper objectMapper=new ObjectMapper();
         String jsonStr=objectMapper.writeValueAsString(doctors);
 
-resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json;charset=UTF-8");
         resp.getWriter().write(jsonStr);
     }
 

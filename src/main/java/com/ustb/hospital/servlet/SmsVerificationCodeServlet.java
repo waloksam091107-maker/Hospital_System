@@ -22,7 +22,7 @@ String randomCode = String.valueOf((int) (Math.random() * 9000 + 1000)); //4位�
             SMSUtils.send(phoneNumber,"医通","SMS_469075527",content); //发送短信
             ObjectMapper objectMapper=new ObjectMapper();
             String jsonStr=objectMapper.writeValueAsString(randomCode);
-            resp.setCharacterEncoding("utf-8");
+            resp.setContentType("application/json;charset=UTF-8");
 
             resp.getWriter().write(jsonStr);
 
