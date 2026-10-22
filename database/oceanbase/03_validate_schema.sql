@@ -5,21 +5,26 @@ SELECT table_name
 FROM information_schema.tables
 WHERE table_schema = 'hospt'
   AND table_name IN ('departments', 'professional_titles', 'doctors', 'patients', 'admins', 'dates',
-                     'schedule_slots', 'appointments', 'medical_records', 'medical_orders', 'audit_logs')
+                     'schedule_slots', 'appointments', 'medical_records', 'medical_orders', 'audit_logs',
+                     'balance_transactions', 'announcement')
 ORDER BY table_name;
 
 SELECT table_name, column_name, column_type, is_nullable, column_default, extra
 FROM information_schema.columns
 WHERE table_schema = 'hospt'
   AND ((table_name = 'appointments' AND column_name IN ('schedule_slot_id', 'previous_appointment_id', 'status', 'version', 'active_slot_key'))
-       OR (table_name = 'medical_records' AND column_name IN ('record_status', 'version', 'finalized_at')))
+       OR (table_name = 'medical_records' AND column_name IN ('record_status', 'version', 'finalized_at'))
+       OR (table_name = 'balance_transactions' AND column_name IN ('transaction_type', 'amount', 'balance_after', 'appointment_id'))
+       OR (table_name = 'announcement' AND column_name IN ('status', 'published_at', 'updated_at', 'creator_admin_id')))
 ORDER BY table_name, ordinal_position;
 
 SELECT table_name, index_name, non_unique, seq_in_index, column_name
 FROM information_schema.statistics
 WHERE table_schema = 'hospt'
   AND ((table_name = 'appointments' AND index_name = 'uk_appointments_active_slot')
-       OR (table_name = 'audit_logs' AND index_name = 'idx_audit_logs_created_id'))
+       OR (table_name = 'audit_logs' AND index_name = 'idx_audit_logs_created_id')
+       OR (table_name = 'balance_transactions' AND index_name IN ('idx_balance_transactions_patient_created', 'idx_balance_transactions_appointment'))
+       OR (table_name = 'announcement' AND index_name = 'idx_announcement_status_published'))
 ORDER BY table_name, index_name, seq_in_index;
 
 SELECT table_name, constraint_name, referenced_table_name

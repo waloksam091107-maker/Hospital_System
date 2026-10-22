@@ -16,6 +16,9 @@
   <filter-mapping><filter-name>audit</filter-name><url-pattern>/medical-records/*</url-pattern></filter-mapping>
   <filter-mapping><filter-name>audit</filter-name><url-pattern>/password/reset</url-pattern></filter-mapping>
   <filter-mapping><filter-name>audit</filter-name><url-pattern>/audit-logs/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>audit</filter-name><url-pattern>/portal/profile/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>audit</filter-name><url-pattern>/portal/balance/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>audit</filter-name><url-pattern>/portal/admin/*</url-pattern></filter-mapping>
   <filter-mapping><filter-name>authentication</filter-name><url-pattern>/appointments/*</url-pattern></filter-mapping>
   <filter-mapping><filter-name>authentication</filter-name><url-pattern>/medical-records/*</url-pattern></filter-mapping>
   <filter-mapping><filter-name>authentication</filter-name><url-pattern>/schedules/*</url-pattern></filter-mapping>
@@ -23,6 +26,9 @@
   <filter-mapping><filter-name>authentication</filter-name><url-pattern>/password/reset</url-pattern></filter-mapping>
   <filter-mapping><filter-name>authentication</filter-name><url-pattern>/audit-logs/*</url-pattern></filter-mapping>
   <filter-mapping><filter-name>authentication</filter-name><url-pattern>/security/csrf</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/portal/profile/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/portal/balance/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/portal/admin/*</url-pattern></filter-mapping>
   <filter-mapping><filter-name>csrf</filter-name><url-pattern>/appointments/book</url-pattern></filter-mapping>
   <filter-mapping><filter-name>csrf</filter-name><url-pattern>/appointments/cancel</url-pattern></filter-mapping>
   <filter-mapping><filter-name>csrf</filter-name><url-pattern>/appointments/reschedule</url-pattern></filter-mapping>
@@ -32,4 +38,7 @@
   <filter-mapping><filter-name>csrf</filter-name><url-pattern>/medical-records/finalize</url-pattern></filter-mapping>
   <filter-mapping><filter-name>csrf</filter-name><url-pattern>/schedules/*</url-pattern></filter-mapping>
   <filter-mapping><filter-name>csrf</filter-name><url-pattern>/password/reset</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>csrf</filter-name><url-pattern>/portal/profile/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>csrf</filter-name><url-pattern>/portal/balance/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>csrf</filter-name><url-pattern>/portal/admin/*</url-pattern></filter-mapping>
 </web-app>

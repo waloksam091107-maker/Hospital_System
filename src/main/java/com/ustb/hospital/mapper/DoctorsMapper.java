@@ -31,7 +31,15 @@ public interface DoctorsMapper {
 
     public int getDocMaxId();
     public int insertDoc(Doctors doctors);
-    void updateAvatar(@Param("doctorId") int doctorId, @Param("avatar") String avatar);
+    int updateAvatar(@Param("doctorId") int doctorId, @Param("avatar") String avatar);
+    Doctors selectPortalProfileById(@Param("doctorId") int doctorId);
+    int updatePortalProfile(@Param("doctorId") int doctorId, @Param("phone") String phone,
+                            @Param("email") String email, @Param("introduction") String introduction);
+    int insertPortalAdmin(Doctors doctor);
+    int updatePortalAdmin(Doctors doctor);
+    int countAppointmentsByDoctorId(@Param("doctorId") int doctorId);
+    int countScheduleSlotsByDoctorId(@Param("doctorId") int doctorId);
+    int deletePortalAdmin(@Param("doctorId") int doctorId);
 
 
 

@@ -25,6 +25,16 @@ public class CoreRegistrationNavigationTest {
     }
 
     @Test
+    public void doctorScheduleMenuUsesARealLinkBeforeTheLegacyGuardRuns() throws Exception {
+        String page = readWebFile("hospro", "index.html");
+
+        assertTrue("排班菜单必须具备非占位 href，避免被旧模板导航保护脚本拦截", page.contains(
+                "<a id=\"paiban\" href=\"../doctor-schedule/date.html\""));
+        assertTrue("排班菜单必须由当前医生编号补全查询参数", page.contains(
+                "paibanButton.setAttribute('href', `../doctor-schedule/date.html?doctorId=${encodeURIComponent(doctorId)}`)"));
+    }
+
+    @Test
     public void everyDoctorCardEntryCarriesTheSelectedDoctorId() throws Exception {
         String page = readWebFile("hospro", "doctor-directory.html");
 

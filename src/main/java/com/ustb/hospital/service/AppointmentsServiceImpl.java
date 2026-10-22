@@ -3,10 +3,12 @@ package com.ustb.hospital.service;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.ustb.hospital.entity.Appointments;
+import com.ustb.hospital.entity.BalanceTransaction;
 import com.ustb.hospital.entity.Doctors;
 import com.ustb.hospital.entity.Patients;
 import com.ustb.hospital.entity.ScheduleSlot;
 import com.ustb.hospital.mapper.AppointmentsMapper;
+import com.ustb.hospital.mapper.BalanceTransactionsMapper;
 import com.ustb.hospital.mapper.DoctorsMapper;
 import com.ustb.hospital.mapper.PatientsMapper;
 import com.ustb.hospital.mapper.ScheduleSlotsMapper;
@@ -16,6 +18,8 @@ import com.ustb.hospital.utils.MybatisUtil;
 import org.apache.ibatis.session.SqlSession;
 
 import java.util.List;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.regex.Pattern;
 import java.util.function.Supplier;
 
@@ -56,12 +60,12 @@ public class AppointmentsServiceImpl {
             ScheduleSlotsMapper scheduleSlotsMapper = sqlSession.getMapper(ScheduleSlotsMapper.class);
             AppointmentsMapper appointmentsMapper = sqlSession.getMapper(AppointmentsMapper.class);
             Doctors doctor = doctorsMapper.findById(doctorId);
-            Patients patient = patientsMapper.selectById(patientId);
+            Patients patient = patientsMapper.selectByIdForUpdate(patientId);
             if (doctor == null || patient == null) {
                 return rollback(sqlSession, "NOT_FOUND", "患者或医生不存在。");
             }
-            double registrationFee = parseRegistrationFee(doctor.getRegistrationFee());
-            if (registrationFee < 0) {
+            BigDecimal registrationFee = parseRegistrationFee(doctor.getRegistrationFee());
+            if (registrationFee == null) {
                 return rollback(sqlSession, "INVALID_FEE", "医生挂号费配置无效。");
             }
             if (scheduleSlotsMapper.reserveAvailableSlot(doctorId, appointmentDate, slot) != 1) {
@@ -76,6 +80,12 @@ public class AppointmentsServiceImpl {
             }
             Appointments created = newAppointment(patientId, doctorId, appointmentDate, slot, scheduleSlot.getScheduleSlotId(), null);
             if (appointmentsMapper.insertWithSlotRecord(created) != 1 || created.getAppointmentId() <= 0)
+                return rollback(sqlSession, "BOOKING_FAILED", "预约未完成，请稍后重试。");
+            BalanceTransaction debit = new BalanceTransaction();
+            debit.setPatientId(patientId); debit.setAppointmentId(Integer.valueOf(created.getAppointmentId()));
+            debit.setTransactionType("APPOINTMENT_DEBIT"); debit.setAmount(registrationFee.negate());
+            debit.setBalanceAfter(currentBalance(patient).subtract(registrationFee)); debit.setNote("预约挂号扣费");
+            if (sqlSession.getMapper(BalanceTransactionsMapper.class).insert(debit) != 1)
                 return rollback(sqlSession, "BOOKING_FAILED", "预约未完成，请稍后重试。");
             auditService.writeSuccess(sqlSession, audit, "APPOINTMENTS_BOOK", "APPOINTMENT", Integer.toString(created.getAppointmentId()));
             sqlSession.commit();
@@ -223,12 +233,16 @@ public class AppointmentsServiceImpl {
         return appointment;
     }
     private static int safePage(int pageNum) { return pageNum > 0 ? pageNum : 1; }
-    private static double parseRegistrationFee(String value) {
-        if (value == null) return -1;
+    private static BigDecimal parseRegistrationFee(String value) {
+        if (value == null) return null;
         try {
-            double fee = Double.parseDouble(value.trim());
-            return fee >= 0 && !Double.isInfinite(fee) && !Double.isNaN(fee) ? fee : -1;
-        } catch (NumberFormatException exception) { return -1; }
+            BigDecimal fee = new BigDecimal(value.trim()).setScale(2, RoundingMode.UNNECESSARY);
+            return fee.signum() >= 0 ? fee : null;
+        } catch (RuntimeException exception) { return null; }
+    }
+    private static BigDecimal currentBalance(Patients patient) {
+        try { return new BigDecimal(patient.getBalance() == null ? "0" : patient.getBalance()).setScale(2, RoundingMode.UNNECESSARY); }
+        catch (RuntimeException exception) { throw new IllegalStateException("患者余额数据无效。", exception); }
     }
     private static AppointmentOperationResult rollback(SqlSession session, String code, String message) {
         if (session != null) session.rollback();

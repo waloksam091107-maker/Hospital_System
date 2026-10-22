@@ -98,7 +98,7 @@ function openDepartmentDirectory(departmentName, departmentId) {
             // 如果 patientId 存在
             if (doctorId) {
                 // 构建跳转的 URL，带上 patientId 参数
-                const redirectUrl = `doctor-profile.html?doctorId=${encodeURIComponent(doctorId)}`;
+                const redirectUrl = 'portal-profile.html';
                 // 跳转到指定页面
                 window.location.href = redirectUrl;
             }
@@ -123,7 +123,7 @@ function openDepartmentDirectory(departmentName, departmentId) {
             // 如果 patientId 存在
             if (patientId) {
                 // 构建跳转的 URL，带上 patientId 参数
-                const redirectUrl = `patientpr.html?patientId=${encodeURIComponent(patientId)}`;
+                const redirectUrl = 'portal-profile.html';
                 // 跳转到指定页面
                 window.location.href = redirectUrl;
             }
@@ -148,7 +148,7 @@ function openDepartmentDirectory(departmentName, departmentId) {
             // 如果 patientId 存在
             if (adminId) {
                 // 构建跳转的 URL，带上 patientId 参数
-                const redirectUrl = `adminProfile.html?adminId=${encodeURIComponent(adminId)}`;
+                const redirectUrl = 'portal-profile.html';
                 // 跳转到指定页面
                 window.location.href = redirectUrl;
             }
@@ -173,7 +173,7 @@ function openDepartmentDirectory(departmentName, departmentId) {
             // 如果 patientId 存在
             if (adminId) {
                 // 构建跳转的 URL，带上 patientId 参数
-                const redirectUrl = `adminProfile.html?adminId=${encodeURIComponent(adminId)}`;
+                const redirectUrl = 'portal-profile.html';
                 // 跳转到指定页面
                 window.location.href = redirectUrl;
             }
@@ -245,6 +245,7 @@ function openDepartmentDirectory(departmentName, departmentId) {
             const doctorId = searchParams.get('doctorId');
             // 如果 patientId 存在
             if (doctorId) {
+                paibanButton.setAttribute('href', `../doctor-schedule/date.html?doctorId=${encodeURIComponent(doctorId)}`);
                 // 构建跳转的 URL，带上 patientId 参数
                 const redirectUrl = `../doctor-schedule/date.html?doctorId=${encodeURIComponent(doctorId)}`;
                 // 跳转到指定页面
@@ -444,7 +445,7 @@ function openDepartmentDirectory(departmentName, departmentId) {
         // 动态设置就诊记录查询链接的点击事件
         $('#patOrderLink').on('click', function(event) {
             event.preventDefault(); // 阻止默认行为
-            var targetUrl = 'patOrder.html?patientId=' + patientId;
+            var targetUrl = 'medical-records.html';
             window.location.href = targetUrl; // 执行页面跳转
         });
 
@@ -773,8 +774,8 @@ function openDepartmentDirectory(departmentName, departmentId) {
                                                 <ul>
                                                     <li><a href="login.html?typeId=1">注册/登录</a></li>
                                                     <li><a href="change-password.html?typeId=1">修改密码</a></li>
-                                                    <li><a id="gerenzhuye">个人信息</a></li>
-                                                    <li><a id="paiban">排班表</a></li>
+                                                    <li><a id="gerenzhuye" href="portal-profile.html">个人信息</a></li>
+                                <li><a id="paiban" href="../doctor-schedule/date.html">排班表</a></li>
                                                 </ul>
                                             </li>
                                             <li class="dropdown"><a id="jiuzhen">患者就诊</a></li>
@@ -793,7 +794,7 @@ function openDepartmentDirectory(departmentName, departmentId) {
                                             </li>
 
                                             <li class="dropdown"><a id="hzjiuzhen">就诊记录查询</a></li>
-                                            <li class="dropdown"><a id="patOrderLink" href="">医嘱</a></li>
+                                            <li class="dropdown"><a id="patOrderLink" href="medical-records.html">医嘱</a></li>
                                             <li class="dropdown"><a href="patients-pay.html">账户充值</a></li>
                                         </ul>
                                     </li>
@@ -803,7 +804,7 @@ function openDepartmentDirectory(departmentName, departmentId) {
                                                 <ul>
                                                     <li><a href="login.html?typeId=3">注册/登录</a></li>
                                                     <li><a href="change-password.html?typeId=3">修改密码</a></li>
-                                                    <li><a id="glygerenzhuye">个人信息</a></li>
+                                                    <li><a id="glygerenzhuye" href="portal-profile.html">个人信息</a></li>
                                                 </ul>
                                             </li>
 
@@ -811,7 +812,7 @@ function openDepartmentDirectory(departmentName, departmentId) {
                                             <li class="dropdown"><a href="/hospro/doctors.jsp">医生管理</a></li>
                                             <li class="dropdown"><a href="/hospro/my-patients.jsp">病患管理</a></li>
                                             <li class="dropdown"><a href="">排班管理</a></li>
-                                            <li class="dropdown"><a href="/hospro/newsAdmins.html">公告管理</a></li>
+                                            <li class="dropdown"><a href="admin-announcements.html">公告管理</a></li>
                                             <li class="dropdown"><a href="/hospro/sum.html">统计报表</a></li>
                                         </ul>
                                     </li>

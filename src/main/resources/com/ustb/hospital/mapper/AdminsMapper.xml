@@ -66,6 +66,12 @@
     <select id="selectById" resultMap="adminMap">
         select * from admins where admin_id=#{adminId}
     </select>
+    <select id="selectPortalProfileById" resultMap="adminMap">
+        SELECT * FROM admins WHERE admin_id = #{adminId}
+    </select>
+    <update id="updatePortalProfile">
+        UPDATE admins SET phone = #{phone}, email = #{email} WHERE admin_id = #{adminId}
+    </update>
     <update id="updateById" parameterType="com.ustb.hospital.entity.Admins">
         UPDATE admins
         SET username = #{username}, phone = #{phone},email = #{email}

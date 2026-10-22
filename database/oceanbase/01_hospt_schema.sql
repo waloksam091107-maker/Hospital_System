@@ -191,6 +191,24 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     KEY idx_audit_logs_created_id (created_at, audit_log_id)
 );
 
+CREATE TABLE IF NOT EXISTS balance_transactions (
+    transaction_id BIGINT NOT NULL AUTO_INCREMENT,
+    patient_id INT NOT NULL,
+    appointment_id INT NULL,
+    transaction_type VARCHAR(32) NOT NULL,
+    amount DECIMAL(12,2) NOT NULL,
+    balance_after DECIMAL(12,2) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    note VARCHAR(255) NULL,
+    PRIMARY KEY (transaction_id),
+    KEY idx_balance_transactions_patient_created (patient_id, created_at),
+    KEY idx_balance_transactions_appointment (appointment_id),
+    CONSTRAINT fk_balance_transactions_patient FOREIGN KEY (patient_id) REFERENCES patients(patient_id),
+    CONSTRAINT fk_balance_transactions_appointment FOREIGN KEY (appointment_id) REFERENCES appointments(appointment_id),
+    CONSTRAINT chk_balance_transactions_type CHECK (transaction_type IN ('RECHARGE', 'APPOINTMENT_DEBIT', 'REFUND')),
+    CONSTRAINT chk_balance_transactions_amount CHECK (amount <> 0)
+);
+
 -- Legacy presentation and order tables remain available to the current mapper set.
 CREATE TABLE IF NOT EXISTS announcement (
     announcement_id INT NOT NULL AUTO_INCREMENT,
@@ -198,6 +216,11 @@ CREATE TABLE IF NOT EXISTS announcement (
     content TEXT NULL,
     creation_time VARCHAR(50) NULL,
     creator VARCHAR(100) NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PUBLISHED',
+    published_at VARCHAR(50) NULL,
+    updated_at VARCHAR(50) NULL,
+    creator_admin_id INT NULL,
+    KEY idx_announcement_status_published (status, published_at),
     PRIMARY KEY (announcement_id)
 );
 

@@ -17,8 +17,10 @@ public interface AdminsMapper {
     Admins selectByUsername(String username);
     public List<Admins> selectAll(@Param("username") String username, @Param("name") String name, @Param("phone") String phone);
     Admins selectById(int adminId);
-    void updateAvatar(@Param("adminId") int patientId, @Param("avatar") String avatar);
+    int updateAvatar(@Param("adminId") int patientId, @Param("avatar") String avatar);
     public int updateById(@Param("adminId")int adminId,@Param("username")String username,@Param("phone")String phone, @Param("email")String email);
+    Admins selectPortalProfileById(@Param("adminId") int adminId);
+    int updatePortalProfile(@Param("adminId") int adminId, @Param("phone") String phone, @Param("email") String email);
 
 
 

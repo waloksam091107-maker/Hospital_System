@@ -8,6 +8,10 @@ public class Announcements {
     private String content;
     private String creationTime;
     private String creator;
+    private String status;
+    private String publishedAt;
+    private String updatedAt;
+    private Integer creatorAdminId;
 
     public Integer getAnnouncementId() {
         return announcementId;
@@ -48,6 +52,14 @@ public class Announcements {
     public void setCreator(String creator) {
         this.creator = creator;
     }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public String getPublishedAt() { return publishedAt; }
+    public void setPublishedAt(String publishedAt) { this.publishedAt = publishedAt; }
+    public String getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
+    public Integer getCreatorAdminId() { return creatorAdminId; }
+    public void setCreatorAdminId(Integer creatorAdminId) { this.creatorAdminId = creatorAdminId; }
 
     @Override
     public String toString() {

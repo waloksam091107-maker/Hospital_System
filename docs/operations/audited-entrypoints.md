@@ -8,6 +8,11 @@
 | `/schedules/create`、`/schedules/update`、`/schedules/delete` | 医生 | 与排班及号源同事务；目标为排班主键 | 独立事务 |
 | `/medical-records/draft`、`/medical-records/finalize` | 医生 | 与病历、医嘱及预约状态同事务；目标为预约主键 | 独立事务 |
 | `/password/reset` | 本人 | 验证并锁定账号，密码与成功审计同事务 | 独立事务 |
+| `/portal/accounts/patient-register` | 匿名患者注册 | 患者创建与 `PATIENT_REGISTER` 同事务 | 独立事务，不记录密码或身份证号 |
+| `/portal/profile`、`/portal/profile/avatar` | 当前登录主体 | 资料或头像更新与目标主体审计同事务 | 独立事务 |
+| `/portal/balance/recharge` | 患者本人 | 余额、余额流水和 `BALANCE_RECHARGE` 同事务 | 独立事务，不记录金额以外的正文 |
+| `/portal/admin/doctors`、`/patients`、`/departments`、`/professional-titles` | 管理员 | 基础资料变更与对应审计同事务 | 独立事务 |
+| `/portal/admin/announcements` | 管理员 | 草稿、发布、下线、编辑、删除与对应审计同事务 | 独立事务 |
 | `/auth/login` | 全部角色 | 会话建立后独立记录；旧明文密码升级与升级事件同事务，审计失败时不登录 | 独立记录；日志不可用时服务器告警 |
 
 失败日志不含请求参数原文。审计库不可用时独立失败记录无法保证落库，但会写入不含异常明细的服务器告警；业务成功日志写入失败将阻止相应数据库变更提交。登录会话和登录成功日志不属于同一个数据库事务，不能声称原子性。当前未发现后端注销接口。

@@ -250,7 +250,7 @@
                 <div class="profile-info">
                     <ul class="list clearfix">
                         <li><a href="" class="current"><i class="fas fa-columns"></i>Dashboard</a></li>
-                        <li><a href="/departments/list"><i class="fas fa-calendar-alt"></i>科室管理</a></li>
+                        <li><a href="admin-master-data.html"><i class="fas fa-database"></i>基础数据维护</a></li>
                         <li><a href="/hospro/my-patients.jsp"><i class="fas fa-wheelchair"></i>患者管理</a></li>
                         <li><a href="/hospro/doctors.jsp"><i class="fas fa-plus-circle"></i>医生管理</a></li>
 

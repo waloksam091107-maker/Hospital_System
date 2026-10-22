@@ -27,6 +27,7 @@ public class BusinessAuditAtomicityTest {
             s.execute("CREATE TABLE patients(patient_id INT PRIMARY KEY, balance DECIMAL(12,2), password VARCHAR(100), password_hash VARCHAR(60))");
             s.execute("INSERT INTO patients(patient_id,balance,password) VALUES(1,100,'old-password')");
             s.execute("CREATE TABLE appointments(appointment_id INT AUTO_INCREMENT PRIMARY KEY, patient_id INT, doctor_id INT, appointment_date VARCHAR(10), appointment_time VARCHAR(10), schedule_slot_id BIGINT, previous_appointment_id INT, status VARCHAR(20), started_at TIMESTAMP, completed_at TIMESTAMP, cancelled_at TIMESTAMP, version INT DEFAULT 0)");
+            s.execute("CREATE TABLE balance_transactions(transaction_id BIGINT AUTO_INCREMENT PRIMARY KEY, patient_id INT, appointment_id INT, transaction_type VARCHAR(32), amount DECIMAL(12,2), balance_after DECIMAL(12,2), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, note VARCHAR(255))");
             s.execute("CREATE TABLE schedule_slots(schedule_slot_id BIGINT AUTO_INCREMENT PRIMARY KEY, doctor_id INT, schedule_date VARCHAR(10), slot_period VARCHAR(10), slot_status VARCHAR(20), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
             s.execute("INSERT INTO schedule_slots(doctor_id,schedule_date,slot_period,slot_status) VALUES(1,'2030-01-01','AM','AVAILABLE'),(1,'2030-01-02','PM','AVAILABLE')");
             s.execute("CREATE TABLE dates(date_id INT AUTO_INCREMENT PRIMARY KEY, doctor_id INT, doctor_name VARCHAR(100), date VARCHAR(10), shang VARCHAR(2), xia VARCHAR(2), wan VARCHAR(2))");
@@ -42,6 +43,9 @@ public class BusinessAuditAtomicityTest {
     @Test public void successfulCreateUsesGeneratedTargetId() throws Exception {
         assertTrue(book().isSuccessful());
         assertEquals(scalar("SELECT CAST(appointment_id AS VARCHAR) FROM appointments"), scalar("SELECT target_id FROM audit_logs"));
+        assertEquals("APPOINTMENT_DEBIT", scalar("SELECT transaction_type FROM balance_transactions"));
+        assertEquals("-10.00", scalar("SELECT amount FROM balance_transactions"));
+        assertEquals("90.00", scalar("SELECT balance_after FROM balance_transactions"));
     }
     @Test public void rescheduleAuditFailureRollsBackBothAppointmentsAndSlots() throws Exception {
         assertTrue(book().isSuccessful()); dropAudit();

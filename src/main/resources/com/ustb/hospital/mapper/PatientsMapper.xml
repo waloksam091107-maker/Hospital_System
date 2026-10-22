@@ -124,6 +124,23 @@
     <select id="selectById" resultMap="PatientMap">
         select * from patients where patient_id = #{id}
     </select>
+    <select id="selectByIdForUpdate" resultMap="PatientMap">
+        SELECT * FROM patients WHERE patient_id = #{patientId} FOR UPDATE
+    </select>
+    <update id="increaseBalance">
+        UPDATE patients
+        SET balance = CAST(balance AS DECIMAL(12,2)) + #{amount}
+        WHERE patient_id = #{patientId}
+    </update>
+    <insert id="insertPortal" parameterType="com.ustb.hospital.entity.Patients" useGeneratedKeys="true" keyProperty="patientId">
+        INSERT INTO patients(id_card_number, password, password_hash, name, avatar, phone, email, balance)
+        VALUES(#{idCardNumber}, NULL, #{passwordHash}, #{name}, #{avatar}, #{phone}, #{email}, 0.00)
+    </insert>
+    <update id="updatePortalProfile">
+        UPDATE patients SET phone = #{phone}, email = #{email} WHERE patient_id = #{patientId}
+    </update>
+    <select id="countAppointmentsByPatientId" resultType="int">SELECT COUNT(1) FROM appointments WHERE patient_id=#{patientId}</select>
+    <delete id="deletePortalAdmin">DELETE FROM patients WHERE patient_id=#{patientId}</delete>
     <select id="getPatientMaxId" resultType="int">
         select max(patient_id) from patients
     </select>

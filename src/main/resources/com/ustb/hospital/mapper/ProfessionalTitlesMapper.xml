@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ustb.hospital.mapper.ProfessionalTitlesMapper">
+    <resultMap id="titleMap" type="com.ustb.hospital.entity.ProfessionalTitles"><id column="id" property="id"/><result column="title_name" property="titleName"/><result column="description" property="description"/></resultMap>
+    <select id="selectAll" resultMap="titleMap">SELECT * FROM professional_titles ORDER BY id</select>
+    <select id="selectById" resultMap="titleMap">SELECT * FROM professional_titles WHERE id=#{id}</select>
+    <select id="selectByName" resultMap="titleMap">SELECT * FROM professional_titles WHERE title_name=#{titleName}</select>
+    <insert id="insert" parameterType="com.ustb.hospital.entity.ProfessionalTitles" useGeneratedKeys="true" keyProperty="id">INSERT INTO professional_titles(title_name, description) VALUES(#{titleName}, #{description})</insert>
+    <update id="update" parameterType="com.ustb.hospital.entity.ProfessionalTitles">UPDATE professional_titles SET title_name=#{titleName}, description=#{description} WHERE id=#{id}</update>
+    <select id="countDoctorsByTitleId" resultType="int">SELECT COUNT(1) FROM doctors WHERE professional_title_id=#{id}</select>
+    <delete id="delete">DELETE FROM professional_titles WHERE id=#{id}</delete>
+</mapper>

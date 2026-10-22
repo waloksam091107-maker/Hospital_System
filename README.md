@@ -51,6 +51,18 @@ docker compose --env-file .env.oceanbase -f docker-compose.oceanbase.yml up -d -
 
 `docker-compose.oceanbase.yml` 同时启动 OceanBase 与 Tomcat；本地 `.env.oceanbase` 被 Git 忽略，不能提交数据库密码。
 
+### 增量迁移提醒
+
+本版本的 `database/migrations/20261022_secure_portal_and_balance_transactions.sql` 是**增量**脚本：它创建余额流水表，并为既有 `announcement` 表补充草稿、发布和下线状态字段。执行前先完成既有 OceanBase 对账；执行时不得重建 `hospt`、覆盖导入数据或删除 Docker 数据卷。历史公告会被保留并默认标记为已发布。
+
+## 本次安全门户功能
+
+- 患者可通过 `register-page.html` 注册账号；资料、头像和模拟充值均只作用于当前登录主体；
+- 预约扣费与余额流水在同一事务中完成。取消预约释放号源，但不自动退款；
+- 管理员可在 `admin-master-data.html` 安全维护医生、患者联系信息、科室层级和职称；被预约、排班或引用的数据会拒绝删除；
+- 管理员可在 `admin-announcements.html` 保存草稿、发布、下线、编辑或删除公告；`news.html` 仅显示已发布公告；
+- 新写接口均使用 POST、Session 身份、角色校验与 CSRF。旧的不安全写入口仍返回 410，不应再链接或调用。
+
 ## 预约接口与规则
 
 - 患者：`/appointments/availability`、`/appointments/book`、`/appointments/patient`、`/appointments/cancel`、`/appointments/reschedule`；

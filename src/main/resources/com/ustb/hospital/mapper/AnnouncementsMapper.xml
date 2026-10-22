@@ -11,8 +11,25 @@
         <result column="content" property="content"/>
         <result column="creation_time" property="creationTime"/>
         <result column="creator" property="creator"/>
+        <result column="status" property="status"/>
+        <result column="published_at" property="publishedAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="creator_admin_id" property="creatorAdminId"/>
     </resultMap>
     <select id="selectAll" resultMap="announcementsMap">
-        SELECT * FROM announcement
+        SELECT * FROM announcement ORDER BY announcement_id DESC
     </select>
+    <select id="selectPublished" resultMap="announcementsMap">
+        SELECT * FROM announcement WHERE status='PUBLISHED' ORDER BY published_at DESC, announcement_id DESC
+    </select>
+    <select id="selectById" resultMap="announcementsMap">SELECT * FROM announcement WHERE announcement_id=#{announcementId}</select>
+    <insert id="insertPortalAdmin" parameterType="com.ustb.hospital.entity.Announcements" useGeneratedKeys="true" keyProperty="announcementId">
+        INSERT INTO announcement(title, content, creation_time, creator, status, published_at, updated_at, creator_admin_id)
+        VALUES(#{title}, #{content}, #{creationTime}, #{creator}, #{status}, #{publishedAt}, #{updatedAt}, #{creatorAdminId})
+    </insert>
+    <update id="updatePortalAdmin" parameterType="com.ustb.hospital.entity.Announcements">
+        UPDATE announcement SET title=#{title}, content=#{content}, updated_at=#{updatedAt} WHERE announcement_id=#{announcementId}
+    </update>
+    <update id="updateStatus">UPDATE announcement SET status=#{status}, published_at=#{publishedAt}, updated_at=#{publishedAt} WHERE announcement_id=#{announcementId}</update>
+    <delete id="deletePortalAdmin">DELETE FROM announcement WHERE announcement_id=#{announcementId}</delete>
 </mapper>

@@ -25,7 +25,7 @@
 
 
     <insert id="insertDept" >
-        insert into department(department_name,department_pid,department_level,department_path,department_discription) values(#{departmentName},#{departmentPid},#{departmentLevel},#{departmentPath},#{departmentDescription})
+        insert into departments(department_name,department_pid,department_level,department_path,department_discription) values(#{departmentName},#{departmentPid},#{departmentLevel},#{departmentPath},#{departmentDescription})
     </insert>
 
 
@@ -75,6 +75,12 @@
     <delete id="delete">
         DELETE FROM `hospt`.`departments` WHERE `department_id` = #{id}
     </delete>
+    <insert id="insertPortalAdmin" parameterType="com.ustb.hospital.entity.Departments" useGeneratedKeys="true" keyProperty="departmentId">
+        INSERT INTO departments(department_name, department_pid, department_level, department_path, department_discription)
+        VALUES(#{departmentName}, #{departmentPid}, #{departmentLevel}, #{departmentPath}, #{departmentDescription})
+    </insert>
+    <select id="countDoctorsByDepartmentId" resultType="int">SELECT COUNT(1) FROM doctors WHERE department_id=#{departmentId}</select>
+    <delete id="deletePortalAdmin">DELETE FROM departments WHERE department_id=#{departmentId}</delete>
 
 
 

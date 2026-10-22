@@ -42,6 +42,25 @@ public final class SessionIdentity {
         return getId(request, ROLE_DOCTOR, CURRENT_DOCTOR_ID);
     }
 
+    public static Integer getCurrentAdminId(HttpServletRequest request) {
+        return getId(request, ROLE_ADMIN, CURRENT_ADMIN_ID);
+    }
+
+    public static String getCurrentRole(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        Object role = session == null ? null : session.getAttribute(CURRENT_USER_ROLE);
+        return role instanceof String ? (String) role : null;
+    }
+
+    /** Returns the authenticated actor id only when the role and id key agree. */
+    public static Integer getCurrentUserId(HttpServletRequest request) {
+        String role = getCurrentRole(request);
+        if (ROLE_PATIENT.equals(role)) return getCurrentPatientId(request);
+        if (ROLE_DOCTOR.equals(role)) return getCurrentDoctorId(request);
+        if (ROLE_ADMIN.equals(role)) return getCurrentAdminId(request);
+        return null;
+    }
+
     public static boolean isAdmin(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         return session != null && ROLE_ADMIN.equals(session.getAttribute(CURRENT_USER_ROLE));

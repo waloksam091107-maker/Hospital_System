@@ -24,5 +24,8 @@ public interface DepartmentsMapper {
     List<Departments> selectByNameWithPage(String deptName);
     List<Departments> selectByParentId(int id);
     public int delete(int id);
+    int insertPortalAdmin(Departments department);
+    int countDoctorsByDepartmentId(@Param("departmentId") int departmentId);
+    int deletePortalAdmin(@Param("departmentId") int departmentId);
 
 }

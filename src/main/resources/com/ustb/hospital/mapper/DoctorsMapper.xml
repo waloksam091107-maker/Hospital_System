@@ -188,6 +188,24 @@
         UPDATE doctors SET password_hash = #{passwordHash}, password = NULL WHERE doctor_id = #{doctorId}
     </update>
     <select id="selectForPasswordUpdate" resultMap="docMap2">SELECT * FROM doctors WHERE doctor_id = #{doctorId} FOR UPDATE</select>
+    <select id="selectPortalProfileById" resultMap="docMap2">
+        SELECT * FROM doctors WHERE doctor_id = #{doctorId}
+    </select>
+    <update id="updatePortalProfile">
+        UPDATE doctors SET phone = #{phone}, email = #{email}, introduction = #{introduction}
+        WHERE doctor_id = #{doctorId}
+    </update>
+    <insert id="insertPortalAdmin" parameterType="com.ustb.hospital.entity.Doctors" useGeneratedKeys="true" keyProperty="doctorId">
+        INSERT INTO doctors(job_number, password, password_hash, name, avatar, phone, email, introduction, registration_fee, entry_date, department_id, professional_title_id)
+        VALUES(#{jobNumber}, NULL, #{passwordHash}, #{name}, #{avatar}, #{phone}, #{email}, #{introduction}, #{registrationFee}, #{entryDate}, #{departmentId}, #{professionalTitleId})
+    </insert>
+    <update id="updatePortalAdmin" parameterType="com.ustb.hospital.entity.Doctors">
+        UPDATE doctors SET name=#{name}, phone=#{phone}, email=#{email}, introduction=#{introduction}, registration_fee=#{registrationFee}, entry_date=#{entryDate}, department_id=#{departmentId}, professional_title_id=#{professionalTitleId}
+        WHERE doctor_id=#{doctorId}
+    </update>
+    <select id="countAppointmentsByDoctorId" resultType="int">SELECT COUNT(1) FROM appointments WHERE doctor_id=#{doctorId}</select>
+    <select id="countScheduleSlotsByDoctorId" resultType="int">SELECT COUNT(1) FROM schedule_slots WHERE doctor_id=#{doctorId}</select>
+    <delete id="deletePortalAdmin">DELETE FROM doctors WHERE doctor_id=#{doctorId}</delete>
     <update id="updateDoctorProfileDetails" parameterType="com.ustb.hospital.entity.Doctors">
 UPDATE doctors
 SET phone = #{phone}, email = #{email}, introduction = #{introduction}, registration_fee = #{registrationFee}, entry_date = #{entryDate}, department_id = #{departmentId}, professional_title_id = #{professionalTitleId}
