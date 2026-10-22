@@ -6,24 +6,24 @@
 
 - JDK 8 或更高（本项目已用 JDK 17 编译）；
 - Maven 3.8 或更高；
-- MySQL 8.0；
+- Docker Desktop（Linux 容器至少 2 CPU、8GB 内存）和 OceanBase Community Edition（Docker Compose 部署）；
+- 仅在执行一次性历史数据迁移时需要本机 MySQL 8.0 源库；
 - 支持 Servlet 3.1 的容器，例如 Tomcat 8.5/9（Tomcat 10 使用 Jakarta 包名，不能直接部署此 WAR）。
 
 ## 配置数据库
 
-数据库连接不再写死在源码中。复制 `database/database.env.example` 的变量到本机环境，或在启动容器的 JVM 参数中设置：
+数据库连接不再写死在源码中。运行目标为 OceanBase 的 MySQL 兼容租户，默认连接地址为本机 `127.0.0.1:2881`。复制 `database/database.env.example` 的变量到本机环境，或在启动容器的 JVM 参数中设置：
 
 ```text
--Dhospital.db.url=jdbc:mysql://127.0.0.1:3306/hospt?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
--Dhospital.db.username=<database-user>
+-Dhospital.db.driver=com.oceanbase.jdbc.Driver
+-Dhospital.db.url=jdbc:oceanbase://127.0.0.1:2881/hospt?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+-Dhospital.db.username=hospital_app@test
 -Dhospital.db.password=<database-password>
 ```
 
 环境变量名为 `HOSPITAL_DB_URL`、`HOSPITAL_DB_USERNAME`、`HOSPITAL_DB_PASSWORD` 和可选的 `HOSPITAL_DB_DRIVER`。JVM 参数优先。
 
-新建本地数据库时，先执行 `database/schema/hospt_minimal_appointment_schema.sql`，再按需执行 `database/schema/hospt_minimal_demo_data.sql`。后者仅插入演示账号且使用 `INSERT IGNORE`，不会更新已有行。演示登录信息：医生工号 `D1001` / `doctor123`，患者 `patient_demo` / `patient123`，管理员 `admin` / `admin123`；仅用于本地演示，应在真实部署前删除或修改。
-
-已有旧数据库时，不要执行完整建表脚本；在备份并运行 `database/migrations/20261011_appointment_minimum_loop.sql` 顶部的重复数据检查后，执行该迁移一次。
+OceanBase 专用的最终态 DDL、数据迁移与对账工具位于 `database/oceanbase/` 和 `scripts/oceanbase/`。已有 MySQL 业务数据时，必须使用只读导出与对账流程迁移，不能执行演示数据脚本覆盖目标数据。
 
 ## 构建与部署
 
@@ -40,6 +40,16 @@ http://localhost:8080/ustbhospital/hospro/login.html
 ```
 
 最小预约流程页面已适配默认 `/ustbhospital` 上下文。其他历史后台页面仍可能保留站点根路径，建议后续统一处理。
+
+### Docker + OceanBase
+
+首次迁移真实 MySQL 数据前，按 `docs/operations/oceanbase-migration-runbook.md` 依次初始化目标库、执行迁移与对账。对账通过后，在项目根目录执行：
+
+```text
+docker compose --env-file .env.oceanbase -f docker-compose.oceanbase.yml up -d --build app
+```
+
+`docker-compose.oceanbase.yml` 同时启动 OceanBase 与 Tomcat；本地 `.env.oceanbase` 被 Git 忽略，不能提交数据库密码。
 
 ## 预约接口与规则
 

@@ -10,7 +10,7 @@
         <result column="department_pid" property="departmentPid"></result>
         <result column="department_level" property="departmentLevel"></result>
         <result column="department_path" property="departmentPath"></result>
-        <result column="department_description" property="departmentDescription"></result>
+        <result column="department_discription" property="departmentDescription"></result>
     </resultMap>
 
 
@@ -25,7 +25,7 @@
 
 
     <insert id="insertDept" >
-        insert into department(department_name,department_pid,department_level,department_path,department_description) values(#{departmentName},#{departmentPid},#{departmentLevel},#{departmentPath},#{departmentDescription})
+        insert into department(department_name,department_pid,department_level,department_path,department_discription) values(#{departmentName},#{departmentPid},#{departmentLevel},#{departmentPath},#{departmentDescription})
     </insert>
 
 
@@ -34,7 +34,7 @@
         UPDATE departments
         SET
             department_name = #{departmentName},
-            department_description = #{departmentDescription}
+            department_discription = #{departmentDescription}
         WHERE
             department_id = #{departmentId}
     </update>
@@ -56,7 +56,7 @@
     </select>
 
     <insert id="insert" >
-        insert into `hospt`.`departments`(department_id,department_name,department_pid,department_level,department_path,department_description)
+        insert into `hospt`.`departments`(department_id,department_name,department_pid,department_level,department_path,department_discription)
         values(#{departmentId},#{departmentName},#{departmentPid},#{departmentLevel},#{departmentPath},#{departmentDescription})
     </insert>
 

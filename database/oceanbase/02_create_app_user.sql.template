@@ -1,0 +1,7 @@
+-- Run as root@test in the OceanBase test tenant after replacing the placeholder locally.
+-- Do not save a filled-in copy of this file in Git.
+USE hospt;
+
+CREATE USER IF NOT EXISTS hospital_app IDENTIFIED BY '__HOSPITAL_APP_PASSWORD__';
+GRANT SELECT, INSERT, UPDATE, DELETE ON hospt.* TO hospital_app;
+FLUSH PRIVILEGES;

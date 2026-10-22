@@ -1,0 +1,11 @@
+.git/
+.superpowers/
+.worktrees/
+target/
+.hospital-local/
+.env
+.env.*
+!.env.oceanbase.example
+database/oceanbase/.local/
+database/oceanbase/export/
+database/oceanbase/data/

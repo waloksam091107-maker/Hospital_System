@@ -42,9 +42,9 @@ public class MybatisUtil {
 
     private static Properties databaseProperties() {
         Properties properties = new Properties();
-        properties.setProperty("db.driver", value("hospital.db.driver", "HOSPITAL_DB_DRIVER", "com.mysql.cj.jdbc.Driver"));
-        properties.setProperty("db.url", value("hospital.db.url", "HOSPITAL_DB_URL", "jdbc:mysql://127.0.0.1:3306/hospt?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai"));
-        properties.setProperty("db.username", value("hospital.db.username", "HOSPITAL_DB_USERNAME", "root"));
+        properties.setProperty("db.driver", value("hospital.db.driver", "HOSPITAL_DB_DRIVER", "com.oceanbase.jdbc.Driver"));
+        properties.setProperty("db.url", value("hospital.db.url", "HOSPITAL_DB_URL", "jdbc:oceanbase://127.0.0.1:2881/hospt?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai"));
+        properties.setProperty("db.username", value("hospital.db.username", "HOSPITAL_DB_USERNAME", "hospital_app@test"));
         properties.setProperty("db.password", value("hospital.db.password", "HOSPITAL_DB_PASSWORD", ""));
         return properties;
     }

@@ -1,0 +1,39 @@
+services:
+  oceanbase:
+    image: oceanbase/oceanbase-ce:latest
+    environment:
+      MODE: ${OCEANBASE_MODE:-normal}
+      OB_TENANT_NAME: test
+      OB_TENANT_PASSWORD: ${OB_ROOT_PASSWORD:?copy .env.oceanbase.example to .env.oceanbase and set a local password}
+      OB_DATABASE: hospt
+    ports:
+      - "2881:2881"
+    volumes:
+      - oceanbase-data:/root/ob
+      - oceanbase-cluster:/root/.obd/cluster
+      - ./database/oceanbase/01_hospt_schema.sql:/root/boot/init.d/01_hospt_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "obclient -h127.0.0.1 -P2881 -uroot@test -p\"$$OB_TENANT_PASSWORD\" -e 'SELECT 1' >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 5m
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      oceanbase:
+        condition: service_healthy
+    environment:
+      HOSPITAL_DB_DRIVER: com.oceanbase.jdbc.Driver
+      HOSPITAL_DB_URL: jdbc:oceanbase://oceanbase:2881/hospt?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+      HOSPITAL_DB_USERNAME: hospital_app@test
+      HOSPITAL_DB_PASSWORD: ${HOSPITAL_APP_PASSWORD:?copy .env.oceanbase.example to .env.oceanbase and set a local password}
+    ports:
+      - "8080:8080"
+
+volumes:
+  oceanbase-data:
+  oceanbase-cluster:
