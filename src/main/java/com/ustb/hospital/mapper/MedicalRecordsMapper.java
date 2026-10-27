@@ -2,6 +2,8 @@ package com.ustb.hospital.mapper;
 
 import com.ustb.hospital.entity.MedicalOrder;
 import com.ustb.hospital.entity.MedicalRecord;
+import com.ustb.hospital.service.MedicalRecordQuery;
+import com.ustb.hospital.service.MedicalRecordSummary;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -16,4 +18,7 @@ public interface MedicalRecordsMapper {
     MedicalRecord selectForPatient(@Param("appointmentId") int appointmentId, @Param("patientId") int patientId);
     List<MedicalRecord> selectAllForPatient(@Param("patientId") int patientId);
     List<MedicalOrder> selectOrdersByRecordId(@Param("medicalRecordId") long medicalRecordId);
+    long countForPatient(@Param("patientId") int patientId, @Param("query") MedicalRecordQuery query);
+    List<MedicalRecordSummary> searchForPatient(@Param("patientId") int patientId, @Param("query") MedicalRecordQuery query);
+    List<MedicalOrder> selectOrdersByRecordIds(@Param("recordIds") List<Long> recordIds);
 }

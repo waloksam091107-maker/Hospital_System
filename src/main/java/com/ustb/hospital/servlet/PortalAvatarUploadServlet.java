@@ -4,6 +4,7 @@ import com.ustb.hospital.service.AuditContext;
 import com.ustb.hospital.service.PortalAccountService;
 import com.ustb.hospital.utils.AppointmentOperationResult;
 import com.ustb.hospital.utils.SessionIdentity;
+import com.ustb.hospital.utils.AvatarStorage;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -15,7 +16,6 @@ import javax.servlet.http.Part;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
@@ -39,11 +39,9 @@ public class PortalAvatarUploadServlet extends HttpServlet {
         String extension = extensionFor(part.getContentType());
         if (extension == null) { PortalServletSupport.writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "INVALID_AVATAR", "头像仅支持 PNG、JPEG 或 WEBP 图片。"); return; }
 
-        Path directory = avatarDirectory();
-        Files.createDirectories(directory);
         String role = SessionIdentity.getCurrentRole(request).toLowerCase();
-        Path destination = directory.resolve(role + "-" + userId + "-" + UUID.randomUUID().toString().replace("-", "") + extension);
-        Files.copy(part.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+        Path destination = AvatarStorage.configured().resolve(role + "-" + userId + "-" + UUID.randomUUID().toString().replace("-", "") + extension);
+        try (InputStream input = part.getInputStream()) { Files.copy(input, destination); }
         if (!hasExpectedImageSignature(destination, extension)) {
             Files.deleteIfExists(destination);
             PortalServletSupport.writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "INVALID_AVATAR", "头像文件内容不是支持的图片格式。");
@@ -61,10 +59,6 @@ public class PortalAvatarUploadServlet extends HttpServlet {
         }
     }
 
-    private Path avatarDirectory() {
-        String resolved = getServletContext().getRealPath("/uploads/avatars");
-        return resolved == null ? Paths.get(System.getProperty("java.io.tmpdir"), "ustbhospital-avatars") : Paths.get(resolved);
-    }
     private static String extensionFor(String contentType) {
         if ("image/png".equalsIgnoreCase(contentType)) return ".png";
         if ("image/jpeg".equalsIgnoreCase(contentType)) return ".jpg";

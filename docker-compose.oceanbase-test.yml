@@ -1,0 +1,22 @@
+# Only the run-isolated-tests.ps1 wrapper should start this independent test instance.
+services:
+  oceanbase:
+    image: oceanbase/oceanbase-ce@sha256:eaa2c3b3513fa21e4a658f197c1deb93c9d6b6eb742cfa5ef0f085f82b9cec54
+    environment:
+      MODE: mini
+      OB_TENANT_NAME: test
+      OB_TENANT_PASSWORD: ${HOSPITAL_TEST_ROOT_PASSWORD:?test-only password must be supplied by the wrapper}
+    ports:
+      - "127.0.0.1:${HOSPITAL_TEST_DB_PORT:-12881}:2881"
+    volumes:
+      - hospital-test-data:/root/ob
+      - hospital-test-cluster:/root/.obd/cluster
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$OB_TENANT_PASSWORD\" obclient -h127.0.0.1 -P2881 -uroot@test -e 'SELECT 1' >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 45
+      start_period: 60s
+volumes:
+  hospital-test-data:
+  hospital-test-cluster:

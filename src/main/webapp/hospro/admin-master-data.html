@@ -17,7 +17,7 @@
         .form-actions { display:flex; gap:8px; align-items:center; } .result { min-height:20px; margin:12px 0 0; color:#235b3c; } .result.error { color:#b63838; }
         .table-wrap { overflow:auto; margin-top:22px; } table { width:100%; border-collapse:collapse; min-width:650px; } th,td { border-bottom:1px solid var(--line); padding:10px 8px; text-align:left; vertical-align:top; } th { color:#52677e; background:#f8fafc; } td.actions { white-space:nowrap; } td.actions button { margin-right:6px; padding:5px 9px; font-size:12px; }
         .hint { color:#687b8f; margin:0 0 14px; } @media(max-width:620px){ header { padding:15px; } main { padding:0 12px 28px; } }
-    </style>
+    .search-form,.pager{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-top:20px}.search-form label{max-width:360px}.pager{align-items:center}button:disabled{opacity:.5;cursor:not-allowed}</style>
 </head>
 <body>
 <header><h1>基础数据维护</h1><span>仅管理员可访问</span><a href="adm_main.jsp">返回管理主页</a></header>
@@ -36,7 +36,7 @@
     <section id="patients"><h2>患者维护</h2><p class="hint">患者身份信息和账户余额不能在此修改；编辑仅更新联系方式。</p>
         <form data-resource="patients"><input type="hidden" name="patientId"><div class="grid"><label>姓名<input name="name" required maxlength="100"></label><label>身份证号（仅新增）<input name="idCardNumber" required maxlength="50"></label><label>初始密码（仅新增）<input name="password" required type="password" minlength="8"></label><label>联系电话<input name="phone" maxlength="50"></label><label>邮箱<input name="email" maxlength="255"></label></div><div class="form-actions"><button type="submit">保存</button><button type="button" class="secondary reset">清空并新增</button></div></form><p class="result" aria-live="polite"></p><div class="table-wrap"><table><thead><tr><th>编号</th><th>姓名</th><th>联系电话</th><th>邮箱</th><th>余额</th><th>操作</th></tr></thead><tbody></tbody></table></div>
     </section>
-    <section id="departments"><h2>科室维护</h2><p class="hint">新增时可填写上级科室编号；留空表示一级科室。为避免层级混乱，编辑时不调整上级关系。</p>
+    <section id="departments"><h2>科室维护</h2><p class="hint">新增时可选择上级科室；留空表示一级科室。为避免层级混乱，编辑时不调整上级关系。</p>
         <form data-resource="departments"><input type="hidden" name="departmentId"><div class="grid"><label>科室名称<input name="departmentName" required maxlength="100"></label><label>上级科室编号（新增可选）<input name="departmentPid" type="number" min="1"></label></div><label>科室说明<textarea name="departmentDescription" maxlength="500"></textarea></label><div class="form-actions"><button type="submit">保存</button><button type="button" class="secondary reset">清空并新增</button></div></form><p class="result" aria-live="polite"></p><div class="table-wrap"><table><thead><tr><th>编号</th><th>科室名称</th><th>上级</th><th>层级</th><th>路径</th><th>说明</th><th>操作</th></tr></thead><tbody></tbody></table></div>
     </section>
     <section id="titles"><h2>职称维护</h2>
@@ -46,59 +46,69 @@
 <script>
 (function () {
     'use strict';
-    var path = window.location.pathname, marker = '/hospro/';
-    var context = path.indexOf(marker) >= 0 ? path.substring(0, path.indexOf(marker)) : '';
-    var api = context + '/portal/admin', csrf = '';
-    var resources = {
-        doctors: { endpoint:'doctors', id:'doctorId', columns:['doctorId','jobNumber','name','departmentId','professionalTitleId','registrationFee','phone'], edit:['doctorId','name','departmentId','professionalTitleId','registrationFee','phone','email','entryDate','introduction'] },
-        patients: { endpoint:'patients', id:'patientId', columns:['patientId','name','phone','email','balance'], edit:['patientId','phone','email'] },
-        departments: { endpoint:'departments', id:'departmentId', columns:['departmentId','departmentName','departmentPid','departmentLevel','departmentPath','departmentDiscription'], edit:['departmentId','departmentName','departmentDescription'] },
-        titles: { endpoint:'professional-titles', id:'id', columns:['id','titleName','description'], edit:['id','titleName','description'] }
+    var path=window.location.pathname, marker='/hospro/';
+    var context=path.indexOf(marker)>=0 ? path.substring(0,path.indexOf(marker)) : '';
+    var api=context+'/portal/admin', csrf='', lookups={departments:[],titles:[]}, optionsReady=false;
+    var resources={
+        doctors:{endpoint:'doctors',id:'doctorId',columns:['doctorId','jobNumber','name','departmentId','professionalTitleId','registrationFee','phone'],edit:['doctorId','name','departmentId','professionalTitleId','registrationFee','phone','email','entryDate','introduction']},
+        patients:{endpoint:'patients',id:'patientId',columns:['patientId','name','phone','email','balance'],edit:['patientId','phone','email']},
+        departments:{endpoint:'departments',id:'departmentId',columns:['departmentId','departmentName','departmentPid','departmentLevel','departmentPath','departmentDiscription'],edit:['departmentId','departmentName','departmentDescription']},
+        titles:{endpoint:'professional-titles',id:'id',columns:['id','titleName','description'],edit:['id','titleName','description']}
     };
-    function text(value) { return value === null || value === undefined || value === '' ? '-' : String(value); }
-    function formFor(name) { return document.querySelector('#' + name + ' form'); }
-    function resultFor(name) { return document.querySelector('#' + name + ' .result'); }
-    function show(name, message, failed) { var out = resultFor(name); out.textContent = message || ''; out.className = failed ? 'result error' : 'result'; }
-    function headers() { return { 'X-CSRF-Token': csrf, 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' }; }
-    function request(url, options) { return fetch(url, options).then(function (response) { return response.json().catch(function(){ return {}; }).then(function(body){ if (!response.ok) { throw new Error(body.message || '请求失败（' + response.status + '）'); } return body; }); }); }
-    function load(name) {
-        var config = resources[name], tbody = document.querySelector('#' + name + ' tbody');
-        request(api + '/' + config.endpoint).then(function(body) {
-            tbody.textContent = '';
-            (body.items || []).forEach(function(row) {
-                var tr = document.createElement('tr');
-                config.columns.forEach(function(key) { var td = document.createElement('td'); td.textContent = text(row[key]); tr.appendChild(td); });
-                var actions = document.createElement('td'); actions.className = 'actions';
-                var edit = document.createElement('button'); edit.type = 'button'; edit.textContent = '编辑'; edit.addEventListener('click', function(){ beginEdit(name, row); }); actions.appendChild(edit);
-                var remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '删除'; remove.className = 'danger'; remove.addEventListener('click', function(){ removeItem(name, row[config.id]); }); actions.appendChild(remove); tr.appendChild(actions); tbody.appendChild(tr);
+    var state={};
+    function section(name){return document.getElementById(name);}
+    function formFor(name){return section(name).querySelector('form');}
+    function show(name,message,failed){var out=section(name).querySelector('.result');out.textContent=message||'';out.className=failed?'result error':'result';}
+    function text(value){return value===null||value===undefined||value===''?'-':String(value);}
+    function headers(){return {'X-CSRF-Token':csrf,'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'};}
+    function request(url,options){return fetch(url,options).then(function(response){return response.json().catch(function(){return {};}).then(function(body){if(!response.ok){if(response.status===401||response.status===403){csrf='';Object.keys(resources).forEach(updateButton);}throw new Error(body.message||'请求失败（'+response.status+'）');}return body;});});}
+    function updateButton(name){formFor(name).querySelector('[type=submit]').disabled=!csrf||formFor(name).dataset.busy==='true'||((name==='doctors'||name==='departments')&&!optionsReady);}
+    function nameFor(items,id,key,label){var row=items.find(function(item){return String(item[key])===String(id);});return row?row[label]:text(id);}
+    function cellText(name,key,row){if(name==='doctors'&&key==='departmentId')return nameFor(lookups.departments,row[key],'departmentId','departmentName');if(name==='doctors'&&key==='professionalTitleId')return nameFor(lookups.titles,row[key],'id','titleName');if(name==='departments'&&key==='departmentPid')return row[key]?nameFor(lookups.departments,row[key],'departmentId','departmentName'):'一级科室';return text(row[key]);}
+    function load(name){
+        var current=state[name], serial=++current.serial, config=resources[name], query=new URLSearchParams({pageNum:String(current.page),pageSize:String(current.size),keyword:current.keyword});
+        return request(api+'/'+config.endpoint+'?'+query.toString()).then(function(body){
+            if(serial!==current.serial)return;
+            var items=body.items||[],pages=Number(body.pages)||0;
+            if(current.page>Math.max(1,pages)){current.page=Math.max(1,pages);return load(name);}
+            var tbody=section(name).querySelector('tbody');tbody.textContent='';
+            if(!items.length){var empty=document.createElement('tr'),td=document.createElement('td');td.colSpan=config.columns.length+1;td.textContent='没有符合条件的数据。';empty.appendChild(td);tbody.appendChild(empty);}
+            items.forEach(function(row){var tr=document.createElement('tr');config.columns.forEach(function(key){var td=document.createElement('td');td.textContent=cellText(name,key,row);tr.appendChild(td);});
+                var actions=document.createElement('td');actions.className='actions';
+                var edit=document.createElement('button');edit.type='button';edit.textContent='编辑';edit.addEventListener('click',function(){beginEdit(name,row);});actions.appendChild(edit);
+                var remove=document.createElement('button');remove.type='button';remove.className='danger';remove.textContent='删除';remove.addEventListener('click',function(){removeItem(name,row[config.id],remove);});actions.appendChild(remove);tr.appendChild(actions);tbody.appendChild(tr);
             });
-        }).catch(function(error) { show(name, error.message, true); });
+            section(name).querySelector('.page-info').textContent='第 '+current.page+' / '+Math.max(1,pages)+' 页，共 '+(body.total||0)+' 条';
+            section(name).querySelector('.prev-page').disabled=current.page<=1;section(name).querySelector('.next-page').disabled=current.page>=pages;
+        }).catch(function(error){if(serial===current.serial)show(name,error.message,true);});
     }
-    function beginEdit(name, row) {
-        var form = formFor(name), config = resources[name]; form.dataset.mode = 'update';
-        config.edit.forEach(function(key) { if (form.elements[key]) form.elements[key].value = row[key] === null || row[key] === undefined ? '' : row[key]; });
-        if (name === 'patients') { form.elements.name.disabled = true; form.elements.idCardNumber.disabled = true; form.elements.password.disabled = true; }
-        if (name === 'departments' && form.elements.departmentPid) form.elements.departmentPid.disabled = true;
-        show(name, '正在编辑编号 ' + row[config.id] + '，保存后仅修改允许字段。'); form.scrollIntoView({ behavior:'smooth', block:'center' });
+    function beginEdit(name,row){var form=formFor(name);form.dataset.mode='update';resources[name].edit.forEach(function(key){var value=key==='departmentDescription'?row.departmentDiscription:row[key];if(form.elements[key])form.elements[key].value=value==null?'':value;});
+        if(name==='patients'){['name','idCardNumber','password'].forEach(function(key){form.elements[key].disabled=true;});}
+        if(name==='doctors')form.elements.password.required=false;
+        if(name==='departments')form.elements.departmentPid.disabled=true;
+        show(name,'正在编辑编号 '+row[resources[name].id]+'。');form.scrollIntoView({behavior:'smooth',block:'center'});
     }
-    function reset(name) {
-        var form = formFor(name); form.reset(); form.dataset.mode = 'create';
-        Array.prototype.forEach.call(form.elements, function(el){ el.disabled = false; }); show(name, '');
+    function reset(name){var form=formFor(name);form.reset();form.dataset.mode='create';Array.prototype.forEach.call(form.elements,function(el){el.disabled=false;});if(name==='doctors')form.elements.password.required=true;updateButton(name);}
+    function replaceWithSelect(name,key,label){var input=formFor(name).elements[key],select=document.createElement('select');select.name=key;select.required=input.required;input.parentNode.firstChild.textContent=label;input.replaceWith(select);}
+    replaceWithSelect('doctors','departmentId','科室');replaceWithSelect('doctors','professionalTitleId','职称');replaceWithSelect('departments','departmentPid','上级科室（新增可选）');
+    function fillOptions(select,items,key,label,empty){var previous=select.value;select.textContent='';var first=document.createElement('option');first.value='';first.textContent=empty;select.appendChild(first);items.forEach(function(item){var opt=document.createElement('option');opt.value=item[key];opt.textContent=item[label];select.appendChild(opt);});select.value=previous;}
+    function loadOptions(){return Promise.all([request(api+'/departments?options=true'),request(api+'/professional-titles?options=true')]).then(function(data){lookups.departments=data[0].items||[];lookups.titles=data[1].items||[];fillOptions(formFor('doctors').elements.departmentId,lookups.departments,'departmentId','departmentName','请选择科室');fillOptions(formFor('doctors').elements.professionalTitleId,lookups.titles,'id','titleName','请选择职称');fillOptions(formFor('departments').elements.departmentPid,lookups.departments,'departmentId','departmentName','一级科室');optionsReady=true;Object.keys(resources).forEach(updateButton);});}
+    function refresh(name){var next=(name==='departments'||name==='titles')?loadOptions():Promise.resolve();return next.then(function(){return load(name);});}
+    function removeItem(name,id,button){if(!window.confirm('确定删除编号 '+id+' 吗？有业务历史或非零余额的数据不能删除。'))return;button.disabled=true;var params=new URLSearchParams();params.set('action','delete');params.set(resources[name].id,id);
+        request(api+'/'+resources[name].endpoint,{method:'POST',headers:headers(),body:params.toString()}).then(function(body){show(name,body.message);return refresh(name);}).catch(function(error){show(name,error.message,true);}).finally(function(){button.disabled=false;});
     }
-    function removeItem(name, id) {
-        if (!window.confirm('确定删除编号 ' + id + ' 吗？有关联业务数据时系统会拒绝删除。')) return;
-        var config = resources[name], params = new URLSearchParams(); params.set('action','delete'); params.set(config.id, id);
-        request(api + '/' + config.endpoint, { method:'POST', headers:headers(), body:params.toString() }).then(function(body){ show(name, body.message); load(name); }).catch(function(error){ show(name, error.message, true); });
-    }
-    Object.keys(resources).forEach(function(name) {
-        var form = formFor(name); form.addEventListener('submit', function(event) {
-            event.preventDefault(); var mode = form.dataset.mode || 'create', params = new URLSearchParams(new FormData(form)); params.set('action', mode);
-            request(api + '/' + resources[name].endpoint, { method:'POST', headers:headers(), body:params.toString() }).then(function(body){ show(name, body.message); reset(name); load(name); }).catch(function(error){ show(name, error.message, true); });
+    Object.keys(resources).forEach(function(name){state[name]={page:1,size:10,keyword:'',serial:0};var form=formFor(name),search=document.createElement('form');search.className='search-form';search.innerHTML='<label>查询关键字<input class="search-keyword" maxlength="100" placeholder="姓名、名称或联系方式"></label><button type="submit">查询</button><label>每页<select class="page-size"><option>10</option><option>20</option><option>50</option><option>100</option></select></label>';
+        section(name).insertBefore(search,section(name).querySelector('.table-wrap'));var pager=document.createElement('div');pager.className='pager';pager.innerHTML='<button type="button" class="prev-page" disabled>上一页</button><span class="page-info" aria-live="polite"></span><button type="button" class="next-page" disabled>下一页</button>';section(name).appendChild(pager);
+        search.addEventListener('submit',function(event){event.preventDefault();state[name].page=1;state[name].keyword=search.querySelector('input').value.trim();load(name);});
+        search.querySelector('select').addEventListener('change',function(){state[name].page=1;state[name].size=Number(this.value);load(name);});
+        pager.querySelector('.prev-page').addEventListener('click',function(){state[name].page--;load(name);});pager.querySelector('.next-page').addEventListener('click',function(){state[name].page++;load(name);});
+        form.addEventListener('submit',function(event){event.preventDefault();if(!csrf||form.dataset.busy==='true')return;var params=new URLSearchParams(new FormData(form));params.set('action',form.dataset.mode||'create');form.dataset.busy='true';updateButton(name);
+            request(api+'/'+resources[name].endpoint,{method:'POST',headers:headers(),body:params.toString()}).then(function(body){reset(name);show(name,body.message||'保存成功。');return refresh(name);}).catch(function(error){show(name,error.message,true);}).finally(function(){form.dataset.busy='false';updateButton(name);});
         });
-        document.querySelector('#' + name + ' .reset').addEventListener('click', function(){ reset(name); });
+        form.querySelector('.reset').addEventListener('click',function(){reset(name);show(name,'');});updateButton(name);
     });
-    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(button) { button.addEventListener('click', function(){ Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(item){ item.classList.toggle('active', item === button); }); Array.prototype.forEach.call(document.querySelectorAll('main section'), function(section){ section.classList.toggle('active', section.id === button.dataset.target); }); }); });
-    request(context + '/security/csrf').then(function(body){ csrf = body.token || body.csrfToken || ''; if (!csrf) throw new Error('未能获取安全令牌，请重新登录。'); Object.keys(resources).forEach(load); }).catch(function(error){ Object.keys(resources).forEach(function(name){ show(name, error.message, true); }); });
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(button){button.addEventListener('click',function(){Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(item){item.classList.toggle('active',item===button);});Array.prototype.forEach.call(document.querySelectorAll('main section'),function(item){item.classList.toggle('active',item.id===button.dataset.target);});});});
+    request(context+'/security/csrf').then(function(body){csrf=body.token||body.csrfToken||'';if(!csrf)throw new Error('未能获取安全令牌，请重新登录。');return loadOptions();}).then(function(){Object.keys(resources).forEach(function(name){reset(name);load(name);});}).catch(function(error){Object.keys(resources).forEach(function(name){show(name,error.message,true);updateButton(name);});});
 }());
 </script>
 </body>

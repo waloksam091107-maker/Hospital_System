@@ -17,6 +17,7 @@
         SELECT date_id, doctor_id, doctor_name, date, shang, xia, wan
         FROM dates
         WHERE doctor_id = #{doctorId}
+        ORDER BY date DESC, date_id DESC
     </select>
 
 
@@ -34,6 +35,10 @@
     </select>
     <select id="selectById" resultMap="dateMap">
         select * from dates where date_id = #{dateId}
+    </select>
+    <select id="selectByIdForUpdate" resultMap="dateMap">
+        SELECT date_id, doctor_id, doctor_name, date, shang, xia, wan
+        FROM dates WHERE date_id = #{dateId} FOR UPDATE
     </select>
     <update id="updateDate">
         UPDATE dates

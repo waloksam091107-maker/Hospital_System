@@ -3,14 +3,68 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>就诊记录与医嘱</title><script src="static/js/jquery.js"></script>
-  <style>body{font-family:Arial,"Microsoft YaHei",sans-serif;background:#f5fbfb;color:#183354;margin:0}.wrap{max-width:900px;margin:40px auto;padding:28px;background:white;border-radius:12px;box-shadow:0 8px 22px #1a535c1c}.record{border:1px solid #d6e3e7;border-radius:9px;padding:18px;margin:16px 0}.record h2{margin-top:0}.orders{padding-left:20px}.error{color:#bd3126}.empty{color:#526779}</style>
+  <style>
+    body{font-family:Arial,"Microsoft YaHei",sans-serif;background:#f5fbfb;color:#183354;margin:0}.wrap{max-width:900px;margin:40px auto;padding:28px;background:white;border-radius:12px;box-shadow:0 8px 22px #1a535c1c}.record{border:1px solid #d6e3e7;border-radius:9px;padding:18px;margin:16px 0;overflow-wrap:anywhere}.record h2{margin-top:0}.record p{white-space:pre-wrap}.orders{padding-left:20px}.error{color:#bd3126}.empty,.hint{color:#526779}.filters{display:flex;gap:12px;align-items:end;flex-wrap:wrap;padding:16px;background:#f1f8f8;border-radius:8px}.filters label{display:flex;flex:1;min-width:130px;flex-direction:column;gap:6px}.filters input,.filters select{font:inherit;box-sizing:border-box;width:100%;padding:8px;border:1px solid #bdcfd4;border-radius:5px}button{font:inherit;padding:9px 14px;border:0;border-radius:5px;background:#167d78;color:white;cursor:pointer}button:disabled{background:#aab7bc;cursor:not-allowed}.secondary{background:#64748b}.pager{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:18px 0}.hint{font-size:.9rem}#queryFields{border:0;padding:0;margin:0;min-width:0}@media(max-width:600px){.wrap{margin:12px;padding:16px}.filters{display:grid;grid-template-columns:1fr}.pager{gap:8px}.record{padding:12px}}
+  </style>
 </head>
-<body><main class="wrap"><p><a href="patient.jsp">← 返回预约记录</a></p><h1>就诊记录与医嘱</h1><div id="records">正在加载…</div></main>
+<body><main class="wrap">
+  <p><a href="patient.jsp">← 返回预约记录</a></p><h1>就诊记录与医嘱</h1>
+  <form id="queryForm"><fieldset id="queryFields"><div class="filters">
+    <label for="dateFrom">预约开始日期<input type="date" id="dateFrom" name="dateFrom"></label>
+    <label for="dateTo">预约结束日期<input type="date" id="dateTo" name="dateTo"></label>
+    <label for="doctorId">医生编号（可选）<input type="number" id="doctorId" name="doctorId" min="1" max="2147483647" step="1" placeholder="见病历中的医生编号"></label>
+    <label for="pageSize">每页条数<select id="pageSize" name="pageSize"><option value="10">10 条</option><option value="20">20 条</option><option value="50">50 条</option><option value="100">100 条</option></select></label>
+    <button id="searchButton" type="submit">查询</button><button type="reset" class="secondary">重置</button>
+  </div></fieldset></form>
+  <p class="hint">仅显示当前账号已定稿的病历。日期筛选包含开始日和结束日。</p>
+  <div id="records" aria-live="polite" aria-busy="true">正在加载…</div>
+  <button id="retryButton" type="button" hidden>重新加载</button>
+  <nav class="pager" aria-label="病历分页"><button id="prevPage" type="button" disabled>上一页</button><span id="pageInfo" role="status"></span><button id="nextPage" type="button" disabled>下一页</button><button id="firstPage" type="button" class="secondary" hidden>返回第一页</button></nav>
+</main>
 <script>
 (function(){
   var contextPath=window.location.pathname.substring(0,window.location.pathname.indexOf('/hospro/'))||'';
+  var pageNum=1, pages=0, busy=false, activeFilters={pageSize:'10'}, failed=false;
   function esc(value){return $('<div>').text(value == null ? '' : value).html();}
-  function recordHtml(record){var orders=record.orders||[];var rows=orders.length?'<ul class="orders">'+orders.map(function(o){return '<li><strong>'+esc(o.itemName)+'</strong> '+esc(o.dosage)+' '+esc(o.frequency)+(o.quantity==null?'':' × '+esc(o.quantity))+(o.instructionText?'：'+esc(o.instructionText):'')+'</li>';}).join('')+'</ul>':'<p>暂无处方或检查项目。</p>';return '<article class="record"><h2>预约 #'+esc(record.appointmentId)+'</h2><p><strong>诊断：</strong>'+esc(record.diagnosis)+'</p><p><strong>诊疗方案：</strong>'+esc(record.treatmentPlan||'未填写')+'</p><p><strong>医嘱说明：</strong>'+esc(record.medicalAdvice||'未填写')+'</p><p><strong>记录时间：</strong>'+esc(record.createdAt)+'</p><h3>项目</h3>'+rows+'</article>';}
-  $.getJSON(contextPath+'/medical-records/patient').done(function(records){$('#records').html(records.length?records.map(recordHtml).join(''):'<p class="empty">暂无已完成的就诊记录。</p>');}).fail(function(xhr){$('#records').html('<p class="error">'+esc((xhr.responseJSON&&xhr.responseJSON.message)||'加载失败，请先登录患者账号。')+'</p>');});
+  function recordHtml(record){
+    var orders=record.orders||[];
+    var rows=orders.length?'<ul class="orders">'+orders.map(function(o){return '<li><strong>'+esc(o.itemName)+'</strong> '+esc(o.dosage)+' '+esc(o.frequency)+(o.quantity==null?'':' × '+esc(o.quantity))+(o.instructionText?'：'+esc(o.instructionText):'')+'</li>';}).join('')+'</ul>':'<p>暂无处方或检查项目。</p>';
+    return '<article class="record"><h2>预约 #'+esc(record.appointmentId)+'</h2><p><strong>医生：</strong>'+esc(record.doctorName||'姓名未提供')+'（编号 '+esc(record.doctorId)+'）</p><p><strong>预约日期 / 时段：</strong>'+esc(record.appointmentDate)+' / '+esc(record.appointmentTime)+'</p><p><strong>定稿时间：</strong>'+esc(record.finalizedAt||record.createdAt)+'</p><p><strong>诊断：</strong>'+esc(record.diagnosis)+'</p><p><strong>诊疗方案：</strong>'+esc(record.treatmentPlan||'未填写')+'</p><p><strong>医嘱说明：</strong>'+esc(record.medicalAdvice||'未填写')+'</p><h3>项目</h3>'+rows+'</article>';
+  }
+  function controls(){
+    $('#queryFields').prop('disabled',busy); $('#searchButton').prop('disabled',busy);
+    $('#prevPage').prop('disabled',busy||failed||pageNum<=1); $('#nextPage').prop('disabled',busy||failed||pageNum>=pages);
+    $('#firstPage').prop('disabled',busy||failed); $('#retryButton').prop('disabled',busy);
+    $('#records').attr('aria-busy',String(busy));
+  }
+  function showFailure(xhr){
+    failed=true; pages=0; $('#pageInfo').text('加载未完成'); $('#firstPage').prop('hidden',true);
+    var message=xhr.responseJSON&&xhr.responseJSON.message;
+    if(!message) message=xhr.status===401?'登录已失效，请重新登录患者账号。':xhr.status===403?'当前账号无权查看患者病历。':'加载失败，请稍后重新加载。';
+    $('#records').html('<p class="error" role="alert">'+esc(message)+'</p>'+(xhr.status===401||xhr.status===403?'<p><a href="../login.html">前往登录</a></p>':''));
+    $('#retryButton').prop('hidden',false);
+  }
+  function loadPage(target){
+    if(busy) return;
+    pageNum=target; busy=true; failed=false; controls(); $('#retryButton').prop('hidden',true); $('#records').text('正在加载…');
+    var query=$.extend({},activeFilters,{pageNum:pageNum});
+    $.ajax({url:contextPath+'/medical-records/patient/search',data:query,dataType:'json'}).done(function(result){
+      if(!result||!Array.isArray(result.items)||typeof result.total!=='number'||typeof result.pages!=='number') {showFailure({status:0}); return;}
+      pageNum=result.pageNum; pages=result.pages;
+      $('#records').html(result.items.length?result.items.map(recordHtml).join(''):'<p class="empty">'+(result.total?'本页暂无记录，请返回上一页或第一页。':'暂无符合条件的已定稿就诊记录。')+'</p>');
+      $('#pageInfo').text('共 '+result.total+' 条，第 '+(pages?pageNum:0)+' / '+pages+' 页');
+      $('#firstPage').prop('hidden',result.items.length>0||pageNum<=1);
+    }).fail(showFailure).always(function(){busy=false;controls();});
+  }
+  $('#queryForm').on('submit',function(event){
+    event.preventDefault(); if(busy) return;
+    var from=$('#dateFrom').val(),to=$('#dateTo').val();
+    if(from&&to&&from>to){$('#records').html('<p class="error" role="alert">开始日期不能晚于结束日期。</p>');return;}
+    activeFilters={dateFrom:from,dateTo:to,doctorId:$('#doctorId').val(),pageSize:$('#pageSize').val()}; loadPage(1);
+  }).on('reset',function(){if(busy)return;activeFilters={pageSize:'10'};loadPage(1);});
+  $('#prevPage').on('click',function(){if(pageNum>1)loadPage(pageNum-1);});
+  $('#nextPage').on('click',function(){if(pageNum<pages)loadPage(pageNum+1);});
+  $('#firstPage').on('click',function(){loadPage(1);}); $('#retryButton').on('click',function(){loadPage(pageNum);});
+  loadPage(1);
 }());
 </script></body></html>

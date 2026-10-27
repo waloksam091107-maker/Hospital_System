@@ -13,6 +13,7 @@ async function run() {
   let failures = 0;
   async function makePage(options = {}) {
     const page = await browser.newPage();
+    page.on('dialog', async dialog => { if (options.cancelFinal) await dialog.dismiss(); else await dialog.accept(); });
     const submitted = [];
     await page.route('**/*', async route => {
       const url = new URL(route.request().url());
@@ -49,7 +50,55 @@ async function run() {
     await page.goto(origin + '/ustbhospital/doctor-schedule/encounter.html?appointmentId=6');
     return { page, submitted };
   }
+  async function hasUnsavedWarning(page) {
+    return page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; });
+  }
   const tests = [
+    ['修改正文和新增删除医嘱触发离开提醒，草稿成功清除提醒', async () => {
+      const { page } = await makePage();
+      try {
+        await page.waitForFunction(() => !document.querySelector('#draftButton').disabled);
+        assert.equal(await hasUnsavedWarning(page), false);
+        await page.locator('#diagnosis').fill('尚未保存');
+        assert.equal(await hasUnsavedWarning(page), true);
+        await page.locator('#draftButton').click();
+        await page.waitForFunction(() => document.querySelector('#message').textContent.includes('草稿已保存'));
+        assert.equal(await hasUnsavedWarning(page), false);
+        assert.match(await page.locator('#saveStatus').textContent(), /最近保存/);
+        await page.locator('#addOrder').click();
+        assert.equal(await hasUnsavedWarning(page), true);
+        await page.locator('[name=orderItem]').fill('测试');
+        await page.locator('#draftButton').click();
+        await page.waitForFunction(() => !document.querySelector('#draftButton').disabled && !document.querySelector('#saveStatus').textContent.includes('正在保存'));
+        assert.equal(await hasUnsavedWarning(page), false);
+        await page.locator('.removeOrder').click();
+        assert.equal(await hasUnsavedWarning(page), true);
+      } finally { await page.close(); }
+    }],
+    ['定稿确认取消时不发送请求且保留修改', async () => {
+      const { page, submitted } = await makePage({ cancelFinal: true });
+      try {
+        await page.waitForFunction(() => !document.querySelector('#submitButton').disabled);
+        await page.locator('#diagnosis').fill('诊断'); await page.locator('#treatmentPlan').fill('方案');
+        await page.locator('#submitButton').click();
+        assert.equal(submitted.length, 0);
+        assert.equal(await page.locator('#diagnosis').inputValue(), '诊断');
+        assert.equal(await hasUnsavedWarning(page), true);
+      } finally { await page.close(); }
+    }],
+    ['草稿冲突持续提醒未保存并保留原版本和医嘱', async () => {
+      const { page } = await makePage({ draftConflict: true, draft: { recordStatus: 'DRAFT', version: 3, orders: [{ itemName: '原医嘱' }] } });
+      try {
+        await page.waitForFunction(() => !document.querySelector('#draftButton').disabled);
+        await page.locator('[name=orderItem]').fill('未保存的医嘱'); await page.locator('#draftButton').click();
+        await page.waitForFunction(() => document.querySelector('#message').textContent.includes('草稿已变化'));
+        assert.equal(await hasUnsavedWarning(page), true);
+        assert.equal(await page.locator('#recordVersion').inputValue(), '3');
+        assert.equal(await page.locator('[name=orderItem]').inputValue(), '未保存的医嘱');
+        assert.match(await page.locator('#message').textContent(), /保留/);
+        assert.equal(await page.evaluate(() => localStorage.length), 0);
+      } finally { await page.close(); }
+    }],
     ['草稿恢复之前不能输入，恢复完成后可编辑', async () => {
       const { page } = await makePage({ delayDraft: true, draft: { recordStatus: 'DRAFT', version: 0, diagnosis: '已保存的诊断', treatmentPlan: '方案', orders: [] } });
       try {

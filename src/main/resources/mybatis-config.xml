@@ -50,6 +50,7 @@
         <mapper resource="com/ustb/hospital/mapper/DatesMapper.xml"/>
         <mapper resource="com/ustb/hospital/mapper/AnnouncementsMapper.xml"/>
         <mapper resource="com/ustb/hospital/mapper/NewsMapper.xml"/>
+        <mapper resource="com/ustb/hospital/mapper/MasterDataMapper.xml"/>
 
     </mappers>
 </configuration>

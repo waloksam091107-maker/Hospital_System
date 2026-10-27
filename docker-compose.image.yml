@@ -1,0 +1,25 @@
+# Standalone image deployment: an explicit image containing these changes is required.
+services:
+  app:
+    image: ${HOSPITAL_APP_IMAGE:?set HOSPITAL_APP_IMAGE to the reviewed release image containing these changes}
+    restart: unless-stopped
+    environment:
+      HOSPITAL_DB_DRIVER: com.oceanbase.jdbc.Driver
+      HOSPITAL_DB_URL: ${HOSPITAL_DB_URL:?set the existing OceanBase MySQL tenant JDBC URL}
+      HOSPITAL_DB_USERNAME: ${HOSPITAL_DB_USERNAME:?set the business database account}
+      HOSPITAL_DB_PASSWORD: ${HOSPITAL_DB_PASSWORD:?set the business database password locally}
+      HOSPITAL_UPLOAD_DIR: /var/lib/hospital/uploads
+      OCEANBASE_HOST: ${OCEANBASE_HOST:?set the reachable OceanBase hostname}
+      OCEANBASE_PORT: ${OCEANBASE_PORT:-2881}
+    ports:
+      - "${HOSPITAL_HTTP_PORT:-8080}:8080"
+    volumes:
+      - hospital-uploads:/var/lib/hospital/uploads
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--max-time", "5", "http://127.0.0.1:8080/ustbhospital/health/ready"]
+      interval: 15s
+      timeout: 6s
+      retries: 5
+      start_period: 60s
+volumes:
+  hospital-uploads:

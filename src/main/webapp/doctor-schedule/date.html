@@ -504,6 +504,12 @@ function appUrl(path) { return appContext + path; }
 
     <script type="text/javascript">
       var csrfToken = '';
+      function scheduleAvailabilityLabel(value) {
+        return value === '1' ? '开放（占用以预约记录为准）' : '已关闭';
+      }
+      function scheduleDayLabel(am, pm, evening) {
+        return am === '0' && pm === '0' && evening === '0' ? '已关闭' : '开放设置（占用见预约）';
+      }
       $(function () {
         $.getJSON(appUrl('/security/csrf'))
           .done(function (response) { csrfToken = response.token || ''; })
@@ -571,13 +577,14 @@ function appUrl(path) { return appContext + path; }
               var trObj = $("<tr></tr>");
               trObj.append($("<td>" + (i + 1) + "</td>"));
               trObj.append($("<td>" + v.date + "</td>"));
-              trObj.append($("<td>" + (v.shang === "1" ? "值班" : "休息") + "</td>"));
-              trObj.append($("<td>" + (v.xia ==="1" ? "值班" : "休息") + "</td>"));
-              trObj.append($("<td>" + (v.wan === "1" ? "值班" : "休息") + "</td>"));
+              trObj.append($("<td></td>").text(scheduleAvailabilityLabel(v.shang)));
+              trObj.append($("<td></td>").text(scheduleAvailabilityLabel(v.xia)));
+              trObj.append($("<td></td>").text(scheduleAvailabilityLabel(v.wan)));
+              trObj.append($("<td></td>").text(scheduleDayLabel(v.shang, v.xia, v.wan)));
 
               var buttonGroup = $("<td><div class='button-group'></div></td>");
               buttonGroup.find('.button-group').append($("<a class='button border-main' href='javascript:void(0)' onclick='showUpdateModal(" + v.dateId + ",\"" +v.date +"\",\"" + v.shang + "\",\""+v.xia+"\",\""+v.wan+"\")'><span class='icon-edit'></span> 修改</a>"));
-              buttonGroup.find('.button-group').append($("<a class='button border-red' href='javascript:void(0)' onclick='return confirmDeletion(" + v.dateId + ")'><span class='icon-trash-o'></span> 删除</a>"));
+              buttonGroup.find('.button-group').append($("<a class='button border-red' href='javascript:void(0)' onclick='return confirmDeletion(" + v.dateId + ")'><span class='icon-trash-o'></span> 撤班 / 删除</a>"));
               trObj.append(buttonGroup);
               trObj.appendTo($("#dateBody"));
             });
@@ -649,7 +656,7 @@ function appUrl(path) { return appContext + path; }
         });
       }
       function confirmDeletion(dateId) {
-        if (confirm("确定删除该日日程？")) {
+        if (confirm("确定撤销该日排班？有预约历史时仅关闭未来开放号源，历史记录保留；无历史时删除排班。仍有待接诊或接诊中预约时不能撤班，请先处理有效预约。")) {
           $.ajax({
             url: appUrl('/schedules/delete'),
             type: 'POST',
@@ -674,6 +681,9 @@ function appUrl(path) { return appContext + path; }
       }
 
       $(document).ready(function() {
+        var today = new Date();
+        var minimumDate = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+        $('#date, #updateDate').attr('min', minimumDate);
         // 点击新增日程按钮显示模态框
         $('#zengjiaBtn').on('click', function () {
           $('#myModal').css('display', 'block');
@@ -763,6 +773,7 @@ function appUrl(path) { return appContext + path; }
 
     <div id="updateModal">
       <h3>修改日期</h3>
+      <p>待接诊、接诊中、已完成预约所占时段不能修改，其余时段可开放或关闭。取消、改期历史保留；有历史的排班不能移动日期。过去日期不能修改或撤班。</p>
       <input type="hidden" id="updatedateId">
       <div class="form-group">
         <label for="updateDate">新日期:</label>
@@ -771,22 +782,22 @@ function appUrl(path) { return appContext + path; }
       <div class="form-group">
         <label>上午:</label>
         <select id="updateshang" class="input">
-          <option value="1">值班</option>
-          <option value="0">休息</option>
+          <option value="1">开放</option>
+          <option value="0">关闭</option>
         </select>
       </div>
       <div class="form-group">
         <label>下午:</label>
         <select id="updatexia" class="input">
-          <option value="1">值班</option>
-          <option value="0">休息</option>
+          <option value="1">开放</option>
+          <option value="0">关闭</option>
         </select>
       </div>
       <div class="form-group">
         <label>晚上:</label>
         <select id="updatewan" class="input">
-          <option value="1">值班</option>
-          <option value="0">休息</option>
+          <option value="1">开放</option>
+          <option value="0">关闭</option>
         </select>
       </div>
       <div class="modal-footer">
@@ -812,6 +823,7 @@ function appUrl(path) { return appContext + path; }
                 <a id="zengjiaBtn" class="theme-btn-one">新增日程 <i class="fas fa-plus"></i></a>
               </div>
             </div>
+            <p>开放状态以预约记录为准；已占用时段不可调整。有历史的排班撤班后关闭可预约号源，历史记录保留；无历史的排班会删除。过去排班仅供查看。</p>
             <div class="doctors-list">
               <div class="table-outer">
                 <table class="doctors-table">
@@ -822,6 +834,7 @@ function appUrl(path) { return appContext + path; }
                     <th>上午</th>
                     <th>下午</th>
                     <th>晚上</th>
+                    <th>号源状态</th>
                     <th>操作</th>
                   </tr>
                   </thead>

@@ -11,6 +11,8 @@ import org.apache.ibatis.session.SqlSession;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.function.Supplier;
 
 /** Writes an encounter and closes its appointment as one transaction. */
@@ -141,6 +143,29 @@ public class MedicalRecordsServiceImpl {
             List<MedicalRecord> records = mapper.selectAllForPatient(patientId);
             for (MedicalRecord record : records) withOrders(mapper, record);
             return records;
+        } finally { close(session); }
+    }
+
+    public MedicalRecordPage searchForPatient(int patientId, MedicalRecordQuery query) {
+        if (patientId < 1 || query == null) throw new IllegalArgumentException("患者或查询条件无效。");
+        SqlSession session = readSessions.get();
+        try {
+            MedicalRecordsMapper mapper = session.getMapper(MedicalRecordsMapper.class);
+            long total = mapper.countForPatient(patientId, query);
+            List<MedicalRecordSummary> records = total == 0 ? Collections.<MedicalRecordSummary>emptyList()
+                    : mapper.searchForPatient(patientId, query);
+            if (!records.isEmpty()) {
+                List<Long> ids = new ArrayList<Long>();
+                Map<Long, MedicalRecordSummary> byId = new HashMap<Long, MedicalRecordSummary>();
+                for (MedicalRecordSummary record : records) {
+                    ids.add(record.getMedicalRecordId()); byId.put(record.getMedicalRecordId(), record);
+                }
+                for (MedicalOrder order : mapper.selectOrdersByRecordIds(ids)) {
+                    MedicalRecordSummary record = byId.get(order.getMedicalRecordId());
+                    if (record != null) record.getOrders().add(order);
+                }
+            }
+            return new MedicalRecordPage(records, query, total);
         } finally { close(session); }
     }
 

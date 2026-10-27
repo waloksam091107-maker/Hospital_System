@@ -43,4 +43,37 @@
     <delete id="deleteByDoctorAndDate">
         DELETE FROM schedule_slots WHERE doctor_id = #{doctorId} AND schedule_date = #{scheduleDate}
     </delete>
+    <select id="selectForUpdate" resultMap="scheduleSlotMap">
+        SELECT schedule_slot_id, doctor_id, schedule_date, slot_period, slot_status, created_at, updated_at
+        FROM schedule_slots WHERE doctor_id = #{doctorId} AND schedule_date = #{scheduleDate}
+        ORDER BY schedule_slot_id FOR UPDATE
+    </select>
+    <sql id="scheduleHistoryPredicate">
+        (a.doctor_id = #{doctorId} AND a.appointment_date = #{scheduleDate})
+        OR a.schedule_slot_id IN (SELECT schedule_slot_id FROM schedule_slots
+                                  WHERE doctor_id = #{doctorId} AND schedule_date = #{scheduleDate})
+    </sql>
+    <select id="countScheduleHistory" resultType="int">
+        SELECT COUNT(*) FROM appointments a WHERE (<include refid="scheduleHistoryPredicate"/>)
+    </select>
+    <select id="countActiveAppointments" resultType="int">
+        SELECT COUNT(*) FROM appointments a WHERE (<include refid="scheduleHistoryPredicate"/>)
+        AND a.status IN ('BOOKED', 'IN_PROGRESS')
+    </select>
+    <!-- An unmigrated appointment without a slot id conservatively protects its whole day. -->
+    <sql id="protectedSlotPredicate">
+        a.status IN ('BOOKED', 'IN_PROGRESS', 'COMPLETED')
+        AND (a.schedule_slot_id = #{slot.scheduleSlotId}
+             OR (a.schedule_slot_id IS NULL AND a.doctor_id = #{slot.doctorId}
+                 AND a.appointment_date = #{slot.scheduleDate}))
+    </sql>
+    <select id="countProtectedAppointments" resultType="int">
+        SELECT COUNT(*) FROM appointments a WHERE <include refid="protectedSlotPredicate"/>
+    </select>
+    <update id="updateUnoccupiedSlot">
+        UPDATE schedule_slots SET schedule_date = #{newDate}, slot_status = #{newStatus}
+        WHERE schedule_slot_id = #{slot.scheduleSlotId} AND schedule_date = #{slot.scheduleDate}
+          AND slot_status = #{slot.slotStatus} AND slot_status IN ('AVAILABLE', 'CLOSED')
+          AND NOT EXISTS (SELECT 1 FROM appointments a WHERE <include refid="protectedSlotPredicate"/>)
+    </update>
 </mapper>

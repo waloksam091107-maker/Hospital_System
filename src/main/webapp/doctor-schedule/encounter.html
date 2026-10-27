@@ -30,6 +30,7 @@
     <p><button id="draftButton" type="button" class="button secondary" disabled>保存草稿</button> <button id="submitButton" type="submit" class="button" disabled>保存记录并完成接诊</button></p>
     </fieldset>
   </form>
+  <p id="saveStatus" role="status" aria-live="polite">尚未保存草稿。</p>
   <p id="message" class="message" role="alert"></p>
 </main>
 <script>
@@ -39,19 +40,35 @@
   var appointmentReady = false;
   var recordLoaded = false;
   var submitting = false;
+  var dirty = false;
+  var savedStatus = '尚未保存草稿。';
   var params = new URLSearchParams(window.location.search);
   var appointmentId = params.get('appointmentId');
   var message = $('#message');
   function api(path) { return contextPath + path; }
   function error(text) { message.removeClass('success').addClass('error').text(text); }
-  function updateSubmitButton() { $('#encounterFields').prop('disabled', !recordLoaded || submitting); $('#submitButton, #draftButton').prop('disabled', !appointmentReady || !token || submitting); }
+  function updateSubmitButton() {
+    $('#encounterFields').prop('disabled', !recordLoaded || submitting);
+    $('#submitButton, #draftButton').prop('disabled', !appointmentReady || !token || submitting);
+    $('#addOrder').prop('disabled', submitting || !recordLoaded || $('#orders .order').length >= 20);
+  }
+  function updateSaveStatus() { $('#saveStatus').text(submitting ? '正在保存，请稍候…' : savedStatus + (dirty ? ' 有未保存的修改。' : '')); }
+  function markDirty() { dirty = true; updateSaveStatus(); }
+  window.addEventListener('beforeunload', function (event) {
+    if (!dirty) return;
+    event.preventDefault(); event.returnValue = '';
+  });
   function orderRow() {
     return '<div class="order"><input name="orderItem" maxlength="200" placeholder="项目名称"><input name="orderDosage" maxlength="100" placeholder="剂量"><input name="orderFrequency" maxlength="100" placeholder="频次"><input name="orderQuantity" type="number" min="1" placeholder="数量"><input name="orderInstruction" maxlength="500" placeholder="用法/说明"><button type="button" class="button danger removeOrder">删除</button></div>';
   }
   if (!appointmentId || !/^\d+$/.test(appointmentId)) { error('预约编号无效，请从预约记录页面进入。'); $('#submitButton').prop('disabled', true); return; }
   $('#appointmentId').val(appointmentId);
-  $('#addOrder').on('click', function () { $('#orders').append(orderRow()); });
-  $('#orders').on('click', '.removeOrder', function () { $(this).closest('.order').remove(); });
+  $('#encounterForm').on('input change', 'textarea, input:not([type=hidden])', markDirty);
+  $('#addOrder').on('click', function () {
+    if ($('#orders .order').length >= 20) { error('单次接诊最多保存20条医嘱。'); return; }
+    $('#orders').append(orderRow()); markDirty(); updateSubmitButton();
+  });
+  $('#orders').on('click', '.removeOrder', function () { $(this).closest('.order').remove(); markDirty(); updateSubmitButton(); });
   $.getJSON(api('/security/csrf')).done(function (response) {
     token = response.token || '';
     if (!token) error('无法获取安全校验信息，请刷新页面后重试。');
@@ -76,6 +93,8 @@
         row.find('[name=orderInstruction]').val(order.instructionText || '');
         $('#orders').append(row);
       });
+      savedStatus = record.updatedAt ? '草稿最近保存：' + record.updatedAt + '。' : '已恢复草稿（版本 ' + record.version + '）。';
+      dirty = false; updateSaveStatus();
       recordLoaded = true; appointmentReady = true; updateSubmitButton();
     }).fail(function (xhr) {
       if (xhr.status === 404) { recordLoaded = true; appointmentReady = true; updateSubmitButton(); return; }
@@ -84,23 +103,31 @@
   }).fail(function (xhr) { $('#appointmentHint').text('预约信息读取失败。'); error(doctorApiErrorMessage(xhr, '读取预约失败，请稍后重试。')); updateSubmitButton(); });
   function submitRecord(isDraft) {
     if (!appointmentReady || !token || submitting) return;
+    if (!isDraft && !window.confirm('确认正式提交此病历和医嘱并完成接诊？定稿后将无法修改。')) return;
     message.removeClass('error success').text('');
     var formData = $('#encounterForm').serialize();
     submitting = true;
-    updateSubmitButton();
+    updateSubmitButton(); updateSaveStatus();
     $.ajax({url: api(isDraft ? '/medical-records/draft' : '/medical-records/finalize'), type: 'POST', dataType: 'json', data: formData, headers: {'X-CSRF-Token': token}})
       .done(function (response) {
+        if (response.success !== true) { saveFailed({responseJSON: response}); return; }
+        dirty = false;
+        savedStatus = isDraft ? '草稿最近保存：' + new Date().toLocaleString() + '。' : '病历已正式提交。';
         message.removeClass('error').addClass('success').text(response.message || '保存成功。');
         if (isDraft) { $('#recordVersion').val(response.version).prop('disabled', false); submitting = false; updateSubmitButton(); }
-        else setTimeout(function () { window.location.href = 'appointments.html'; }, 700);
+        else { submitting = false; appointmentReady = false; recordLoaded = false; updateSubmitButton(); setTimeout(function () { window.location.href = 'appointments.html'; }, 700); }
+        updateSaveStatus();
       })
-      .fail(function (xhr) {
-        var result = xhr.responseJSON || {};
-        if (xhr.status === 401 || xhr.status === 403 || result.code === 'INVALID_STATE' || result.code === 'DUPLICATE_RECORD') appointmentReady = false;
-        error(doctorApiErrorMessage(xhr, result.message || '保存失败，请稍后重试。'));
-        submitting = false;
-        updateSubmitButton();
-      });
+      .fail(saveFailed);
+  }
+  function saveFailed(xhr) {
+    var result = xhr.responseJSON || {};
+    if (xhr.status === 401 || xhr.status === 403 || result.code === 'INVALID_STATE' || result.code === 'DUPLICATE_RECORD') appointmentReady = false;
+    var detail = doctorApiErrorMessage(xhr, result.message || '保存失败，请稍后重试。');
+    if (result.code === 'VERSION_CONFLICT') detail += ' 当前输入已保留；请先复制需要保留的内容，再重新打开病历核对最新版本。';
+    error(detail);
+    submitting = false;
+    updateSubmitButton(); updateSaveStatus();
   }
   $('#draftButton').on('click', function () { submitRecord(true); });
   $('#encounterForm').on('submit', function (event) { event.preventDefault(); submitRecord(false); });

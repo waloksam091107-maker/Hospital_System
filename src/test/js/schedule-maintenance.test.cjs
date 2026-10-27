@@ -1,0 +1,23 @@
+const fs = require('node:fs');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const html = fs.readFileSync('src/main/webapp/doctor-schedule/date.html', 'utf8');
+const source = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match => match[1]).find(script => script.includes('var csrfToken'));
+let message = '', ajaxCalls = 0;
+const jquery = () => ({ ajaxSend() {}, ready() {} });
+jquery.ajax = () => { ajaxCalls++; };
+const sandbox = { $, document: {}, confirm: text => { message = text; return false; } };
+function $(value) { return jquery(value); }
+$.ajax = jquery.ajax;
+vm.createContext(sandbox);
+vm.runInContext(source, sandbox);
+assert.equal(sandbox.scheduleAvailabilityLabel('0'), '已关闭');
+assert.equal(sandbox.scheduleAvailabilityLabel('1'), '开放（占用以预约记录为准）');
+assert.equal(sandbox.scheduleDayLabel('0', '0', '0'), '已关闭');
+assert.equal(sandbox.scheduleDayLabel('1', '0', '0'), '开放设置（占用见预约）');
+sandbox.confirmDeletion(1);
+assert.match(message, /历史记录保留/);
+assert.match(message, /待接诊或接诊中/);
+assert.equal(ajaxCalls, 0, 'declining confirmation must not mutate a schedule');
+for (const script of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) new vm.Script(script[1]);
+console.log('Schedule page labels, withdrawal confirmation and inline JavaScript syntax passed.');

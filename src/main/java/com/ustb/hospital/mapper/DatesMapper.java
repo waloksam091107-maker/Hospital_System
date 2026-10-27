@@ -11,6 +11,7 @@ public interface DatesMapper {
     List<Dates> selectByDoctorId(int doctorId);
     List<Dates> selectAll();
     Dates selectById(int dateId);
+    Dates selectByIdForUpdate(int dateId);
     int updateDate(Dates dates);
     int deleteDateById(int dateId);
     public int insertDate(Dates dates);

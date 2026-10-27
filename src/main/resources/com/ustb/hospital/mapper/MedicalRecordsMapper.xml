@@ -17,6 +17,11 @@
         <result column="version" property="version"/>
         <result column="finalized_at" property="finalizedAt"/>
     </resultMap>
+    <resultMap id="medicalRecordSummaryMap" type="com.ustb.hospital.service.MedicalRecordSummary" extends="medicalRecordMap">
+        <result column="doctor_name" property="doctorName"/>
+        <result column="appointment_date" property="appointmentDate"/>
+        <result column="appointment_time" property="appointmentTime"/>
+    </resultMap>
     <resultMap id="medicalOrderMap" type="com.ustb.hospital.entity.MedicalOrder">
         <id column="medical_order_id" property="medicalOrderId"/>
         <result column="medical_record_id" property="medicalRecordId"/>
@@ -67,5 +72,29 @@
     </select>
     <select id="selectOrdersByRecordId" resultMap="medicalOrderMap">
         SELECT * FROM medical_orders WHERE medical_record_id = #{medicalRecordId} ORDER BY medical_order_id
+    </select>
+    <sql id="patientSearchScope">
+        FROM medical_records mr
+        INNER JOIN appointments a ON a.appointment_id = mr.appointment_id
+        LEFT JOIN doctors d ON d.doctor_id = mr.doctor_id
+        WHERE mr.patient_id = #{patientId} AND a.patient_id = #{patientId} AND mr.record_status = 'FINAL'
+        <if test="query.dateFrom != null">AND a.appointment_date &gt;= #{query.dateFrom}</if>
+        <if test="query.dateTo != null">AND a.appointment_date &lt;= #{query.dateTo}</if>
+        <if test="query.doctorId != null">AND mr.doctor_id = #{query.doctorId}</if>
+    </sql>
+    <select id="countForPatient" resultType="long">
+        SELECT COUNT(*) <include refid="patientSearchScope"/>
+    </select>
+    <select id="searchForPatient" resultMap="medicalRecordSummaryMap">
+        SELECT mr.*, a.appointment_date, a.appointment_time, d.name AS doctor_name
+        <include refid="patientSearchScope"/>
+        ORDER BY a.appointment_date DESC, mr.finalized_at DESC, mr.medical_record_id DESC
+        LIMIT #{query.pageSize} OFFSET #{query.offset}
+    </select>
+    <select id="selectOrdersByRecordIds" resultMap="medicalOrderMap">
+        SELECT * FROM medical_orders
+        WHERE medical_record_id IN
+        <foreach collection="recordIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+        ORDER BY medical_record_id, medical_order_id
     </select>
 </mapper>

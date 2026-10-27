@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ustb.hospital.mapper.MasterDataMapper">
+    <resultMap id="doctorMap" type="com.ustb.hospital.entity.Doctors" extends="com.ustb.hospital.mapper.DoctorsMapper.docMap2">
+        <result column="department_id" property="departmentId"/>
+        <result column="professional_title_id" property="professionalTitleId"/>
+    </resultMap>
+    <sql id="doctorWhere"><where><if test="keyword != null">name LIKE #{keyword} ESCAPE '!' OR job_number LIKE #{keyword} ESCAPE '!' OR phone LIKE #{keyword} ESCAPE '!'</if></where></sql>
+    <sql id="patientWhere"><where><if test="keyword != null">name LIKE #{keyword} ESCAPE '!' OR id_card_number LIKE #{keyword} ESCAPE '!' OR phone LIKE #{keyword} ESCAPE '!'</if></where></sql>
+    <sql id="departmentWhere"><where><if test="keyword != null">department_name LIKE #{keyword} ESCAPE '!' OR department_discription LIKE #{keyword} ESCAPE '!'</if></where></sql>
+    <sql id="titleWhere"><where><if test="keyword != null">title_name LIKE #{keyword} ESCAPE '!' OR description LIKE #{keyword} ESCAPE '!'</if></where></sql>
+    <select id="searchDoctors" resultMap="doctorMap">SELECT * FROM doctors <include refid="doctorWhere"/> ORDER BY doctor_id LIMIT #{limit} OFFSET #{offset}</select>
+    <select id="searchPatients" resultMap="com.ustb.hospital.mapper.PatientsMapper.PatientMap">SELECT * FROM patients <include refid="patientWhere"/> ORDER BY patient_id LIMIT #{limit} OFFSET #{offset}</select>
+    <select id="searchDepartments" resultMap="com.ustb.hospital.mapper.DepartmentsMapper.deptMap">SELECT * FROM departments <include refid="departmentWhere"/> ORDER BY department_id LIMIT #{limit} OFFSET #{offset}</select>
+    <select id="searchTitles" resultMap="com.ustb.hospital.mapper.ProfessionalTitlesMapper.titleMap">SELECT * FROM professional_titles <include refid="titleWhere"/> ORDER BY id LIMIT #{limit} OFFSET #{offset}</select>
+    <select id="countDoctors" resultType="long">SELECT COUNT(*) FROM doctors <include refid="doctorWhere"/></select>
+    <select id="countPatients" resultType="long">SELECT COUNT(*) FROM patients <include refid="patientWhere"/></select>
+    <select id="countDepartments" resultType="long">SELECT COUNT(*) FROM departments <include refid="departmentWhere"/></select>
+    <select id="countTitles" resultType="long">SELECT COUNT(*) FROM professional_titles <include refid="titleWhere"/></select>
+    <select id="departmentOptions" resultMap="com.ustb.hospital.mapper.DepartmentsMapper.deptMap">SELECT department_id,department_name,department_level,department_pid,department_path FROM departments ORDER BY department_path,department_id</select>
+    <select id="titleOptions" resultMap="com.ustb.hospital.mapper.ProfessionalTitlesMapper.titleMap">SELECT id,title_name FROM professional_titles ORDER BY id</select>
+    <select id="lockEntity" resultType="java.lang.Integer">
+        <choose>
+            <when test="entity == 'doctors'">SELECT doctor_id FROM doctors WHERE doctor_id=#{id} FOR UPDATE</when>
+            <when test="entity == 'departments'">SELECT department_id FROM departments WHERE department_id=#{id} FOR UPDATE</when>
+            <when test="entity == 'professional-titles'">SELECT id FROM professional_titles WHERE id=#{id} FOR UPDATE</when>
+            <otherwise>SELECT patient_id FROM patients WHERE patient_id=#{id} FOR UPDATE</otherwise>
+        </choose>
+    </select>
+    <select id="countDoctorDates" resultType="int">SELECT COUNT(*) FROM dates WHERE doctor_id=#{id}</select>
+    <select id="countDoctorRecords" resultType="int">SELECT COUNT(*) FROM medical_records WHERE doctor_id=#{id}</select>
+    <select id="countDoctorOrders" resultType="int">SELECT COUNT(*) FROM orders WHERE doctor_id=#{id}</select>
+    <select id="countPatientRecords" resultType="int">SELECT COUNT(*) FROM medical_records WHERE patient_id=#{id}</select>
+    <select id="countPatientTransactions" resultType="int">SELECT COUNT(*) FROM balance_transactions WHERE patient_id=#{id}</select>
+    <select id="countPatientOrders" resultType="int">SELECT COUNT(*) FROM orders WHERE patient_id=#{id}</select>
+</mapper>

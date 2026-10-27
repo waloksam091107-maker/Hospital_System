@@ -1,17 +1,18 @@
 services:
   oceanbase:
-    image: oceanbase/oceanbase-ce:latest
+    # Existing local image inspected on 2026-10-27; pinning does not upgrade a data volume.
+    image: oceanbase/oceanbase-ce@sha256:eaa2c3b3513fa21e4a658f197c1deb93c9d6b6eb742cfa5ef0f085f82b9cec54
+    restart: unless-stopped
     environment:
       MODE: ${OCEANBASE_MODE:-normal}
       OB_TENANT_NAME: test
       OB_TENANT_PASSWORD: ${OB_ROOT_PASSWORD:?copy .env.oceanbase.example to .env.oceanbase and set a local password}
       OB_DATABASE: hospt
     ports:
-      - "2881:2881"
+      - "127.0.0.1:${OCEANBASE_PORT:-2881}:2881"
     volumes:
       - oceanbase-data:/root/ob
       - oceanbase-cluster:/root/.obd/cluster
-      - ./database/oceanbase/01_hospt_schema.sql:/root/boot/init.d/01_hospt_schema.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "obclient -h127.0.0.1 -P2881 -uroot@test -p\"$$OB_TENANT_PASSWORD\" -e 'SELECT 1' >/dev/null 2>&1"]
       interval: 10s
@@ -20,6 +21,7 @@ services:
       start_period: 5m
 
   app:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile
@@ -31,9 +33,19 @@ services:
       HOSPITAL_DB_URL: jdbc:oceanbase://oceanbase:2881/hospt?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
       HOSPITAL_DB_USERNAME: hospital_app@test
       HOSPITAL_DB_PASSWORD: ${HOSPITAL_APP_PASSWORD:?copy .env.oceanbase.example to .env.oceanbase and set a local password}
+      HOSPITAL_UPLOAD_DIR: /var/lib/hospital/uploads
+    volumes:
+      - hospital-uploads:/var/lib/hospital/uploads
     ports:
-      - "8080:8080"
+      - "${HOSPITAL_HTTP_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--max-time", "5", "http://127.0.0.1:8080/ustbhospital/health/ready"]
+      interval: 15s
+      timeout: 6s
+      retries: 5
+      start_period: 60s
 
 volumes:
   oceanbase-data:
   oceanbase-cluster:
+  hospital-uploads:

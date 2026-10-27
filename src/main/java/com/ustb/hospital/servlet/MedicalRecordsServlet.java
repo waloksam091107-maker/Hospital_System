@@ -4,6 +4,7 @@ import com.ustb.hospital.entity.MedicalOrder;
 import com.ustb.hospital.entity.MedicalRecord;
 import com.ustb.hospital.service.MedicalRecordOperationResult;
 import com.ustb.hospital.service.MedicalRecordsServiceImpl;
+import com.ustb.hospital.service.MedicalRecordQuery;
 import com.ustb.hospital.service.AuditContext;
 import com.ustb.hospital.utils.SessionIdentity;
 
@@ -28,6 +29,18 @@ public class MedicalRecordsServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getPathInfo();
+        if ("/patient/search".equals(path)) {
+            Integer patientId = AppointmentServletSupport.requirePatient(request, response);
+            if (patientId == null) return;
+            try {
+                MedicalRecordQuery query = new MedicalRecordQuery(request.getParameter("dateFrom"), request.getParameter("dateTo"),
+                        request.getParameter("doctorId"), request.getParameter("pageNum"), request.getParameter("pageSize"));
+                AppointmentServletSupport.writeJson(response, service.searchForPatient(patientId.intValue(), query));
+            } catch (IllegalArgumentException invalid) {
+                AppointmentServletSupport.writeBadRequest(response, invalid.getMessage());
+            }
+            return;
+        }
         if ("/doctor".equals(path)) {
             Integer doctorId = AppointmentServletSupport.requireDoctor(request, response);
             Integer appointmentId = AppointmentServletSupport.parsePositiveInt(request.getParameter("appointmentId"));

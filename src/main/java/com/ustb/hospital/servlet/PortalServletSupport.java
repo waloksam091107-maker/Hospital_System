@@ -3,6 +3,7 @@ package com.ustb.hospital.servlet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ustb.hospital.service.AuditContext;
 import com.ustb.hospital.service.AuditService;
+import com.ustb.hospital.service.AdminMasterDataService;
 import com.ustb.hospital.utils.SessionIdentity;
 import com.ustb.hospital.utils.AppointmentOperationResult;
 
@@ -95,6 +96,25 @@ public final class PortalServletSupport {
         body.put("code", "METHOD_NOT_ALLOWED");
         body.put("message", "该操作不支持当前请求方法。");
         writeJson(response, body);
+    }
+
+    static void writeMasterDataPage(HttpServletRequest request, HttpServletResponse response,
+                                    AdminMasterDataService service, String resource) throws IOException {
+        try {
+            if ("true".equals(request.getParameter("options"))) {
+                writeJson(response, service.options(resource));
+                return;
+            }
+            String pageText=request.getParameter("pageNum"), sizeText=request.getParameter("pageSize");
+            int page=pageText==null ? 1 : Integer.parseInt(pageText);
+            int size=sizeText==null ? 10 : Integer.parseInt(sizeText);
+            writeJson(response,service.search(resource,request.getParameter("keyword"),page,size));
+        } catch (IllegalArgumentException invalid) {
+            writeJsonError(response,HttpServletResponse.SC_BAD_REQUEST,"INVALID_REQUEST","查询参数无效：页码须大于 0，每页 1 到 100 条，关键字不超过 100 字。");
+        } catch (RuntimeException failure) {
+            java.util.logging.Logger.getLogger(PortalServletSupport.class.getName()).log(java.util.logging.Level.SEVERE,"Master data query failed",failure);
+            writeJsonError(response,HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"QUERY_FAILED","数据读取失败，请稍后重试。");
+        }
     }
 
     static void writeOperationResult(HttpServletResponse response, AppointmentOperationResult result) throws IOException {

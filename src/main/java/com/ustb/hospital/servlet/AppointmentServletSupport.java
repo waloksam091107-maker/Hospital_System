@@ -55,7 +55,9 @@ final class AppointmentServletSupport {
                 || "SCHEDULE_UPDATE_FAILED".equals(code) || "SCHEDULE_DELETE_FAILED".equals(code)) return HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
         if ("FORBIDDEN".equals(code)) return HttpServletResponse.SC_FORBIDDEN;
         if ("NOT_FOUND".equals(code)) return HttpServletResponse.SC_NOT_FOUND;
-        if ("SLOT_UNAVAILABLE".equals(code) || "INVALID_STATE".equals(code) || "NO_CHANGE".equals(code)) {
+        if ("SLOT_UNAVAILABLE".equals(code) || "INVALID_STATE".equals(code) || "NO_CHANGE".equals(code)
+                || "SCHEDULE_IN_USE".equals(code) || "HISTORY_DATE_LOCKED".equals(code)
+                || "ALREADY_CLOSED".equals(code) || "DUPLICATE_DATE".equals(code) || "SCHEDULE_MISMATCH".equals(code)) {
             return HttpServletResponse.SC_CONFLICT;
         }
         return HttpServletResponse.SC_BAD_REQUEST;

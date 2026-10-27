@@ -16,7 +16,7 @@ public class PortalAdminDepartmentsServlet extends HttpServlet {
     private final AdminMasterDataService service;
     public PortalAdminDepartmentsServlet() { this(new AdminMasterDataService()); }
     PortalAdminDepartmentsServlet(AdminMasterDataService service) { this.service = service; }
-    @Override protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException { if (PortalServletSupport.requireRole(request, response, SessionIdentity.ROLE_ADMIN) == null) return; PortalServletSupport.writeJson(response, java.util.Collections.<String,Object>singletonMap("items",service.departments())); }
+    @Override protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException { if (PortalServletSupport.requireRole(request, response, SessionIdentity.ROLE_ADMIN) == null) return; PortalServletSupport.writeMasterDataPage(request,response,service,"departments"); }
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (PortalServletSupport.requireRole(request, response, SessionIdentity.ROLE_ADMIN) == null) return;
@@ -30,11 +30,13 @@ public class PortalAdminDepartmentsServlet extends HttpServlet {
             Integer id = PortalServletSupport.parsePositiveInt(request.getParameter("departmentId"));
             String parentText = request.getParameter("departmentPid");
             Integer parentId = PortalServletSupport.parsePositiveInt(parentText);
-            if (parentText != null && !parentText.trim().isEmpty() && parentId == null) {
+            if ("update".equals(action) && id == null) {
+                result=AppointmentOperationResult.failure("INVALID_REQUEST","科室编号无效，未进行保存。");
+            } else if (parentText != null && !parentText.trim().isEmpty() && parentId == null) {
                 result = AppointmentOperationResult.failure("INVALID_REQUEST", "上级科室编号无效。");
             } else {
                 Departments department = new Departments();
-                department.setDepartmentId(id == null ? 0 : id.intValue());
+                department.setDepartmentId("create".equals(action) ? 0 : id.intValue());
                 department.setDepartmentName(request.getParameter("departmentName"));
                 department.setDepartmentDescription(request.getParameter("departmentDescription"));
                 if ("create".equals(action)) department.setDepartmentPid(parentId);

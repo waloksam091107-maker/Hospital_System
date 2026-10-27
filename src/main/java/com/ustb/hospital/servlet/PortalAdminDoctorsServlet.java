@@ -18,7 +18,7 @@ public class PortalAdminDoctorsServlet extends HttpServlet {
     PortalAdminDoctorsServlet(AdminMasterDataService service) { this.service = service; }
     @Override protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (PortalServletSupport.requireRole(request, response, SessionIdentity.ROLE_ADMIN) == null) return;
-        PortalServletSupport.writeJson(response, java.util.Collections.<String, Object>singletonMap("items", service.doctors()));
+        PortalServletSupport.writeMasterDataPage(request,response,service,"doctors");
     }
     @Override protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (PortalServletSupport.requireRole(request, response, SessionIdentity.ROLE_ADMIN) == null) return;

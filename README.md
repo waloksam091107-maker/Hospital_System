@@ -1,73 +1,116 @@
-# 医院预约挂号管理系统：最小挂号闭环
+# 医院预约挂号管理系统
 
-本项目的最小业务路径是：医生登录并维护排班 → 患者登录并浏览医生/可用时段 → 创建预约 → 患者查询、取消或改期 → 医生查看本人预约并完成接诊。
+患者可注册登录、维护资料、浏览医生和号源、模拟充值、预约/取消/改期及查看正式病历。医生维护排班、开始接诊、保存病历草稿并定稿，管理员维护基础数据、公告和审计日志。后端使用 OceanBase 的 MySQL 兼容租户。
 
-## 运行条件
+## 源码与镜像
 
-- JDK 8 或更高（本项目已用 JDK 17 编译）；
-- Maven 3.8 或更高；
-- Docker Desktop（Linux 容器至少 2 CPU、8GB 内存）和 OceanBase Community Edition（Docker Compose 部署）；
-- 仅在执行一次性历史数据迁移时需要本机 MySQL 8.0 源库；
-- 支持 Servlet 3.1 的容器，例如 Tomcat 8.5/9（Tomcat 10 使用 Jakarta 包名，不能直接部署此 WAR）。
+- GitHub：https://github.com/waloksam091107-maker/Hospital_System
+- Docker Hub：https://hub.docker.com/r/ivan091107/hospital-system
+- 已发布的历史版本：`ivan091107/hospital-system:v1.0.1-lsy-chl`。该标签不包含本工作区尚未发布的修改。本次没有上传或覆盖远程镜像。
 
-## 配置数据库
-
-数据库连接不再写死在源码中。运行目标为 OceanBase 的 MySQL 兼容租户，默认连接地址为本机 `127.0.0.1:2881`。复制 `database/database.env.example` 的变量到本机环境，或在启动容器的 JVM 参数中设置：
-
-```text
--Dhospital.db.driver=com.oceanbase.jdbc.Driver
--Dhospital.db.url=jdbc:oceanbase://127.0.0.1:2881/hospt?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
--Dhospital.db.username=hospital_app@test
--Dhospital.db.password=<database-password>
+```powershell
+git clone https://github.com/waloksam091107-maker/Hospital_System.git
+cd Hospital_System
 ```
 
-环境变量名为 `HOSPITAL_DB_URL`、`HOSPITAL_DB_USERNAME`、`HOSPITAL_DB_PASSWORD` 和可选的 `HOSPITAL_DB_DRIVER`。JVM 参数优先。
+已有源码请在对应目录更新并检查未提交修改，不要用强制同步覆盖工作区。
 
-OceanBase 专用的最终态 DDL、数据迁移与对账工具位于 `database/oceanbase/` 和 `scripts/oceanbase/`。已有 MySQL 业务数据时，必须使用只读导出与对账流程迁移，不能执行演示数据脚本覆盖目标数据。
+## 环境与本地构建
 
-## 构建与部署
+- JDK 8 或更高，已使用 JDK 17 验证；Maven 3.8 或更高。
+- Tomcat 9（`javax.servlet`）；Tomcat 10 的 Jakarta API 与当前 WAR 不兼容。
+- Docker Desktop Linux 引擎，OceanBase 至少按 2 CPU、8 GB 内存准备资源。
 
-在项目根目录运行：
-
-```text
-mvn clean package
+```powershell
+mvn test
+mvn -DskipTests package
 ```
 
-将生成的 `target/ustbhospital.war` 部署到 Tomcat。默认上下文路径是 `/ustbhospital`，登录页面为：
+生成 `target/ustbhospital.war`。数据库配置来自 `HOSPITAL_DB_DRIVER`、`HOSPITAL_DB_URL`、`HOSPITAL_DB_USERNAME`、`HOSPITAL_DB_PASSWORD`；同名 `hospital.db.*` JVM 参数优先。业务连接使用 `com.oceanbase.jdbc.Driver` 和 `jdbc:oceanbase://主机:2881/hospt?...`，不要将密码写入源码。
 
-```text
-http://localhost:8080/ustbhospital/hospro/login.html
+登录入口：`http://localhost:8080/ustbhospital/hospro/login.html`。
+
+## Docker 启动和更新
+
+完整配置、账号初始化、旧头像迁移、镜像启动、备份和恢复步骤见 [部署与运维说明](docs/operations/maintenance-deployment.md)。本地 `.env.oceanbase` 被 Git 忽略，禁止提交真实密码。
+
+首次配置，在文件尚不存在时执行：
+
+```powershell
+Copy-Item .env.oceanbase.example .env.oceanbase
+notepad .env.oceanbase
 ```
 
-最小预约流程页面已适配默认 `/ustbhospital` 上下文。其他历史后台页面仍可能保留站点根路径，建议后续统一处理。
+先填写本地密码。已有迁移好的业务库应保留原配置和原 Compose 项目名，不重复初始化或覆盖导入。
 
-### Docker + OceanBase
+```powershell
+docker compose --env-file .env.oceanbase -f docker-compose.oceanbase.yml up -d oceanbase
+```
 
-首次迁移真实 MySQL 数据前，按 `docs/operations/oceanbase-migration-runbook.md` 依次初始化目标库、执行迁移与对账。对账通过后，在项目根目录执行：
+空库首次启动还需要按部署说明创建业务数据库账号、授予权限；**建表脚本不会自动提供可登录的业务账号**。已有真实 MySQL 数据时，按 [迁移手册](docs/operations/oceanbase-migration-runbook.md) 导入并对账，不导入演示数据。
 
-```text
+数据库账号配置好后，构建当前工作区并启动应用：
+
+```powershell
 docker compose --env-file .env.oceanbase -f docker-compose.oceanbase.yml up -d --build app
+docker compose --env-file .env.oceanbase -f docker-compose.oceanbase.yml ps
+curl.exe --fail http://localhost:8080/ustbhospital/health/ready
+docker compose --env-file .env.oceanbase -f docker-compose.oceanbase.yml logs --tail 100 app
 ```
 
-`docker-compose.oceanbase.yml` 同时启动 OceanBase 与 Tomcat；本地 `.env.oceanbase` 被 Git 忽略，不能提交数据库密码。
+后续更新也使用同一个目录、同一个 Compose 项目名和数据卷，执行上述 `up -d --build app`。普通停止：
 
-### 增量迁移提醒
+```powershell
+docker compose --env-file .env.oceanbase -f docker-compose.oceanbase.yml stop
+```
 
-本版本的 `database/migrations/20261022_secure_portal_and_balance_transactions.sql` 是**增量**脚本：它创建余额流水表，并为既有 `announcement` 表补充草稿、发布和下线状态字段。执行前先完成既有 OceanBase 对账；执行时不得重建 `hospt`、覆盖导入数据或删除 Docker 数据卷。历史公告会被保留并默认标记为已发布。
+不要使用 `down -v`，否则会删除数据库和头像卷。上传文件位于外部持久目录 `HOSPITAL_UPLOAD_DIR`（容器中为 `/var/lib/hospital/uploads`），头像 URL 继续使用 `/uploads/avatars/文件名`。升级前须按部署说明复制旧部署目录内的头像。
 
-## 本次安全门户功能
+无需本地构建时使用 `docker-compose.image.yml`；先在本地配置中指定实际包含所需功能的 `HOSPITAL_APP_IMAGE`、数据库连接和 `OCEANBASE_HOST`，再执行：
 
-- 患者可通过 `register-page.html` 注册账号；资料、头像和模拟充值均只作用于当前登录主体；
-- 预约扣费与余额流水在同一事务中完成。取消预约释放号源，但不自动退款；
-- 管理员可在 `admin-master-data.html` 安全维护医生、患者联系信息、科室层级和职称；被预约、排班或引用的数据会拒绝删除；
-- 管理员可在 `admin-announcements.html` 保存草稿、发布、下线、编辑或删除公告；`news.html` 仅显示已发布公告；
-- 新写接口均使用 POST、Session 身份、角色校验与 CSRF。旧的不安全写入口仍返回 410，不应再链接或调用。
+```powershell
+docker compose --env-file .env.image -f docker-compose.image.yml pull
+docker compose --env-file .env.image -f docker-compose.image.yml up -d
+```
 
-## 预约接口与规则
+此方式连接已配置好的 OceanBase，不会自动创建数据库。`.env.image` 的变量示例及主机连接方式见部署说明。
 
-- 患者：`/appointments/availability`、`/appointments/book`、`/appointments/patient`、`/appointments/cancel`、`/appointments/reschedule`；
-- 医生：`/schedules/mine`、`/addDate`、`/updatedate`、`/deletedate`、`/appointments/doctor`、`/appointments/complete`；
-- 身份从登录 Session 读取，预约接口不信任传入的 patientId、doctorId 或 fee；
-- 时段只接受 `AM`、`PM`、`EVENING`（兼容部分旧表单值）；
-- 创建、占号、扣余额和插入预约在同一事务内完成。取消预约会释放号源，但当前规则不退款；
-- `booked → cancelled` 仅患者本人可执行，`booked → completed` 仅对应医生可执行。
+## 主要接口和业务规则
+
+- 患者预约：`GET /appointments/availability`、`GET /appointments/patient`；`POST /appointments/book`、`/appointments/cancel`、`/appointments/reschedule`。
+- 医生排班：`GET /schedules/mine`；`POST /schedules/create`、`/schedules/update`、`/schedules/delete`。
+- 接诊：`GET /appointments/doctor`、`/appointments/doctor/detail`；`POST /appointments/start`。旧 `/appointments/complete` 不能绕过病历直接完成预约。
+- 病历：`POST /medical-records/draft`、`/medical-records/finalize`；`GET /medical-records/doctor`、`/medical-records/patient`。定稿后预约变为 COMPLETED，患者只能读取自己的 FINAL 记录。
+- 病历筛选：`GET /medical-records/patient/search?dateFrom=2030-01-01&dateTo=2030-12-31&doctorId=1&pageNum=1&pageSize=10`，可省略筛选条件。日期按预约日期筛选，返回 `items/total/pages/pageNum/pageSize`。
+- 后台基础数据：`/portal/admin/doctors`、`/patients`、`/departments`、`/professional-titles`（均位于 `/portal/admin` 下）。GET 支持 `keyword/pageNum/pageSize`；POST 使用 `action=create/update/delete`。科室和职称支持 `options=true` 返回完整精简选项，不能把第一页当成全部选项。
+- 后台默认每页 10、最大 100，关键字最多 100 字；按字面查询 `%`、`_`，按主键稳定排序。
+- 所有写操作沿用 POST、Session 角色、CSRF；身份从服务端会话读取，不能相信 URL 中的角色或患者编号。
+- 状态路径：BOOKED → IN_PROGRESS → COMPLETED；患者可以将 BOOKED 取消或改期。扣费、预约和流水在同一事务内，取消释放号源，现行规则不自动退款。
+
+### 排班调整与数据保留
+
+同一天内，未被有效预约占用的时段可以调整；取消、改期历史不再阻止调整，但原时段 ID 保留。BOOKED、IN_PROGRESS、COMPLETED 所占时段不可修改。有预约历史的日期不能整体移动。
+
+无预约历史的排班可以物理删除；有历史但没有待接诊或接诊中预约时，撤班关闭可预约号源并保留历史。重复撤班返回冲突提示。过去日期不能撤销或修改，非法日期返回 400，业务冲突返回 409。
+
+医生、患者、科室和职称删除前检查业务引用。患者余额非零，即使没有流水，也不能删除。资金流水、病历、旧医嘱、预约和排班历史不能随基础数据级联删除。
+
+## 测试
+
+```powershell
+mvn test
+node src/test/js/schedule-maintenance.test.cjs
+node tests/admin-master-data-ui.cjs
+node tests/doctor-encounter-ui.cjs
+node tests/patient-medical-records-ui.cjs
+```
+
+浏览器脚本需要可解析的 `playwright` 包和本机 Edge，或通过 `PLAYWRIGHT_BROWSER_PATH` 指定 Chromium 浏览器。它们使用真实页面及受控 HTTP 响应，不修改真实业务库。
+
+显式启动独立 OceanBase 测试环境并运行集成测试：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\oceanbase\run-isolated-tests.ps1 -StartIsolatedContainer
+```
+
+该脚本使用独立 Compose 项目、默认端口 12881、随机 `hospital_test_` 数据库和受限账号；不得改成真实 `hospt` 库。已有 MySQL 集成测试默认跳过，不能把默认 Maven 通过理解为真实 OceanBase 集成测试已经执行。详细验收见 [本次完善测试清单](docs/testing/maintenance-completion-acceptance.md)。
