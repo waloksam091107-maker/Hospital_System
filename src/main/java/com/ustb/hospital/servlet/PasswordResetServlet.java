@@ -39,7 +39,9 @@ public class PasswordResetServlet extends HttpServlet {
             else resp.sendError("INVALID_PASSWORD".equals(result.getCode()) ? HttpServletResponse.SC_BAD_REQUEST : HttpServletResponse.SC_INTERNAL_SERVER_ERROR, result.getMessage());
             return;
         }
-        resp.sendRedirect(req.getContextPath() + "/hospro/index.html");
+        javax.servlet.http.HttpSession session = req.getSession(false);
+        if (session != null) session.invalidate();
+        resp.sendRedirect(req.getContextPath() + "/hospro/login.html?passwordChanged=true");
     }
 
     @Override

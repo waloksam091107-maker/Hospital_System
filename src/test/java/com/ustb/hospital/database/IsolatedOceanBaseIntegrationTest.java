@@ -60,7 +60,9 @@ public class IsolatedOceanBaseIntegrationTest {
         assertEquals("1", scalar("SELECT COUNT(*) FROM balance_transactions WHERE patient_id=" + fixture.patient + " AND transaction_type='APPOINTMENT_DEBIT'"));
         String appointment = scalar("SELECT appointment_id FROM appointments WHERE patient_id=" + fixture.patient);
         assertEquals(appointment, scalar("SELECT target_id FROM audit_logs WHERE action='APPOINTMENTS_BOOK' AND actor_id=" + fixture.patient));
-        assertEquals("BOOKED", scalar("SELECT slot_status FROM schedule_slots WHERE doctor_id=" + fixture.doctor));
+        assertEquals("AVAILABLE", scalar("SELECT slot_status FROM schedule_slots WHERE doctor_id=" + fixture.doctor));
+        assertEquals("1", scalar("SELECT occupied_count FROM schedule_slots WHERE doctor_id=" + fixture.doctor));
+        assertEquals("1", scalar("SELECT appointment_sequence FROM appointments WHERE patient_id=" + fixture.patient));
     }
 
     @Test public void failedAuditRollsBackBalanceAndLedgerOnOceanBase() throws Exception {
@@ -115,7 +117,7 @@ public class IsolatedOceanBaseIntegrationTest {
         assertTrue(schedules.addDate(fixture.doctor,"测试医生",date,"1","0","0").isSuccessful());
         int dateId = Integer.parseInt(scalar("SELECT date_id FROM dates WHERE doctor_id=" + fixture.doctor));
         String slot = scalar("SELECT schedule_slot_id FROM schedule_slots WHERE doctor_id=" + fixture.doctor + " AND schedule_date='" + date + "' AND slot_period='AM'");
-        int appointment = insert("INSERT INTO appointments(patient_id,doctor_id,appointment_date,appointment_time,schedule_slot_id,status) VALUES(" + fixture.patient + "," + fixture.doctor + ",'" + date + "','AM'," + slot + ",'CANCELLED')");
+        int appointment = insert("INSERT INTO appointments(patient_id,doctor_id,appointment_date,appointment_time,schedule_slot_id,status,appointment_sequence,queue_status) VALUES(" + fixture.patient + "," + fixture.doctor + ",'" + date + "','AM'," + slot + ",'CANCELLED',1,'REMOVED')");
         assertTrue(schedules.editForDoctor(fixture.doctor,dateId,date,"0","1","0").isSuccessful());
         assertEquals(slot, scalar("SELECT schedule_slot_id FROM appointments WHERE appointment_id=" + appointment));
         assertEquals("3", scalar("SELECT COUNT(*) FROM schedule_slots WHERE doctor_id=" + fixture.doctor + " AND schedule_date='" + date + "'"));
@@ -127,7 +129,7 @@ public class IsolatedOceanBaseIntegrationTest {
 
     @Test public void clinicalDraftFinalizationAndPatientPageAreAtomicAndIsolated() throws Exception {
         Fixture fixture = fixture();
-        int appointment = insert("INSERT INTO appointments(patient_id,doctor_id,appointment_date,appointment_time,status) VALUES(" + fixture.patient + "," + fixture.doctor + ",'" + fixture.date + "','AM','IN_PROGRESS')");
+        int appointment = insert("INSERT INTO appointments(patient_id,doctor_id,appointment_date,appointment_time,status,appointment_sequence,queue_status) VALUES(" + fixture.patient + "," + fixture.doctor + ",'" + fixture.date + "','AM','IN_PROGRESS',1,'IN_PROGRESS')");
         AuditContext doctor = new AuditContext("DOCTOR",fixture.doctor,"POST","/medical-records/draft","127.0.0.1");
         MedicalRecordsServiceImpl clinical = new MedicalRecordsServiceImpl(() -> factory.openSession(false), () -> factory.openSession(true), new AuditService(() -> factory.openSession(true)));
         MedicalOrder order = new MedicalOrder(); order.setItemName("测试医嘱"); order.setQuantity(1);
@@ -145,6 +147,7 @@ public class IsolatedOceanBaseIntegrationTest {
         MedicalRecordPage page = clinical.searchForPatient(fixture.patient, query);
         assertEquals(1, page.getTotal()); assertEquals(1, page.getItems().get(0).getOrders().size());
         assertEquals("COMPLETED",scalar("SELECT status FROM appointments WHERE appointment_id=" + appointment));
+        assertEquals("DONE",scalar("SELECT queue_status FROM appointments WHERE appointment_id=" + appointment));
         assertEquals(0, clinical.searchForPatient(fixture.patient + 100000, query).getTotal());
     }
 
@@ -158,7 +161,7 @@ public class IsolatedOceanBaseIntegrationTest {
         int doctor = insert("INSERT INTO doctors(job_number,name,registration_fee,department_id,professional_title_id) VALUES('" + unique + "','测试医生',10," + department + "," + title + ")");
         int patient = insert("INSERT INTO patients(name,balance) VALUES('测试患者" + unique + "',100)");
         String date = LocalDate.now().plusDays(20).toString();
-        insert("INSERT INTO schedule_slots(doctor_id,schedule_date,slot_period,slot_status) VALUES(" + doctor + ",'" + date + "','AM','AVAILABLE')");
+        insert("INSERT INTO schedule_slots(doctor_id,schedule_date,slot_period,slot_status,capacity) VALUES(" + doctor + ",'" + date + "','AM','AVAILABLE',1)");
         return new Fixture(doctor, patient, date);
     }
     private int insert(String sql) throws Exception {

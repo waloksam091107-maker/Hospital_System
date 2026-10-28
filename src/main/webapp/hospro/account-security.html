@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>账号安全管理</title>
+<style>body{font:16px/1.6 system-ui,sans-serif;background:#f3f7fa;color:#23374d;margin:0}main{max-width:1050px;margin:40px auto;background:white;padding:28px;border-radius:12px}a{color:#087ea4}button,input,select{font:inherit;padding:8px;margin:3px}button{cursor:pointer;background:#087ea4;color:white;border:0;border-radius:5px}button:disabled{opacity:.5}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px;border-bottom:1px solid #dbe4ec}#message{min-height:28px}form{padding:14px;background:#edf5f9}nav{display:flex;gap:20px}h1{font-size:26px}</style></head>
+<body><main><nav><a href="index.html">返回首页</a><a href="admin-master-data.html">医生和患者维护</a></nav>
+<h1>账号安全管理</h1><p>停用账号会撤销已有登录；医生的原预约保留，由医院协调或患者自行改期、取消。重置密码不会启用已停用账号。</p>
+<label>账号角色 <select id="role"><option value="DOCTOR">医生</option><option value="PATIENT">患者</option></select></label><button id="refresh" type="button">刷新</button>
+<div id="message" role="status" aria-live="polite"></div>
+<table><thead><tr><th>编号</th><th>姓名</th><th>账号状态</th><th>密码状态</th><th>登录锁定</th><th>操作</th></tr></thead><tbody id="accounts"></tbody></table>
+<p><button id="previous" type="button">上一页</button><span id="page">第 1 页</span><button id="next" type="button">下一页</button></p>
+<form id="reset-form" hidden><h2>设置临时密码</h2><p id="reset-target"></p><label>临时密码 <input id="temporary-password" type="password" minlength="8" autocomplete="new-password" required></label><p>至少 8 个字符，UTF-8 编码不超过 72 字节。用户下次登录必须修改密码。</p><button type="submit">重置密码</button><button type="button" id="cancel-reset">取消</button></form>
+</main><script src="static/js/account-security.js"></script></body></html>
+
+

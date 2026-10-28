@@ -30,6 +30,9 @@ public class DatesScheduleMaintenanceTest {
         sql("CREATE TABLE schedule_slots(schedule_slot_id BIGINT AUTO_INCREMENT PRIMARY KEY, doctor_id INT, schedule_date VARCHAR(10), slot_period VARCHAR(10), slot_status VARCHAR(20), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UNIQUE(doctor_id,schedule_date,slot_period))");
         sql("CREATE TABLE appointments(appointment_id INT AUTO_INCREMENT PRIMARY KEY, doctor_id INT, patient_id INT, appointment_date VARCHAR(10), appointment_time VARCHAR(10), schedule_slot_id BIGINT REFERENCES schedule_slots(schedule_slot_id), status VARCHAR(20))");
         sql("CREATE TABLE audit_logs(audit_log_id BIGINT AUTO_INCREMENT PRIMARY KEY, actor_role VARCHAR(20), actor_id INT, action VARCHAR(80), target_type VARCHAR(80), target_id VARCHAR(80), outcome VARCHAR(20), request_method VARCHAR(10), request_path VARCHAR(255), remote_address VARCHAR(64), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+        sql("CREATE TABLE doctors(doctor_id INT PRIMARY KEY)");
+        sql("INSERT INTO doctors VALUES(1),(2)");
+        try(SqlSession s=factory.openSession(true)){com.ustb.hospital.support.ExtensionTestSchema.install(s.getConnection());}
         service = new DatesServiceImpl(() -> factory.openSession(false), new AuditService(() -> factory.openSession(true)));
         assertTrue(service.addDate(1, "医生", future, "1", "1", "0", audit).isSuccessful());
     }
@@ -47,7 +50,8 @@ public class DatesScheduleMaintenanceTest {
         history("BOOKED", "AM");
         assertEquals("SCHEDULE_IN_USE", edit(future, "0", "1", "0").getCode());
         assertTrue(edit(future, "1", "0", "1").isSuccessful());
-        assertEquals("BOOKED", scalar("SELECT slot_status FROM schedule_slots WHERE slot_period='AM'"));
+        assertEquals("AVAILABLE", scalar("SELECT slot_status FROM schedule_slots WHERE slot_period='AM'"));
+        assertEquals("1", scalar("SELECT occupied_count FROM schedule_slots WHERE slot_period='AM'"));
         assertEquals("CLOSED", scalar("SELECT slot_status FROM schedule_slots WHERE slot_period='PM'"));
     }
     @Test public void completedAndInProgressPeriodsRemainImmutable() throws Exception {
@@ -81,9 +85,10 @@ public class DatesScheduleMaintenanceTest {
     @Test public void completedHistoryAllowsWithdrawalButKeepsItsOccupiedSlot() throws Exception {
         history("COMPLETED", "AM");
         assertTrue(service.deleteForDoctor(1, 1, audit).isSuccessful());
-        assertEquals("BOOKED", scalar("SELECT slot_status FROM schedule_slots WHERE slot_period='AM'"));
+        assertEquals("CLOSED", scalar("SELECT slot_status FROM schedule_slots WHERE slot_period='AM'"));
+        assertEquals("1", scalar("SELECT occupied_count FROM schedule_slots WHERE slot_period='AM'"));
         assertEquals("0", scalar("SELECT shang FROM dates"));
-        assertEquals("2", scalar("SELECT COUNT(*) FROM schedule_slots WHERE slot_status='CLOSED'"));
+        assertEquals("3", scalar("SELECT COUNT(*) FROM schedule_slots WHERE slot_status='CLOSED'"));
     }
     @Test public void activeAppointmentRejectsWithdrawal() throws Exception {
         history("IN_PROGRESS", "AM");
@@ -138,10 +143,11 @@ public class DatesScheduleMaintenanceTest {
         assertEquals("DUPLICATE_DATE", edit(today, "1", "1", "0").getCode());
         assertTrue(service.editForDoctor(1, 2, today, "0", "0", "0", audit).isSuccessful());
     }
-    @Test public void bookingThatOwnsSlotLockWinsBeforeWithdrawal() throws Exception {
+    @Test public void bookingThatOwnsDoctorAndSlotLocksWinsBeforeWithdrawal() throws Exception {
         ExecutorService pool = Executors.newSingleThreadExecutor();
         try (SqlSession booking = factory.openSession(false)) {
-            assertEquals(1, booking.getMapper(ScheduleSlotsMapper.class).reserveAvailableSlot(1, future, "AM"));
+            assertTrue(ClinicWorkflowStore.lockDoctor(booking,1));
+            assertEquals(1, ClinicWorkflowStore.update(booking,"UPDATE schedule_slots SET occupied_count=occupied_count+1,next_sequence=next_sequence+1 WHERE doctor_id=? AND schedule_date=? AND slot_period=? AND occupied_count<capacity AND slot_status='AVAILABLE'",1,future,"AM"));
             CountDownLatch entered = new CountDownLatch(1);
             Future<AppointmentOperationResult> withdraw = pool.submit(() -> { entered.countDown(); return service.deleteForDoctor(1, 1, audit); });
             assertTrue(entered.await(2, TimeUnit.SECONDS));
@@ -149,9 +155,10 @@ public class DatesScheduleMaintenanceTest {
             try (Statement s = booking.getConnection().createStatement()) {
                 s.execute("INSERT INTO appointments(doctor_id,patient_id,appointment_date,appointment_time,schedule_slot_id,status) SELECT 1,1,schedule_date,slot_period,schedule_slot_id,'BOOKED' FROM schedule_slots WHERE slot_period='AM'");
             }
-            booking.commit();
+            booking.commit(true);
             assertEquals("SCHEDULE_IN_USE", withdraw.get(5, TimeUnit.SECONDS).getCode());
-            assertEquals("BOOKED", scalar("SELECT slot_status FROM schedule_slots WHERE slot_period='AM'"));
+            assertEquals("AVAILABLE", scalar("SELECT slot_status FROM schedule_slots WHERE slot_period='AM'"));
+            assertEquals("1", scalar("SELECT occupied_count FROM schedule_slots WHERE slot_period='AM'"));
         } finally { pool.shutdownNow(); }
     }
     @Test public void withdrawalLockPreventsConcurrentBookingFromReopeningClosedSource() throws Exception {
@@ -170,7 +177,7 @@ public class DatesScheduleMaintenanceTest {
         try {
             Future<AppointmentOperationResult> withdraw = pool.submit(() -> gated.deleteForDoctor(1, 1, audit));
             assertTrue("withdrawal must reach its transactional audit", changed.await(2, TimeUnit.SECONDS));
-            Future<Integer> booking = pool.submit(() -> { try (SqlSession s = factory.openSession(false)) { int count = s.getMapper(ScheduleSlotsMapper.class).reserveAvailableSlot(1, future, "AM"); s.commit(); return count; } });
+            Future<Integer> booking = pool.submit(() -> { try (SqlSession s = factory.openSession(false)) { ClinicWorkflowStore.lockDoctor(s,1);int count = ClinicWorkflowStore.update(s,"UPDATE schedule_slots SET occupied_count=occupied_count+1,next_sequence=next_sequence+1 WHERE doctor_id=? AND schedule_date=? AND slot_period=? AND occupied_count<capacity AND slot_status='AVAILABLE'",1,future,"AM"); s.commit(true); return count; } });
             try { booking.get(200, TimeUnit.MILLISECONDS); fail("booking must wait for withdrawal"); } catch (TimeoutException expected) { }
             finish.countDown(); assertTrue(withdraw.get(5, TimeUnit.SECONDS).isSuccessful()); assertEquals(Integer.valueOf(0), booking.get(5, TimeUnit.SECONDS));
             assertEquals("CLOSED", scalar("SELECT slot_status FROM schedule_slots WHERE slot_period='AM'"));
@@ -179,7 +186,7 @@ public class DatesScheduleMaintenanceTest {
     private AppointmentOperationResult edit(String date, String am, String pm, String evening) { return service.editForDoctor(1, 1, date, am, pm, evening, audit); }
     private void history(String status, String period) throws Exception {
         sql("INSERT INTO appointments(doctor_id,patient_id,appointment_date,appointment_time,schedule_slot_id,status) SELECT 1,1,schedule_date,slot_period,schedule_slot_id,'" + status + "' FROM schedule_slots WHERE slot_period='" + period + "'");
-        if (Arrays.asList("BOOKED", "IN_PROGRESS", "COMPLETED").contains(status)) sql("UPDATE schedule_slots SET slot_status='BOOKED' WHERE slot_period='" + period + "'");
+        if (Arrays.asList("BOOKED", "IN_PROGRESS", "COMPLETED", "NO_SHOW").contains(status)) sql("UPDATE schedule_slots SET occupied_count=1,next_sequence=1 WHERE slot_period='" + period + "'");
     }
     private void sql(String sql) throws Exception { try (SqlSession s = factory.openSession(true); Statement st = s.getConnection().createStatement()) { st.execute(sql); } }
     private String scalar(String sql) throws Exception { try (SqlSession s = factory.openSession(true); Statement st = s.getConnection().createStatement(); ResultSet r = st.executeQuery(sql)) { assertTrue(r.next()); return r.getString(1); } }

@@ -114,3 +114,5 @@ powershell -ExecutionPolicy Bypass -File .\scripts\oceanbase\run-isolated-tests.
 ```
 
 该脚本使用独立 Compose 项目、默认端口 12881、随机 `hospital_test_` 数据库和受限账号；不得改成真实 `hospt` 库。已有 MySQL 集成测试默认跳过，不能把默认 Maven 通过理解为真实 OceanBase 集成测试已经执行。详细验收见 [本次完善测试清单](docs/testing/maintenance-completion-acceptance.md)。
+
+前五项扩展的功能、角色流程、接口、默认规则及部署升级前提见 [五项扩展使用说明](docs/features/five-extensions.md)。

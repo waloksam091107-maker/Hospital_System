@@ -111,5 +111,5 @@
     request(context+'/security/csrf').then(function(body){csrf=body.token||body.csrfToken||'';if(!csrf)throw new Error('未能获取安全令牌，请重新登录。');return loadOptions();}).then(function(){Object.keys(resources).forEach(function(name){reset(name);load(name);});}).catch(function(error){Object.keys(resources).forEach(function(name){show(name,error.message,true);updateButton(name);});});
 }());
 </script>
-</body>
+<script src="../js/clinic-navigation.js"></script><script src="../js/notification-center.js"></script></body>
 </html>

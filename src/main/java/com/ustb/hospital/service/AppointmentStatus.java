@@ -2,6 +2,7 @@ package com.ustb.hospital.service;
 
 /** Central lifecycle rules for appointment mutations. */
 public final class AppointmentStatus {
+    public static final String NO_SHOW = "NO_SHOW";
     public static final String BOOKED = "BOOKED";
     public static final String RESCHEDULED = "RESCHEDULED";
     public static final String CANCELLED = "CANCELLED";
@@ -32,6 +33,6 @@ public final class AppointmentStatus {
     }
 
     public static boolean keepsSlotOccupied(String status) {
-        return BOOKED.equals(status) || IN_PROGRESS.equals(status) || COMPLETED.equals(status);
+        return BOOKED.equals(status) || IN_PROGRESS.equals(status) || (COMPLETED.equals(status) || NO_SHOW.equals(status));
     }
 }

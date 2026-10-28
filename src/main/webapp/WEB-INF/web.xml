@@ -29,6 +29,22 @@
   <filter-mapping><filter-name>authentication</filter-name><url-pattern>/portal/profile/*</url-pattern></filter-mapping>
   <filter-mapping><filter-name>authentication</filter-name><url-pattern>/portal/balance/*</url-pattern></filter-mapping>
   <filter-mapping><filter-name>authentication</filter-name><url-pattern>/portal/admin/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>audit</filter-name><url-pattern>/clinic/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>audit</filter-name><url-pattern>/notifications/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>audit</filter-name><url-pattern>/auth/logout</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/clinic/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/notifications/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/auth/logout</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/book</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/patient/list</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/portal/profile</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/portal/patients</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/portal/doctors</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/portal/doctors/profile/edit</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/portal/departments/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/patients/details</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/patientMess</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>authentication</filter-name><url-pattern>/patients/current</url-pattern></filter-mapping>
   <filter-mapping><filter-name>csrf</filter-name><url-pattern>/appointments/book</url-pattern></filter-mapping>
   <filter-mapping><filter-name>csrf</filter-name><url-pattern>/appointments/cancel</url-pattern></filter-mapping>
   <filter-mapping><filter-name>csrf</filter-name><url-pattern>/appointments/reschedule</url-pattern></filter-mapping>
@@ -41,4 +57,7 @@
   <filter-mapping><filter-name>csrf</filter-name><url-pattern>/portal/profile/*</url-pattern></filter-mapping>
   <filter-mapping><filter-name>csrf</filter-name><url-pattern>/portal/balance/*</url-pattern></filter-mapping>
   <filter-mapping><filter-name>csrf</filter-name><url-pattern>/portal/admin/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>csrf</filter-name><url-pattern>/clinic/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>csrf</filter-name><url-pattern>/notifications/*</url-pattern></filter-mapping>
+  <filter-mapping><filter-name>csrf</filter-name><url-pattern>/auth/logout</url-pattern></filter-mapping>
 </web-app>

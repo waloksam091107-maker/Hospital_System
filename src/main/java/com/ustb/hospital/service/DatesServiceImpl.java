@@ -28,14 +28,13 @@ public class DatesServiceImpl {
     public DatesServiceImpl() { this(MybatisUtil::getTransactionSqlSession, new AuditService()); }
     public DatesServiceImpl(Supplier<SqlSession> sessions, AuditService auditService) { this.transactionSessions = sessions; this.auditService = auditService; }
     public boolean isSlotAvailable(int doctorId, String date, String requestedSlot) {
-        String slot = AppointmentSlot.fromRequestValue(requestedSlot);
-        if (slot == null || date == null) return false;
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
+        String period = AppointmentSlot.fromRequestValue(requestedSlot);
+        if (period == null || date == null) return false;
         try {
-            com.ustb.hospital.entity.ScheduleSlot scheduleSlot = sqlSession.getMapper(ScheduleSlotsMapper.class)
-                    .selectByDoctorDatePeriod(doctorId, date, slot);
-            return scheduleSlot != null && "AVAILABLE".equals(scheduleSlot.getSlotStatus());
-        } finally { sqlSession.close(); }
+            for (java.util.Map<String,Object> row : new ClinicWorkflowService(transactionSessions, auditService, java.time.Clock.system(ClinicTime.ZONE)).slots(doctorId, date))
+                if (period.equals(row.get("slotPeriod")) && ((Number)row.get("remaining")).intValue() > 0) return true;
+        } catch (IllegalArgumentException ignored) { }
+        return false;
     }
 
     public PageInfo<Dates> queryByDoctorId(int doctorId, int pageNum, int pageSize) {
@@ -60,6 +59,8 @@ public class DatesServiceImpl {
         if (isPast(date)) return AppointmentOperationResult.failure("PAST_DATE", "不能新建过去日期的排班。");
         SqlSession sqlSession = transactionSessions.get();
         try {
+            sqlSession.getConnection().setTransactionIsolation(java.sql.Connection.TRANSACTION_READ_COMMITTED);
+            if (!ClinicWorkflowStore.lockDoctor(sqlSession, doctorId)) return rollback(sqlSession, "NOT_FOUND", "医生不存在。");
             DatesMapper mapper = sqlSession.getMapper(DatesMapper.class);
             ScheduleSlotsMapper slotsMapper = sqlSession.getMapper(ScheduleSlotsMapper.class);
             if (mapper.findByDoctorAndDate(doctorId, date) != null) return rollback(sqlSession, "DUPLICATE_DATE", "该日期已经有排班。");
@@ -86,6 +87,8 @@ public class DatesServiceImpl {
     public AppointmentOperationResult editForDoctor(int doctorId, int dateId, String date, String shang, String xia, String wan, AuditContext audit) {
         SqlSession sqlSession = transactionSessions.get();
         try {
+            sqlSession.getConnection().setTransactionIsolation(java.sql.Connection.TRANSACTION_READ_COMMITTED);
+            if (!ClinicWorkflowStore.lockDoctor(sqlSession, doctorId)) return rollback(sqlSession, "NOT_FOUND", "医生不存在。");
             DatesMapper datesMapper = sqlSession.getMapper(DatesMapper.class);
             ScheduleSlotsMapper slotsMapper = sqlSession.getMapper(ScheduleSlotsMapper.class);
             Dates schedule = datesMapper.selectByIdForUpdate(dateId);
@@ -131,6 +134,8 @@ public class DatesServiceImpl {
     public AppointmentOperationResult deleteForDoctor(int doctorId, int dateId, AuditContext audit) {
         SqlSession sqlSession = transactionSessions.get();
         try {
+            sqlSession.getConnection().setTransactionIsolation(java.sql.Connection.TRANSACTION_READ_COMMITTED);
+            if (!ClinicWorkflowStore.lockDoctor(sqlSession, doctorId)) return rollback(sqlSession, "NOT_FOUND", "医生不存在。");
             DatesMapper datesMapper = sqlSession.getMapper(DatesMapper.class);
             ScheduleSlotsMapper slotsMapper = sqlSession.getMapper(ScheduleSlotsMapper.class);
             Dates schedule = datesMapper.selectByIdForUpdate(dateId);
@@ -146,7 +151,13 @@ public class DatesServiceImpl {
             if (history) {
                 boolean changed = !"0".equals(schedule.getShang()) || !"0".equals(schedule.getXia()) || !"0".equals(schedule.getWan());
                 for (ScheduleSlot slot : slots) {
-                    if (slotsMapper.countProtectedAppointments(slot) > 0) continue;
+                    if (slotsMapper.countProtectedAppointments(slot) > 0) {
+                        // Completed/no-show quota is retained, but withdrawing the day must
+                        // close unused capacity too. Never delete or renumber historical slots.
+                        changed |= !"CLOSED".equals(slot.getSlotStatus());
+                        ClinicWorkflowStore.update(sqlSession, "UPDATE schedule_slots SET slot_status='CLOSED' WHERE schedule_slot_id=?", slot.getScheduleSlotId());
+                        continue;
+                    }
                     if ("BOOKED".equals(slot.getSlotStatus())) return rollback(sqlSession, "SCHEDULE_MISMATCH", "时段占用状态异常，请核对后再撤班。");
                     changed |= "AVAILABLE".equals(slot.getSlotStatus());
                     if (slotsMapper.updateUnoccupiedSlot(slot, schedule.getDate(), "CLOSED") != 1)
@@ -195,7 +206,7 @@ public class DatesServiceImpl {
         try { return LocalDate.parse(date, ISO_DATE).getYear() >= 1; }
         catch (DateTimeParseException invalid) { return false; }
     }
-    private static boolean isPast(String date) { return LocalDate.parse(date, ISO_DATE).isBefore(LocalDate.now()); }
+    private static boolean isPast(String date) { return LocalDate.parse(date, ISO_DATE).isBefore(LocalDate.now(ClinicTime.ZONE)); }
     private static AppointmentOperationResult rollback(SqlSession session, String code, String message) {
         session.rollback();
         return AppointmentOperationResult.failure(code, message);

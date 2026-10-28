@@ -629,5 +629,5 @@
 
 </script>
 
-</body>
+<script src="../js/clinic-navigation.js"></script><script src="../js/notification-center.js"></script></body>
 </html>

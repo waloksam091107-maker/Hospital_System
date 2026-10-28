@@ -42,6 +42,7 @@ public final class PasswordChangeService {
                         : "PATIENT".equals(role) ? session.getMapper(PatientsMapper.class).upgradePasswordHash(id, newHash)
                         : "ADMIN".equals(role) ? session.getMapper(AdminsMapper.class).upgradePasswordHash(id, newHash) : 0;
                 if (changed != 1) throw new IllegalStateException("Account update failed.");
+                if (!upgrade) AccountSecurityService.passwordChanged(session, role, id);
                 audit.writeSuccess(session, context, upgrade ? "PASSWORD_UPGRADE" : "PASSWORD_RESET", "ACCOUNT", Integer.toString(id));
                 session.commit(); return AppointmentOperationResult.success("密码已修改。");
             } catch (RuntimeException error) { session.rollback(); return AppointmentOperationResult.failure("PASSWORD_CHANGE_FAILED", "修改密码失败，请稍后重试。"); }

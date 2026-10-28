@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>站内通知 · 医院挂号系统</title>
+  <style>
+    body{margin:0;background:#f5fbfb;color:#183354;font-family:Arial,"Microsoft YaHei",sans-serif}.wrap{max-width:900px;margin:32px auto;padding:28px;background:#fff;border-radius:12px;box-shadow:0 8px 22px #1a535c1c}a{color:#126c68}button,select{font:inherit;padding:9px 14px;border:1px solid #bbd0d3;border-radius:5px}button{background:#167d78;color:white;cursor:pointer}button:disabled{background:#94a7ac;cursor:default}button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid #d58313;outline-offset:3px}.toolbar,.pager{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.notification{border:1px solid #d6e3e7;border-left:4px solid #167d78;border-radius:8px;padding:18px;margin:16px 0;overflow-wrap:anywhere}.notification.read{border-left-color:#a6b5bc}.notification h2{font-size:1.15rem;margin-top:0}.notification p{white-space:pre-wrap}.notification time,.read-status{color:#526779}.notification .actions{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.error{color:#a72b23}.hint{color:#526779}#pageInfo{min-width:180px}@media(max-width:600px){.wrap{margin:12px;padding:16px}.toolbar,.pager{gap:8px}}
+  </style>
+  <script src="js/notification-center.js" defer></script>
+</head>
+<body>
+<main class="wrap" id="notificationPage">
+  <h1>站内通知</h1><p class="hint">显示当前登录账号的业务通知。请根据通知内容及时查看预约或停诊安排。</p>
+  <div class="toolbar"><label for="pageSize">每页条数</label><select id="pageSize"><option value="10">10 条</option><option value="20">20 条</option><option value="50">50 条</option><option value="100">100 条</option></select><button id="markAllRead" type="button">全部标为已读</button><button id="reloadNotifications" type="button">刷新</button></div>
+  <p id="notificationFeedback" role="status" aria-live="polite"></p>
+  <section id="notificationList" aria-label="通知列表" aria-live="polite" aria-busy="true">正在加载…</section>
+  <nav class="pager" aria-label="通知分页"><button id="previousPage" type="button" disabled>上一页</button><span id="pageInfo" role="status"></span><button id="nextPage" type="button" disabled>下一页</button></nav>
+  <noscript>请启用 JavaScript 以查看和管理站内通知。</noscript>
+</main>
+</body></html>

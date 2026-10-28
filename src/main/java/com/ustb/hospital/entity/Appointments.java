@@ -13,6 +13,15 @@ public class Appointments {
     private String completedAt;
     private String cancelledAt;
     private String updatedAt;
+    private int appointmentSequence;
+    private String queueStatus;
+    private boolean leaveBlocked;
+    public int getAppointmentSequence(){return appointmentSequence;}
+    public void setAppointmentSequence(int value){appointmentSequence=value;}
+    public String getQueueStatus(){return queueStatus;}
+    public void setQueueStatus(String value){queueStatus=value;}
+    public boolean isLeaveBlocked(){return leaveBlocked;}
+    public void setLeaveBlocked(boolean value){leaveBlocked=value;}
     private int version;
     private Patients patients;
     public Patients getPatients() {

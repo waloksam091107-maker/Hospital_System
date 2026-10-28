@@ -35,6 +35,9 @@ public class ClinicalAuditMysqlIntegrationTest {
             s.execute("CREATE TABLE audit_logs(audit_log_id BIGINT AUTO_INCREMENT PRIMARY KEY,actor_role VARCHAR(20),actor_id INT,action VARCHAR(80),target_type VARCHAR(80),target_id VARCHAR(80),outcome VARCHAR(20),request_method VARCHAR(10),request_path VARCHAR(255),remote_address VARCHAR(64),created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB");
             String migration=new String(Files.readAllBytes(Paths.get("database/migrations/20261017_clinical_drafts_and_audit_query.sql")),StandardCharsets.UTF_8).replaceAll("(?m)^\\s*--.*$","");
             for(String part:migration.split(";")) if(!part.trim().isEmpty()) s.execute(part.trim());
+            com.ustb.hospital.support.ExtensionTestSchema.install(c);
+            s.execute("UPDATE schedule_slots SET capacity=1");
+            s.execute("CREATE TABLE balance_transactions(transaction_id BIGINT AUTO_INCREMENT PRIMARY KEY,patient_id INT,appointment_id INT,transaction_type VARCHAR(40),amount DECIMAL(12,2),balance_after DECIMAL(12,2),note VARCHAR(255),created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB");
         }
         Properties p=new Properties(); p.setProperty("db.driver","com.mysql.cj.jdbc.Driver"); p.setProperty("db.url","jdbc:mysql://127.0.0.1:13307/"+schema+"?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8"); p.setProperty("db.username","root"); p.setProperty("db.password","");
         try(InputStream in=Resources.getResourceAsStream("mybatis-config.xml")){factory=new SqlSessionFactoryBuilder().build(in,p);}
@@ -45,10 +48,11 @@ public class ClinicalAuditMysqlIntegrationTest {
         assertEquals(scalar("SELECT appointment_id FROM appointments"),scalar("SELECT target_id FROM audit_logs WHERE action='APPOINTMENTS_BOOK'"));
         try(SqlSession s=factory.openSession(true)){s.getConnection().createStatement().execute("DROP TABLE audit_logs");}
         assertFalse(a.cancelAppointment(1,1,patient).isSuccessful());
-        assertEquals("BOOKED",scalar("SELECT status FROM appointments")); assertEquals("BOOKED",scalar("SELECT slot_status FROM schedule_slots"));
+        assertEquals("BOOKED",scalar("SELECT status FROM appointments")); assertEquals("AVAILABLE",scalar("SELECT slot_status FROM schedule_slots"));
+        assertEquals("1",scalar("SELECT occupied_count FROM schedule_slots"));
     }
     @Test public void concurrentDraftsAndFinalizationAreAtomic() throws Exception {
-        try(SqlSession s=factory.openSession(true)){s.getConnection().createStatement().execute("INSERT INTO appointments(patient_id,doctor_id,status) VALUES(1,1,'IN_PROGRESS')");}
+        try(SqlSession s=factory.openSession(true)){s.getConnection().createStatement().execute("INSERT INTO appointments(patient_id,doctor_id,status,queue_status,appointment_sequence) VALUES(1,1,'IN_PROGRESS','IN_PROGRESS',1)");}
         MedicalRecordsServiceImpl m=new MedicalRecordsServiceImpl(()->factory.openSession(false),()->factory.openSession(true),new AuditService(()->factory.openSession(true)));
         assertTrue(m.saveDraft(1,1,"initial","plan",null,Collections.<MedicalOrder>emptyList(),null,doctor).isSuccessful());
         ExecutorService pool=Executors.newFixedThreadPool(2);

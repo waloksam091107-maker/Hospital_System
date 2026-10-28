@@ -507,12 +507,12 @@ function appUrl(path) { return appContext + path; }
                 $("#appBody").empty();
                 $.each(res.list, function (i, v) {
                     var trObj = $("<tr></tr>");
-                    trObj.append($("<td>" + (i + 1) + "</td>"));
-                    trObj.append($("<td>" + v.doctors.name + "</td>"));
-                    trObj.append($("<td>" + v.departments.departmentName + "</td>"));
-                    trObj.append($("<td>" + v.appointmentDate + "</td>"));
-                    trObj.append($("<td>" + v.appointmentTime + "</td>"));
-                    trObj.append($("<td>" + appointmentStatusText(v.status) + "</td>"));
+                    trObj.append($("<td></td>").text(i + 1));
+                    trObj.append($("<td></td>").text((v.doctors || {}).name || '—'));
+                    trObj.append($("<td></td>").text((v.departments || {}).departmentName || '—'));
+                    trObj.append($("<td></td>").text(v.appointmentDate));
+                    trObj.append($("<td></td>").text(v.appointmentTime));
+                    trObj.append($("<td></td>").text(appointmentStatusText(v.status) + ' / 预约号 ' + (v.appointmentSequence == null ? '—' : v.appointmentSequence) + ' / ' + patientQueueText(v.queueStatus) + (v.leaveBlocked ? ' / 停诊：请改期或取消' : '')));
                     var buttonGroup = $("<td><div class='button-group'></div></td>");
                     var rescheduleButton = $("<button type='button' class='button border-main'><span class='icon-edit'></span> 修改</button>");
                     rescheduleButton.on('click', function () {
@@ -546,7 +546,11 @@ function appUrl(path) { return appContext + path; }
     }
 
     function appointmentStatusText(status) {
-        return { BOOKED: '已预约', IN_PROGRESS: '接诊中', COMPLETED: '已完成接诊', CANCELLED: '已取消', RESCHEDULED: '已改期' }[status] || status;
+        return { BOOKED: '已预约', IN_PROGRESS: '接诊中', COMPLETED: '已完成接诊', CANCELLED: '已取消', RESCHEDULED: '已改期', NO_SHOW: '爽约' }[status] || status;
+    }
+
+    function patientQueueText(status) {
+        return { NOT_CHECKED_IN: '未签到', WAITING: '候诊中', CALLED: '已叫号', IN_PROGRESS: '接诊中', SKIPPED: '已过号', DONE: '候诊结束', REMOVED: '已移出队列', NO_SHOW: '爽约' }[status] || '未签到';
     }
 
     function patientActionUnavailable(status) {
@@ -790,4 +794,4 @@ function appUrl(path) { return appContext + path; }
 <button class="scroll-top scroll-to-target" data-target="html"><span class="fa fa-arrow-up"></span></button>
 </div><!-- jequery plugins -->
 
-</body><!-- End of .page_wrapper --></html>
+<script src="../js/clinic-navigation.js"></script><script src="../js/notification-center.js"></script></body><!-- End of .page_wrapper --></html>

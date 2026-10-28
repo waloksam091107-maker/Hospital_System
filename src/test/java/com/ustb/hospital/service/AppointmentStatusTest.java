@@ -41,6 +41,10 @@ public class AppointmentStatusTest {
         assertTrue(invoke(statusType, "keepsSlotOccupied", "BOOKED"));
         assertTrue(invoke(statusType, "keepsSlotOccupied", "IN_PROGRESS"));
         assertTrue(invoke(statusType, "keepsSlotOccupied", "COMPLETED"));
+        assertTrue(invoke(statusType, "keepsSlotOccupied", "NO_SHOW"));
+        assertFalse(invoke(statusType, "canCancel", "NO_SHOW"));
+        assertFalse(invoke(statusType, "canReschedule", "NO_SHOW"));
+        assertFalse(invoke(statusType, "canStart", "NO_SHOW"));
         assertFalse(invoke(statusType, "keepsSlotOccupied", "CANCELLED"));
         assertFalse(invoke(statusType, "keepsSlotOccupied", "RESCHEDULED"));
     }

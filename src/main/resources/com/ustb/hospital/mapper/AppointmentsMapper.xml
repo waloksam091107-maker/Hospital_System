@@ -17,6 +17,9 @@
         <result column="cancelled_at" property="cancelledAt"/>
         <result column="updated_at" property="updatedAt"/>
         <result column="version" property="version"/>
+        <result column="appointment_sequence" property="appointmentSequence"/>
+        <result column="queue_status" property="queueStatus"/>
+        <result column="leave_blocked" property="leaveBlocked"/>
         <association property="doctors" javaType="com.ustb.hospital.entity.Doctors">
             <result column="name" property="name"/>
         </association>
@@ -39,7 +42,11 @@
         DELETE FROM appointments WHERE appointment_id = #{appointmentId}
     </delete>
     <select id="selectAllWithDoctorDetails" resultMap="appointmentMap">
-        SELECT appointment_id,appointment_date,appointment_time,status,name,department_name,title_name
+        SELECT app.appointment_sequence, app.queue_status,
+               CASE WHEN EXISTS (SELECT 1 FROM clinic_leave l WHERE l.doctor_id=app.doctor_id
+                   AND l.status='APPROVED' AND l.start_date &lt;= app.appointment_date AND l.end_date &gt;= app.appointment_date
+                   AND LOCATE(CONCAT(',',app.appointment_time,','),CONCAT(',',l.periods,',')) &gt; 0)
+               THEN 1 ELSE 0 END AS leave_blocked, appointment_id,appointment_date,appointment_time,status,name,department_name,title_name
         FROM appointments app,doctors doc, departments dep, professional_titles pt
         WHERE app.doctor_id=doc.doctor_id AND doc.department_id=dep.department_id AND doc.professional_title_id = pt.id
     </select>
@@ -59,7 +66,11 @@
         VALUES (#{patientId}, #{doctorId}, #{appointmentDate}, #{appointmentTime}, #{scheduleSlotId}, #{previousAppointmentId}, #{status})
     </insert>
     <select id="selectAll" resultMap="appointmentMap">
-        SELECT appointment_id,appointment_date,appointment_time,status,name
+        SELECT app.appointment_sequence, app.queue_status,
+               CASE WHEN EXISTS (SELECT 1 FROM clinic_leave l WHERE l.doctor_id=app.doctor_id
+                   AND l.status='APPROVED' AND l.start_date &lt;= app.appointment_date AND l.end_date &gt;= app.appointment_date
+                   AND LOCATE(CONCAT(',',app.appointment_time,','),CONCAT(',',l.periods,',')) &gt; 0)
+               THEN 1 ELSE 0 END AS leave_blocked, appointment_id,appointment_date,appointment_time,status,name
         FROM appointments app,patients pa
         WHERE app.patient_id=pa.patient_id
     </select>
@@ -112,14 +123,18 @@
         FROM appointments
         WHERE doctor_id = #{doctorId}
           AND appointment_date = #{appointmentDate}
-          AND status IN ('BOOKED', 'IN_PROGRESS', 'COMPLETED')
+          AND status IN ('BOOKED', 'IN_PROGRESS', 'COMPLETED', 'NO_SHOW')
     </select>
     <select id="countByDoctorAndDate" resultType="int">
         SELECT COUNT(1) FROM appointments
         WHERE doctor_id = #{doctorId} AND appointment_date = #{appointmentDate}
     </select>
     <select id="selectByPatientIdWithDoctorDetails" resultMap="appointmentMap">
-        SELECT appointment_id, appointment_date, appointment_time, status, app.previous_appointment_id,
+        SELECT app.appointment_sequence, app.queue_status,
+               CASE WHEN EXISTS (SELECT 1 FROM clinic_leave l WHERE l.doctor_id=app.doctor_id
+                   AND l.status='APPROVED' AND l.start_date &lt;= app.appointment_date AND l.end_date &gt;= app.appointment_date
+                   AND LOCATE(CONCAT(',',app.appointment_time,','),CONCAT(',',l.periods,',')) &gt; 0)
+               THEN 1 ELSE 0 END AS leave_blocked, appointment_id, appointment_date, appointment_time, status, app.previous_appointment_id,
                name, department_name, title_name
         FROM appointments app,doctors doc, departments dep, professional_titles pt
         WHERE app.patient_id = #{patientId} AND app.doctor_id=doc.doctor_id AND doc.department_id=dep.department_id AND doc.professional_title_id = pt.id
@@ -129,7 +144,7 @@
         select * from appointments where appointment_id = #{appointmentId}
     </select>
     <select id="selectDetailForDoctor" resultMap="appointmentMap">
-        SELECT appointment_id, appointment_date, appointment_time, status
+        SELECT appointment_id, appointment_date, appointment_time, status, appointment_sequence, queue_status
         FROM appointments
         WHERE appointment_id = #{appointmentId} AND doctor_id = #{doctorId}
     </select>
@@ -137,7 +152,11 @@
         SELECT * FROM appointments WHERE appointment_id = #{appointmentId} FOR UPDATE
     </select>
     <select id="selectByDoctorId" resultMap="appointmentMap">
-        SELECT appointment_id, appointment_date,appointment_time, status,name, id_card_number, phone,balance
+        SELECT app.appointment_sequence, app.queue_status,
+               CASE WHEN EXISTS (SELECT 1 FROM clinic_leave l WHERE l.doctor_id=app.doctor_id
+                   AND l.status='APPROVED' AND l.start_date &lt;= app.appointment_date AND l.end_date &gt;= app.appointment_date
+                   AND LOCATE(CONCAT(',',app.appointment_time,','),CONCAT(',',l.periods,',')) &gt; 0)
+               THEN 1 ELSE 0 END AS leave_blocked, appointment_id, appointment_date,appointment_time, status,name, id_card_number, phone,balance
         FROM appointments app,patients pa
         WHERE app.doctor_id = #{doctorId} AND app.patient_id=pa.patient_id
     </select>
@@ -145,7 +164,11 @@
         SELECT * FROM appointments WHERE appointment_id = #{appointmentId}
     </select>
     <select id="selectByPatientId" resultMap="appointmentMap">
-        SELECT appointment_id, appointment_date, appointment_time, status,name
+        SELECT app.appointment_sequence, app.queue_status,
+               CASE WHEN EXISTS (SELECT 1 FROM clinic_leave l WHERE l.doctor_id=app.doctor_id
+                   AND l.status='APPROVED' AND l.start_date &lt;= app.appointment_date AND l.end_date &gt;= app.appointment_date
+                   AND LOCATE(CONCAT(',',app.appointment_time,','),CONCAT(',',l.periods,',')) &gt; 0)
+               THEN 1 ELSE 0 END AS leave_blocked, appointment_id, appointment_date, appointment_time, status,name
         FROM appointments app,doctors doc
         WHERE app.patient_id = #{patientId} AND app.doctor_id=doc.doctor_id
     </select>

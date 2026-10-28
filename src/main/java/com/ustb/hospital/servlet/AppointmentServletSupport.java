@@ -50,12 +50,12 @@ final class AppointmentServletSupport {
         writeJson(response, body);
     }
     private static int statusFor(String code) {
-        if ("BOOKING_FAILED".equals(code) || "CANCEL_FAILED".equals(code) || "RESCHEDULE_FAILED".equals(code)
+        if ("OPERATION_FAILED".equals(code) || "BOOKING_FAILED".equals(code) || "CANCEL_FAILED".equals(code) || "RESCHEDULE_FAILED".equals(code)
                 || "START_FAILED".equals(code) || "SCHEDULE_CREATE_FAILED".equals(code)
                 || "SCHEDULE_UPDATE_FAILED".equals(code) || "SCHEDULE_DELETE_FAILED".equals(code)) return HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
         if ("FORBIDDEN".equals(code)) return HttpServletResponse.SC_FORBIDDEN;
         if ("NOT_FOUND".equals(code)) return HttpServletResponse.SC_NOT_FOUND;
-        if ("SLOT_UNAVAILABLE".equals(code) || "INVALID_STATE".equals(code) || "NO_CHANGE".equals(code)
+        if ("DOCTOR_BUSY".equals(code) || "DUPLICATE_BOOKING".equals(code) || "OVERLAPPING_LEAVE".equals(code) || "IN_PROGRESS_EXISTS".equals(code) || "EMPTY_QUEUE".equals(code) || "ACCOUNT_DISABLED".equals(code) || "SLOT_UNAVAILABLE".equals(code) || "INVALID_STATE".equals(code) || "NO_CHANGE".equals(code)
                 || "SCHEDULE_IN_USE".equals(code) || "HISTORY_DATE_LOCKED".equals(code)
                 || "ALREADY_CLOSED".equals(code) || "DUPLICATE_DATE".equals(code) || "SCHEDULE_MISMATCH".equals(code)) {
             return HttpServletResponse.SC_CONFLICT;

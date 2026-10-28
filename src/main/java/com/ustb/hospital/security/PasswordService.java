@@ -32,14 +32,14 @@ public final class PasswordService {
     }
 
     public static void validateNewPassword(String password) {
-        if (password == null || password.length() < 8 || password.length() > 128) {
-            throw new IllegalArgumentException("新密码长度必须为 8 到 128 个字符。");
+        if (password == null || password.length() < 8 || password.length() > 128 || password.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalArgumentException("新密码至少 8 个字符，且 UTF-8 编码不能超过 72 字节。");
         }
     }
 
     private static void validate(String password) {
-        if (password == null || password.length() == 0 || password.length() > 128) {
-            throw new IllegalArgumentException("密码不能为空且不能超过128个字符。");
+        if (password == null || password.length() == 0 || password.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalArgumentException("密码不能为空且 UTF-8 编码不能超过 72 字节。");
         }
     }
 }

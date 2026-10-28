@@ -13,10 +13,14 @@ public final class SessionIdentity {
     public static final String CURRENT_DOCTOR_ID = "currentDoctorId";
     public static final String CURRENT_ADMIN_ID = "currentAdminId";
     public static final String CURRENT_USER_NAME = "currentUserName";
+    public static final String ACCOUNT_SESSION_VERSION = "accountSessionVersion";
+    public static final String MUST_CHANGE_PASSWORD = "mustChangePassword";
 
     private SessionIdentity() { }
 
     public static void set(HttpSession session, String role, int userId, String displayName) {
+        session.removeAttribute(ACCOUNT_SESSION_VERSION);
+        session.removeAttribute(MUST_CHANGE_PASSWORD);
         session.setAttribute(CURRENT_USER_ROLE, role);
         session.setAttribute(CURRENT_USER_NAME, displayName);
         if (ROLE_PATIENT.equals(role)) {
@@ -36,6 +40,13 @@ public final class SessionIdentity {
 
     public static Integer getCurrentPatientId(HttpServletRequest request) {
         return getId(request, ROLE_PATIENT, CURRENT_PATIENT_ID);
+    }
+
+    /** Only a successfully verified login may establish an account-versioned session. */
+    public static void establish(HttpSession session, String role, int id, String name, long version, boolean mustChangePassword) {
+        set(session, role, id, name);
+        session.setAttribute(ACCOUNT_SESSION_VERSION, Long.valueOf(version));
+        session.setAttribute(MUST_CHANGE_PASSWORD, Boolean.valueOf(mustChangePassword));
     }
 
     public static Integer getCurrentDoctorId(HttpServletRequest request) {

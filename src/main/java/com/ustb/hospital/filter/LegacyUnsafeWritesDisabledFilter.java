@@ -9,6 +9,10 @@ import java.io.IOException;
 /** Old endpoints can mutate on GET or trust caller-supplied identities. Retire until safely redesigned. */
 @WebFilter(urlPatterns = {
         "/accounts/register", "/appointments/delete",
+        "/admins/details", "/admin/list", "/admins/list-by-id", "/admintoEdit", "/admins/sum",
+        "/legacy/doctors/edit-page", "/doctors/edit-page",
+        "/order/getPatientById", "/list_patient", "/patients/select", "/patients/edit-page", "/patienttoEdit", "/patients/profile/edit",
+        "/password/email-code", "/verification/sms-code",
         "/admins/profile/update", "/admins/avatar",
         "/portal/doctors/create", "/portal/doctors/profile", "/doc/save", "/doc/update", "/docEdit",
         "/doctors/delete", "/legacy/doctors/delete", "/updateAvatar", "/doctors/avatar-upload",

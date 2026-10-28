@@ -36,7 +36,7 @@
   <header class="doctor-header">
     <div class="container d-flex justify-content-between align-items-center">
       <strong>医院预约挂号管理系统 · 医生中心</strong>
-      <nav><a href="date.html">排班表</a>　<a href="appointments.html">预约记录</a></nav>
+      <nav><a href="date.html">排班表</a>　<a href="appointments.html">预约记录</a>　<a href="../clinic-workflow.html">候诊、容量与停诊</a></nav>
     </div>
   </header>
   <section class="page-banner"><div class="container"><h1>预约记录</h1></div></section>
@@ -62,7 +62,7 @@
     }
     let csrfToken = '';
     function statusText(status) {
-      return { BOOKED: '已预约', IN_PROGRESS: '接诊中', COMPLETED: '已完成接诊', CANCELLED: '已取消', RESCHEDULED: '已改期' }[status] || status;
+      return { BOOKED: '已预约', IN_PROGRESS: '接诊中', COMPLETED: '已完成接诊', CANCELLED: '已取消', RESCHEDULED: '已改期', NO_SHOW: '爽约' }[status] || status;
     }
     function loadCsrfToken(callback) {
       $.getJSON(appUrl('/security/csrf')).done(function(response) {
@@ -79,12 +79,13 @@
         appointments.forEach(function(appointment) {
           const patient = appointment.patients || {};
           const status = appointment.status || '';
-          const action = status === 'BOOKED'
-            ? '<button type="button" class="complete-button appointment-action" data-action="start" data-appointment-id="' + appointment.appointmentId + '">开始接诊</button>'
+          const action = status === 'BOOKED' && appointment.queueStatus === 'CALLED' && !appointment.leaveBlocked
+            ? '<button type="button" class="complete-button appointment-action" data-action="start" data-appointment-id="' + escapeHtml(appointment.appointmentId) + '">开始接诊</button>'
             : status === 'IN_PROGRESS'
             ? '<a class="complete-button" href="encounter.html?appointmentId=' + encodeURIComponent(appointment.appointmentId) + '">填写就诊记录</a>'
-            : '<button type="button" class="complete-button" disabled>不可操作</button>';
-          rows.append('<tr><td>' + escapeHtml(appointment.appointmentId) + '</td><td>' + escapeHtml(patient.name || '未命名患者') + '</td><td>' + escapeHtml(patient.phone || '-') + '</td><td>' + escapeHtml(appointment.appointmentDate) + '</td><td>' + escapeHtml(appointment.appointmentTime) + '</td><td><span class="status status-' + escapeHtml(status) + '">' + escapeHtml(statusText(status)) + '</span></td><td>' + action + '</td></tr>');
+            : status === 'BOOKED' ? '<a href="../clinic-workflow.html">查看候诊 / 叫号</a>' : '<button type="button" class="complete-button" disabled>不可操作</button>';
+          const queueLabel = { NOT_CHECKED_IN: '未签到', WAITING: '候诊中', CALLED: '已叫号', IN_PROGRESS: '接诊中', SKIPPED: '已过号', DONE: '候诊结束', REMOVED: '已移出队列', NO_SHOW: '爽约' }[appointment.queueStatus] || '未签到';
+          rows.append('<tr><td>' + escapeHtml(appointment.appointmentId) + '<br>预约号 ' + escapeHtml(appointment.appointmentSequence == null ? '—' : appointment.appointmentSequence) + '</td><td>' + escapeHtml(patient.name || '未命名患者') + '</td><td>' + escapeHtml(patient.phone || '-') + '</td><td>' + escapeHtml(appointment.appointmentDate) + '</td><td>' + escapeHtml(appointment.appointmentTime) + '</td><td><span class="status status-' + escapeHtml(status) + '">' + escapeHtml(statusText(status)) + '</span><br>' + escapeHtml(queueLabel) + (appointment.leaveBlocked ? '<br>停诊冻结' : '') + '</td><td>' + action + '</td></tr>');
         });
       }
       const pagination = $('#pagination').empty();
@@ -106,7 +107,10 @@
     }
     $('#appointmentRows').on('click', '.appointment-action', function() {
       const appointmentId = $(this).data('appointment-id');
+      const button = $(this);
+      if (button.prop('disabled')) return;
       if (!window.confirm('确认开始本次接诊吗？')) return;
+      button.prop('disabled', true);
       $.ajax({ url: appUrl('/appointments/start'), type: 'POST', dataType: 'json', data: { appointmentId: appointmentId }, headers: { 'X-CSRF-Token': csrfToken } })
         .done(function(response) {
           alert(response.message || '接诊状态已更新。');
@@ -114,9 +118,9 @@
         })
         .fail(function(xhr) {
           alert(doctorApiErrorMessage(xhr, '接诊状态更新失败，请稍后重试。'));
-        });
+        }).always(function() { button.prop('disabled', false); });
     });
     $(function() { loadCsrfToken(function() { loadAppointments(1); }); });
   </script>
-</body>
+<script src="../js/clinic-navigation.js"></script><script src="../js/notification-center.js"></script></body>
 </html>

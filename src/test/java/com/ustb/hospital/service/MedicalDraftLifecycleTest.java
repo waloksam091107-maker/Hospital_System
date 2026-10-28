@@ -37,6 +37,10 @@ public class MedicalDraftLifecycleTest {
             s.execute("CREATE TABLE medical_records (medical_record_id BIGINT AUTO_INCREMENT PRIMARY KEY, appointment_id INT UNIQUE, doctor_id INT, patient_id INT, diagnosis VARCHAR(500), treatment_plan TEXT, medical_advice TEXT, record_status VARCHAR(10), version INT DEFAULT 0, finalized_at TIMESTAMP, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
             s.execute("CREATE TABLE medical_orders (medical_order_id BIGINT AUTO_INCREMENT PRIMARY KEY, medical_record_id BIGINT, item_name VARCHAR(200), dosage VARCHAR(100), frequency VARCHAR(100), quantity INT, instruction_text VARCHAR(500), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
             s.execute("CREATE TABLE audit_logs (audit_log_id BIGINT AUTO_INCREMENT PRIMARY KEY, actor_role VARCHAR(20), actor_id INT, action VARCHAR(80), target_type VARCHAR(80), target_id VARCHAR(80), outcome VARCHAR(20), request_method VARCHAR(10), request_path VARCHAR(255), remote_address VARCHAR(64), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+            s.execute("CREATE TABLE doctors(doctor_id INT PRIMARY KEY)");
+            s.execute("INSERT INTO doctors VALUES(1),(2)");
+            com.ustb.hospital.support.ExtensionTestSchema.install(session.getConnection());
+            s.execute("UPDATE appointments SET queue_status='IN_PROGRESS'");
         }
         try {
             Supplier<SqlSession> tx = () -> factory.openSession(false);
@@ -84,6 +88,9 @@ public class MedicalDraftLifecycleTest {
     @Test public void finalRecordCannotBeOverwritten() throws Exception {
         assertTrue(finish("diagnosis", "plan", null).isSuccessful());
         assertEquals("COMPLETED", scalar("SELECT status FROM appointments WHERE appointment_id=1"));
+        assertEquals("DONE", scalar("SELECT queue_status FROM appointments WHERE appointment_id=1"));
+        assertEquals("1", scalar("SELECT COUNT(*) FROM queue_history WHERE to_status='DONE'"));
+        assertEquals("1", scalar("SELECT COUNT(*) FROM notifications WHERE recipient_role='PATIENT' AND recipient_id=1"));
         assertNotNull(service.findForPatient(1, 1)); assertNull(service.findForPatient(2, 1));
         assertFalse(finish("overwrite", "plan", null).isSuccessful());
         assertEquals("diagnosis", record(1).getDiagnosis());

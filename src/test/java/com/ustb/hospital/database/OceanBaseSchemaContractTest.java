@@ -29,8 +29,9 @@ public class OceanBaseSchemaContractTest {
             assertTrue("Missing table " + table, ddl.contains("create table if not exists " + table));
         }
 
-        assertTrue(ddl.contains("active_slot_key"));
-        assertTrue(ddl.contains("uk_appointments_active_slot"));
+        assertTrue(ddl.contains("active_patient_slot_key"));
+        assertTrue(ddl.contains("uk_appointments_active_patient_slot"));
+        assertTrue(ddl.contains("uk_appointments_slot_sequence"));
         assertTrue(ddl.contains("record_status"));
         assertTrue(ddl.contains("version int not null default 0"));
         assertTrue(ddl.contains("finalized_at"));

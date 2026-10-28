@@ -32,6 +32,8 @@ public class BusinessAuditAtomicityTest {
             s.execute("INSERT INTO schedule_slots(doctor_id,schedule_date,slot_period,slot_status) VALUES(1,'2030-01-01','AM','AVAILABLE'),(1,'2030-01-02','PM','AVAILABLE')");
             s.execute("CREATE TABLE dates(date_id INT AUTO_INCREMENT PRIMARY KEY, doctor_id INT, doctor_name VARCHAR(100), date VARCHAR(10), shang VARCHAR(2), xia VARCHAR(2), wan VARCHAR(2))");
             s.execute("CREATE TABLE audit_logs(audit_log_id BIGINT AUTO_INCREMENT PRIMARY KEY, actor_role VARCHAR(20), actor_id INT, action VARCHAR(80), target_type VARCHAR(80), target_id VARCHAR(80), outcome VARCHAR(20), request_method VARCHAR(10), request_path VARCHAR(255), remote_address VARCHAR(64), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+            com.ustb.hospital.support.ExtensionTestSchema.install(session.getConnection());
+            s.execute("UPDATE schedule_slots SET capacity=1");
         }
     }
     @Test public void bookingAuditFailureRollsBackSlotAndAppointment() throws Exception {
@@ -39,6 +41,8 @@ public class BusinessAuditAtomicityTest {
         assertEquals("AVAILABLE", scalar("SELECT slot_status FROM schedule_slots WHERE schedule_slot_id=1"));
         assertEquals("0", scalar("SELECT COUNT(*) FROM appointments"));
         assertEquals("100.00", scalar("SELECT balance FROM patients WHERE patient_id=1"));
+        assertEquals("0", scalar("SELECT occupied_count FROM schedule_slots WHERE schedule_slot_id=1"));
+        assertEquals("0", scalar("SELECT COUNT(*) FROM notifications"));
     }
     @Test public void successfulCreateUsesGeneratedTargetId() throws Exception {
         assertTrue(book().isSuccessful());
@@ -52,8 +56,10 @@ public class BusinessAuditAtomicityTest {
         AppointmentOperationResult r = (AppointmentOperationResult) appointmentService().getClass().getMethod("rescheduleAppointment",int.class,int.class,String.class,String.class,AuditContext.class).invoke(appointmentService(),1,1,"2030-01-02","PM",patient);
         assertFalse(r.isSuccessful()); assertEquals("1", scalar("SELECT COUNT(*) FROM appointments"));
         assertEquals("BOOKED", scalar("SELECT status FROM appointments WHERE appointment_id=1"));
-        assertEquals("BOOKED", scalar("SELECT slot_status FROM schedule_slots WHERE schedule_slot_id=1"));
+        assertEquals("AVAILABLE", scalar("SELECT slot_status FROM schedule_slots WHERE schedule_slot_id=1"));
+        assertEquals("1", scalar("SELECT occupied_count FROM schedule_slots WHERE schedule_slot_id=1"));
         assertEquals("AVAILABLE", scalar("SELECT slot_status FROM schedule_slots WHERE schedule_slot_id=2"));
+        assertEquals("0", scalar("SELECT occupied_count FROM schedule_slots WHERE schedule_slot_id=2"));
     }
     @Test public void scheduleAuditFailureRollsBackSchedule() throws Exception {
         dropAudit(); Object service = datesService();

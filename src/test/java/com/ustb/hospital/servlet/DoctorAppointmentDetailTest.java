@@ -55,6 +55,10 @@ public class DoctorAppointmentDetailTest {
             sql.execute("CREATE TABLE medical_records (medical_record_id BIGINT AUTO_INCREMENT PRIMARY KEY, appointment_id INT UNIQUE, doctor_id INT, patient_id INT, diagnosis VARCHAR(500), treatment_plan VARCHAR(5000), medical_advice VARCHAR(5000), record_status VARCHAR(10), version INT DEFAULT 0, finalized_at TIMESTAMP, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
             sql.execute("CREATE TABLE medical_orders (medical_order_id BIGINT AUTO_INCREMENT PRIMARY KEY, medical_record_id BIGINT, item_name VARCHAR(200) CHECK (item_name <> '故障'), dosage VARCHAR(100), frequency VARCHAR(100), quantity INT, instruction_text VARCHAR(500), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
             sql.execute("CREATE TABLE audit_logs (audit_log_id BIGINT AUTO_INCREMENT PRIMARY KEY, actor_role VARCHAR(20), actor_id INT, action VARCHAR(80), target_type VARCHAR(80), target_id VARCHAR(80), outcome VARCHAR(20), request_method VARCHAR(10), request_path VARCHAR(255), remote_address VARCHAR(64), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+            sql.execute("CREATE TABLE doctors(doctor_id INT PRIMARY KEY)");
+            sql.execute("INSERT INTO doctors VALUES(1),(2)");
+            com.ustb.hospital.support.ExtensionTestSchema.install(connection);
+            sql.execute("UPDATE appointments SET queue_status='IN_PROGRESS'");
             connection.commit();
         }
         Configuration configuration = new Configuration(new Environment("test", new JdbcTransactionFactory(), dataSource));

@@ -506,4 +506,4 @@
 <script src="static/js/gmaps.js"></script>
 <script src="static/js/map-helper.js"></script><!-- main-js -->
 <script src="static/js/script.js"></script>
-</body><!-- End of .page_wrapper --></html>
+<script src="../js/clinic-navigation.js"></script><script src="../js/notification-center.js"></script></body><!-- End of .page_wrapper --></html>

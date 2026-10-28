@@ -64,6 +64,8 @@ public class MedicalRecordsServiceImpl {
         SqlSession session = null;
         try {
             session = transactionSessions.get();
+            session.getConnection().setTransactionIsolation(java.sql.Connection.TRANSACTION_READ_COMMITTED);
+            ClinicWorkflowStore.lockDoctor(session, doctorId);
             AppointmentsMapper appointmentsMapper = session.getMapper(AppointmentsMapper.class);
             MedicalRecordsMapper recordsMapper = session.getMapper(MedicalRecordsMapper.class);
             Appointments appointment = appointmentsMapper.selectByIdForUpdate(appointmentId);
@@ -108,9 +110,10 @@ public class MedicalRecordsServiceImpl {
                     STATUS_IN_PROGRESS, STATUS_COMPLETED) != 1) {
                 return rollback(session, "INVALID_STATE", "预约状态已变化，未完成接诊。");
             }
+            if (finalize) ClinicWorkflowService.finishEncounter(session, appointmentId, appointment.getPatientId(), doctorId, audit);
             auditService.writeSuccess(session, audit, finalize ? "MEDICAL_RECORD_FINALIZE" : "MEDICAL_RECORD_DRAFT",
                     "APPOINTMENT", Integer.toString(appointmentId));
-            session.commit();
+            session.commit(true);
             return MedicalRecordOperationResult.success(finalize ? "就诊记录和医嘱已保存，接诊已完成。" : "草稿已保存。",
                     record.getMedicalRecordId(), record.getRecordStatus(), record.getVersion());
         } catch (Exception exception) {
@@ -223,7 +226,7 @@ public class MedicalRecordsServiceImpl {
     private static String normalize(String value) { return value == null ? null : value.trim(); }
     private static String normalizeNullable(String value) { String normalized = normalize(value); return normalized == null || normalized.length() == 0 ? null : normalized; }
     private static MedicalRecordOperationResult rollback(SqlSession session, String code, String message) {
-        if (session != null) session.rollback();
+        if (session != null) session.rollback(true);
         return MedicalRecordOperationResult.failure(code, message);
     }
     private static void close(SqlSession session) { if (session != null) session.close(); }
