@@ -195,12 +195,7 @@ function appUrl(path) { return appContext + path; }
             <div class="icon-box"><a href="index.html"><i class="icon-Bell"></i></a></div>
             <div class="author">
               <figure class="author-image"><img src="../hospro/static/picture/author-1.png" alt=""></figure>
-              <div class="select-box"><select class="wide">
-                <option data-display="Dr. Rex Allen">Dr. Rex Allen</option>
-                <option value="1">Cardiology</option>
-                <option value="2">Nurology</option>
-                <option value="4">Pragnency</option>
-              </select></div>
+              <div class="select-box"><a id="doctorHeaderName" href="../hospro/portal-profile.html">正在读取账号…</a></div>
             </div>
           </div>
         </div>
@@ -259,7 +254,7 @@ function appUrl(path) { return appContext + path; }
     </div>
     <div class="lower-content">
       <ul class="bread-crumb clearfix">
-        <li><a id="doctorBreadcrumbHome" href="../hospro/index.html?roleCode=1">主页</a></li>
+        <li><a id="doctorBreadcrumbHome" href="../hospro/index.html">主页</a></li>
         <li>排班表</li>
       </ul>
     </div>
@@ -268,21 +263,21 @@ function appUrl(path) { return appContext + path; }
     <div class="left-panel">
       <div class="profile-box">
         <div class="upper-box">
-          <figure class="profile-image"><img id="doctorAvatarImg" src="/hos_images" alt=""></figure>
+          <figure class="profile-image"><img id="doctorAvatarImg" src="../hospro/static/picture/author-1.png" alt=""></figure>
           <div class="title-box centred">
             <div class="inner"><h3 id="doctorNameLabel"></h3>name</div>
           </div>
         </div>
         <div class="profile-info">
           <ul class="list clearfix">
-            <li><a id="doctorProfileLink" href="../hospro/doctor-profile.html"><i class="fas fa-user"></i>个人主页</a></li>
+            <li><a id="doctorProfileLink" href="../hospro/portal-profile.html"><i class="fas fa-user"></i>个人主页</a></li>
             <li><a href="appointments.html"><i class="fas fa-wheelchair"></i>预约记录</a></li>
 
             <li><a id="doctorScheduleLink" href="date.html" class="current"><i class="fas fa-clock"></i>排班表</a></li>
             <li><a href="review.html"><i class="fas fa-star"></i>医嘱详情</a></li>
 
             <li><a href="change-password.html"><i class="fas fa-unlock-alt"></i>修改密码</a></li>
-            <li><a id="doctorHomeLink" href="../hospro/index.html?roleCode=1"><i class="fas fa-sign-out-alt"></i>返回主页</a></li>
+            <li><a id="doctorHomeLink" href="../hospro/index.html"><i class="fas fa-sign-out-alt"></i>返回主页</a></li>
           </ul>
         </div>
       </div>
@@ -520,46 +515,25 @@ function appUrl(path) { return appContext + path; }
           xhr.setRequestHeader('X-CSRF-Token', csrfToken);
         }
       });
-      function getPatientIdFromUrl() {
-        // 获取当前页面的 URL 对象
-        const url = new URL(window.location.href);
-        // 获取 URL 中的 search 参数
-        const searchParams = new URLSearchParams(url.search);
-        // 获取 doctorId 参数的值
-        const doctorId = searchParams.get('doctorId');
-        // 输出获取到的 patientId 值
-        console.log('从地址栏中获取到的 doctorId:', doctorId);
-        // 返回获取到的 patientId 值（如果需要在函数外部使用）
-        return doctorId;
+      function updateDoctorNavigation() {
+        $('#doctorProfileLink').attr('href', '../hospro/portal-profile.html');
+        $('#doctorScheduleLink').attr('href', 'date.html');
+        $('#doctorHomeLink, #doctorBreadcrumbHome').attr('href', '../hospro/index.html');
       }
-
-      function updateDoctorNavigation(doctorId) {
-        if (!doctorId) {
-          return;
-        }
-        const encodedDoctorId = encodeURIComponent(doctorId);
-        $('#doctorProfileLink').attr('href', '../hospro/doctor-profile.html?doctorId=' + encodedDoctorId);
-        $('#doctorScheduleLink').attr('href', 'date.html?doctorId=' + encodedDoctorId);
-        $('#doctorHomeLink, #doctorBreadcrumbHome').attr('href', '../hospro/index.html?roleCode=1&doctorId=' + encodedDoctorId);
-      }
-
       $(function () {
-        const doctorId = getPatientIdFromUrl();
-        updateDoctorNavigation(doctorId);
+        updateDoctorNavigation();
         $.ajax({
-          url: appUrl('/doctors/details'),
-          type: 'GET',
-          data: { "doctorId": doctorId },
-          dataType: "json",
+          url: appUrl('/portal/profile'), type: 'GET', dataType: 'json',
           success: function (doctor) {
-            $("#doctorNameLabel").text(doctor.name);
-            // 构造患者头像的完整路径，假设存储路径为 /hos_images/
-            var doctorAvatarPath = '/hos_images/' + doctor.avatar;
-            $("#doctorAvatarImg").attr("src", doctorAvatarPath);
-
+            if (doctor.role !== 'DOCTOR') return;
+            $('#doctorNameLabel').text(doctor.name);
+            $('#doctorHeaderName').text(doctor.name);
+            var image = document.getElementById('doctorAvatarImg');
+            image.onerror = function () { this.onerror = null; this.src = '../hospro/static/picture/author-1.png'; };
+            if (doctor.avatar) image.src = doctor.avatar.indexOf('uploads/avatars/') === 0 ? appUrl('/' + doctor.avatar) : '/hos_images/' + encodeURIComponent(doctor.avatar);
           },
-          error: function (xhr, status, error) {
-            console.error('AJAX Error: ' + status, error);
+          error: function (xhr) {
+            if (xhr.responseJSON && xhr.responseJSON.code === 'PASSWORD_CHANGE_REQUIRED') location.assign('../hospro/change-password.html?required=true');
           }
         });
       });

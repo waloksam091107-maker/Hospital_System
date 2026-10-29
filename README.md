@@ -58,6 +58,8 @@ curl.exe --fail http://localhost:8080/ustbhospital/health/ready
 docker compose --env-file .env.oceanbase -f docker-compose.oceanbase.yml logs --tail 100 app
 ```
 
+源码构建默认生成本地镜像 `hospital-system:local`。可在本机环境配置 `HOSPITAL_APP_IMAGE` 改为自己准备的镜像标签；构建或启动不会执行 Docker Hub 推送。已有五项扩展之前的业务库，应先停写并按 [增量升级说明](database/migrations/20261028_five_extensions.md) 升级，不能直接让新版程序连接旧表结构。
+
 后续更新也使用同一个目录、同一个 Compose 项目名和数据卷，执行上述 `up -d --build app`。普通停止：
 
 ```powershell
@@ -116,3 +118,5 @@ powershell -ExecutionPolicy Bypass -File .\scripts\oceanbase\run-isolated-tests.
 该脚本使用独立 Compose 项目、默认端口 12881、随机 `hospital_test_` 数据库和受限账号；不得改成真实 `hospt` 库。已有 MySQL 集成测试默认跳过，不能把默认 Maven 通过理解为真实 OceanBase 集成测试已经执行。详细验收见 [本次完善测试清单](docs/testing/maintenance-completion-acceptance.md)。
 
 前五项扩展的功能、角色流程、接口、默认规则及部署升级前提见 [五项扩展使用说明](docs/features/five-extensions.md)。
+
+2026-10-29 对现有功能、实际页面及本地 Docker 部署的修复清单、测试范围和验证结果见 [完整测试记录](docs/testing/20261029-full-system-test-report.md)。

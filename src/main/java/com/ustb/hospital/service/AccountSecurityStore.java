@@ -2,6 +2,8 @@ package com.ustb.hospital.service;
 
 import org.apache.ibatis.session.SqlSession;
 import java.sql.*;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 /** JDBC statements participate in the supplied MyBatis transaction. Account row is the common lock. */
 final class AccountSecurityStore {
@@ -25,11 +27,16 @@ final class AccountSecurityStore {
     }
     static void ensure(SqlSession s,String role,int id){execute(s,"INSERT INTO account_security(account_role,account_id) SELECT ?,? WHERE NOT EXISTS(SELECT 1 FROM account_security WHERE account_role=? AND account_id=?)",role,id,role,id);}
     static AccountSecurityService.AccountState state(SqlSession s,String role,int id,boolean lock){
-        try(PreparedStatement p=s.getConnection().prepareStatement("SELECT enabled,session_version,must_change_password,failed_attempts,failure_window_start,locked_until FROM account_security WHERE account_role=? AND account_id=?"+(lock?" FOR UPDATE":""))){p.setString(1,role);p.setInt(2,id);try(ResultSet r=p.executeQuery()){return r.next()?new AccountSecurityService.AccountState(r.getBoolean(1),r.getLong(2),r.getBoolean(3),r.getInt(4),r.getTimestamp(5),r.getTimestamp(6)):new AccountSecurityService.AccountState(true,0,false,0,null,null);}}
+        try(PreparedStatement p=s.getConnection().prepareStatement("SELECT enabled,session_version,must_change_password,failed_attempts,failure_window_start,locked_until FROM account_security WHERE account_role=? AND account_id=?"+(lock?" FOR UPDATE":""))){p.setString(1,role);p.setInt(2,id);try(ResultSet r=p.executeQuery()){return r.next()?new AccountSecurityService.AccountState(r.getBoolean(1),r.getLong(2),r.getBoolean(3),r.getInt(4),timestamp(r,5),timestamp(r,6)):new AccountSecurityService.AccountState(true,0,false,0,null,null);}}
         catch(SQLException e){throw new IllegalStateException("Account control query failed",e);}
     }
     static void replacePassword(SqlSession s,String role,int id,String hash){if(execute(s,"UPDATE "+table(role)+" SET password=NULL,password_hash=? WHERE "+idColumn(role)+"=?",hash,id)!=1)throw new IllegalStateException("Account update failed");}
-    static int execute(SqlSession s,String sql,Object...args){try(PreparedStatement p=s.getConnection().prepareStatement(sql)){for(int n=0;n<args.length;n++)p.setObject(n+1,args[n]);return p.executeUpdate();}catch(SQLException e){throw new IllegalStateException("Account write failed",e);}}
+    // Security timestamp columns use the configured database wall clock (Asia/Shanghai).
+    // OceanBase 2.4.2 otherwise reads with the JVM zone but writes with serverTimezone,
+    // shifting every read/write round trip when the application JVM runs in UTC.
+    private static Calendar databaseCalendar(){return Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));}
+    static Timestamp timestamp(ResultSet result,int column)throws SQLException{return result.getTimestamp(column,databaseCalendar());}
+    static int execute(SqlSession s,String sql,Object...args){try(PreparedStatement p=s.getConnection().prepareStatement(sql)){for(int n=0;n<args.length;n++){if(args[n] instanceof Timestamp)p.setTimestamp(n+1,(Timestamp)args[n],databaseCalendar());else p.setObject(n+1,args[n]);}return p.executeUpdate();}catch(SQLException e){throw new IllegalStateException("Account write failed",e);}}
     static final class Credentials { final int id;final String name,legacy,hash;Credentials(int id,String name,String legacy,String hash){this.id=id;this.name=name;this.legacy=legacy;this.hash=hash;} }
     private AccountSecurityStore(){}
 }

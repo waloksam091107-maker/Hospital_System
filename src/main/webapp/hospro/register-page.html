@@ -34,11 +34,16 @@
         const values = new FormData(form);
         if (values.get('password') !== values.get('confirmPassword')) { message.textContent = '两次输入的密码不一致。'; return; }
         if (!csrf) { message.textContent = '请求校验尚未完成，请稍后重试。'; return; }
-        const response = await fetch('../portal/accounts/patient-register', {method: 'POST', headers: {'X-CSRF-Token': csrf}, body: new URLSearchParams(values)});
-        const data = await response.json();
-        message.className = data.success ? 'success mt-3' : 'error mt-3';
-        message.textContent = data.message || '请求失败，请稍后重试。';
-        if (data.success) form.reset();
+        try {
+            const response = await fetch('../portal/accounts/patient-register', {method: 'POST', headers: {'X-CSRF-Token': csrf}, body: new URLSearchParams(values)});
+            const data = await response.json();
+            message.className = response.ok && data.success ? 'success mt-3' : 'error mt-3';
+            message.textContent = data.message || '请求失败，请稍后重试。';
+            if (response.ok && data.success) form.reset();
+        } catch (error) {
+            message.className = 'error mt-3';
+            message.textContent = '注册请求失败，请检查网络后重试。';
+        }
     });
 }());
 </script>

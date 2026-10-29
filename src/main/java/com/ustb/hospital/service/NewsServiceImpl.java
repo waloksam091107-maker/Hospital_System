@@ -11,56 +11,32 @@ import java.util.List;
 
 public class NewsServiceImpl {
     public List<News> queryAll(){
-        //调用工具类，获取会话对象sqlSession
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        //调用mapper
-        NewsMapper mapper = sqlSession.getMapper(NewsMapper.class);
-        //查询所有公告信息
-        List<News> news = mapper.selectAll();
-        //关闭会话
-        sqlSession.close();
-        return news;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            return sqlSession.getMapper(NewsMapper.class).selectAll();
+        }
     }
     public List<News> queryNew(){
-        //调用工具类，获取会话对象sqlSession
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        //调用mapper
-        NewsMapper mapper = sqlSession.getMapper(NewsMapper.class);
-        //查询所有公告信息
-        List<News> news = mapper.selectNew();
-        //关闭会话
-        sqlSession.close();
-        return news;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            return sqlSession.getMapper(NewsMapper.class).selectNew();
+        }
     }
     public News queryById(int id){
-        //调用工具类，获取会话对象sqlSession
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        //调用mapper
-        NewsMapper mapper = sqlSession.getMapper(NewsMapper.class);
-        //查询公告信息
-        News news = mapper.selectById(id);
-        //关闭会话
-        sqlSession.close();
-        return news;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            return sqlSession.getMapper(NewsMapper.class).selectById(id);
+        }
     }
     public List<News> queryByTitle(String title){
-        //调用工具类，获取会话对象sqlSession
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        //调用mapper
-        NewsMapper mapper = sqlSession.getMapper(NewsMapper.class);
-        //查询公告信息
-        List<News> news = mapper.selectByTitle(title);
-        //关闭会话
-        sqlSession.close();
-        return news;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            return sqlSession.getMapper(NewsMapper.class).selectByTitle(title);
+        }
     }
 
     public PageInfo<News> query(int pageNum, int pageSize, int newsId, String title, String creationTime, String creator, String content, String newsImg){
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        NewsMapper mapper = sqlSession.getMapper(NewsMapper.class);
-        PageHelper.startPage(pageNum, pageSize);
-        PageInfo<News> pageInfo = new PageInfo<>(mapper.select(newsId,title,creationTime,creator,content,newsImg));
-        return pageInfo;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            NewsMapper mapper = sqlSession.getMapper(NewsMapper.class);
+            PageHelper.startPage(pageNum,pageSize);
+            return new PageInfo<>(mapper.select(newsId,title,creationTime,creator,content,newsImg));
+        }
     }
 
     public void add(String title, String content, String creator, String creationTime, String newsImg){
@@ -119,11 +95,9 @@ public class NewsServiceImpl {
     }
 
     public News getNewsById(int id) {
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        NewsMapper mapper = sqlSession.getMapper(NewsMapper.class);
-        News news = mapper.selectById(id);
-        sqlSession.close();
-        return news;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            return sqlSession.getMapper(NewsMapper.class).selectById(id);
+        }
     }
 
 }

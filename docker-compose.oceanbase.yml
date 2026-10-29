@@ -21,6 +21,7 @@ services:
       start_period: 5m
 
   app:
+    image: ${HOSPITAL_APP_IMAGE:-hospital-system:local}
     restart: unless-stopped
     build:
       context: .

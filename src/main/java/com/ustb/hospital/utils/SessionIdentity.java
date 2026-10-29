@@ -59,8 +59,15 @@ public final class SessionIdentity {
 
     public static String getCurrentRole(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        Object role = session == null ? null : session.getAttribute(CURRENT_USER_ROLE);
+        Object role = getSessionAttribute(session, CURRENT_USER_ROLE);
         return role instanceof String ? (String) role : null;
+    }
+
+    /** A concurrent logout or rejected request may invalidate the same session during a read. */
+    public static Object getSessionAttribute(HttpSession session, String name) {
+        if (session == null) return null;
+        try { return session.getAttribute(name); }
+        catch (IllegalStateException invalidated) { return null; }
     }
 
     /** Returns the authenticated actor id only when the role and id key agree. */
@@ -73,16 +80,15 @@ public final class SessionIdentity {
     }
 
     public static boolean isAdmin(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        return session != null && ROLE_ADMIN.equals(session.getAttribute(CURRENT_USER_ROLE));
+        return ROLE_ADMIN.equals(getCurrentRole(request));
     }
 
     private static Integer getId(HttpServletRequest request, String expectedRole, String key) {
         HttpSession session = request.getSession(false);
-        if (session == null || !expectedRole.equals(session.getAttribute(CURRENT_USER_ROLE))) {
+        if (!expectedRole.equals(getSessionAttribute(session, CURRENT_USER_ROLE))) {
             return null;
         }
-        Object value = session.getAttribute(key);
+        Object value = getSessionAttribute(session, key);
         return value instanceof Integer ? (Integer) value : null;
     }
 }

@@ -34,14 +34,14 @@
   }
   function ended(item) { return item.appointmentDate < today() || (item.appointmentDate === today() && chinaNow().getHours() >= ({ AM: 12, PM: 17, EVENING: 21 }[item.appointmentTime] || 24)); }
   async function loadQueue() {
-    const params = role === 'DOCTOR' ? new URLSearchParams({ date: byId('queueDate').value, period: byId('queuePeriod').value }) : '';
+    const params = new URLSearchParams({ date: byId('queueDate').value, period: byId('queuePeriod').value });
     const data = await json('/clinic/queue?' + params);
     rows('queueRows', data.list || [], (row, item) => {
       cell(row, '预约号 ' + (item.appointmentSequence == null ? '—' : item.appointmentSequence));
       cell(row, (item.patientName || '本人预约') + ' / ' + item.appointmentId);
       cell(row, item.appointmentDate + ' ' + periodText(item.appointmentTime));
       const active = item.status === 'BOOKED', q = item.queueStatus || 'NOT_CHECKED_IN';
-      cell(row, item.leaveBlocked ? '停诊：请改期或取消' : queueText(active ? q : item.status));
+      cell(row, active && item.leaveBlocked ? '停诊：请改期或取消' : queueText(active ? q : item.status));
       const actions = cell(row, '');
       const queueAction = (action, label, confirmText) => button(actions, label, () => mutate('/clinic/queue', { action, appointmentId: item.appointmentId }, confirmText, loadQueue));
       if (role === 'PATIENT' && active && !item.leaveBlocked && ['NOT_CHECKED_IN', 'UNCHECKED'].includes(q) && item.appointmentDate === today() && !ended(item)) queueAction('check-in', '签到', '确认本人已到院，进行签到？');
@@ -50,7 +50,7 @@
           button(actions, '开始接诊', () => mutate('/appointments/start', { appointmentId: item.appointmentId }, '确认开始本次接诊？', () => { location.href = context + '/doctor-schedule/encounter.html?appointmentId=' + encodeURIComponent(item.appointmentId); }));
           queueAction('skip', '过号', '确认患者未到场，标记过号？');
         }
-        if (q === 'SKIPPED') queueAction('requeue', '恢复候诊', '确认将患者恢复到候诊队尾？');
+        if (q === 'SKIPPED' && item.appointmentDate === today() && !ended(item)) queueAction('requeue', '恢复候诊', '确认将患者恢复到候诊队尾？');
         if (ended(item) && ['NOT_CHECKED_IN', 'UNCHECKED', 'SKIPPED'].includes(q)) queueAction('no-show', '确认爽约', '确认患者未到诊？爽约占用本次额度且不退款。');
       }
       if (role === 'DOCTOR' && item.status === 'IN_PROGRESS') { const a = document.createElement('a'); a.href = context + '/doctor-schedule/encounter.html?appointmentId=' + encodeURIComponent(item.appointmentId); a.textContent = '填写就诊记录'; actions.appendChild(a); }
@@ -99,6 +99,10 @@
     csrf = (await json('/security/csrf')).token;
     if (!csrf) throw new Error('安全校验初始化失败，请刷新页面。');
     byId('identity').textContent = ({ PATIENT: '患者', DOCTOR: '医生', ADMIN: '管理员' }[role]) + ' · ' + (profile.name || '');
+    if (role === 'PATIENT') {
+      const allPeriods = document.createElement('option'); allPeriods.value = ''; allPeriods.textContent = '全部时段';
+      byId('queuePeriod').prepend(allPeriods); byId('queuePeriod').value = '';
+    }
     ['queueDate', 'slotDate', 'leaveStart', 'leaveEnd'].forEach(id => { byId(id).value = today(); });
     ['leaveStart', 'leaveEnd'].forEach(id => { byId(id).min = today(); });
     byId('queuePanel').hidden = role === 'ADMIN'; byId('capacityPanel').hidden = role !== 'DOCTOR'; byId('leaveApplyPanel').hidden = role !== 'DOCTOR'; byId('leavePanel').hidden = role === 'PATIENT'; byId('callNext').hidden = role !== 'DOCTOR'; byId('patientQueueHelp').hidden = role !== 'PATIENT';

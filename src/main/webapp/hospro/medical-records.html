@@ -9,6 +9,7 @@
 </head>
 <body><main class="wrap">
   <p><a href="patient.jsp">← 返回预约记录</a></p><h1>就诊记录与医嘱</h1>
+  <p><button id="allRecords" type="button" class="secondary" hidden>查看全部就诊记录</button></p>
   <form id="queryForm"><fieldset id="queryFields"><div class="filters">
     <label for="dateFrom">预约开始日期<input type="date" id="dateFrom" name="dateFrom"></label>
     <label for="dateTo">预约结束日期<input type="date" id="dateTo" name="dateTo"></label>
@@ -25,6 +26,12 @@
 (function(){
   var contextPath=window.location.pathname.substring(0,window.location.pathname.indexOf('/hospro/'))||'';
   var pageNum=1, pages=0, busy=false, activeFilters={pageSize:'10'}, failed=false;
+  var selectedAppointment=new URLSearchParams(window.location.search).get('appointmentId');
+  function detailMode(){return selectedAppointment!==null;}
+  function updateView(){
+    $('#queryForm').prop('hidden',detailMode()); $('.pager').prop('hidden',detailMode());
+    $('#allRecords').prop('hidden',!detailMode()).prop('disabled',busy);
+  }
   function esc(value){return $('<div>').text(value == null ? '' : value).html();}
   function recordHtml(record){
     var orders=record.orders||[];
@@ -36,6 +43,7 @@
     $('#prevPage').prop('disabled',busy||failed||pageNum<=1); $('#nextPage').prop('disabled',busy||failed||pageNum>=pages);
     $('#firstPage').prop('disabled',busy||failed); $('#retryButton').prop('disabled',busy);
     $('#records').attr('aria-busy',String(busy));
+    updateView();
   }
   function showFailure(xhr){
     failed=true; pages=0; $('#pageInfo').text('加载未完成'); $('#firstPage').prop('hidden',true);
@@ -47,6 +55,13 @@
   function loadPage(target){
     if(busy) return;
     pageNum=target; busy=true; failed=false; controls(); $('#retryButton').prop('hidden',true); $('#records').text('正在加载…');
+    if(detailMode()){
+      $.ajax({url:contextPath+'/medical-records/patient',data:{appointmentId:selectedAppointment},dataType:'json'}).done(function(record){
+        if(!record||String(record.appointmentId)!==selectedAppointment||record.recordStatus!=='FINAL'){showFailure({status:0,responseJSON:{message:'就诊记录读取失败，请重新加载。'}});return;}
+        $('#records').html(recordHtml(record)); $('#pageInfo').text('预约 #'+record.appointmentId+' 的已定稿病历');
+      }).fail(showFailure).always(function(){busy=false;controls();});
+      return;
+    }
     var query=$.extend({},activeFilters,{pageNum:pageNum});
     $.ajax({url:contextPath+'/medical-records/patient/search',data:query,dataType:'json'}).done(function(result){
       if(!result||!Array.isArray(result.items)||typeof result.total!=='number'||typeof result.pages!=='number') {showFailure({status:0}); return;}
@@ -65,6 +80,11 @@
   $('#prevPage').on('click',function(){if(pageNum>1)loadPage(pageNum-1);});
   $('#nextPage').on('click',function(){if(pageNum<pages)loadPage(pageNum+1);});
   $('#firstPage').on('click',function(){loadPage(1);}); $('#retryButton').on('click',function(){loadPage(pageNum);});
+  $('#allRecords').on('click',function(){
+    if(busy)return;selectedAppointment=null;
+    var url=new URL(window.location.href);url.searchParams.delete('appointmentId');window.history.replaceState(null,'',url);
+    loadPage(1);
+  });
   loadPage(1);
 }());
 </script><script src="../js/clinic-navigation.js"></script><script src="../js/notification-center.js"></script></body></html>

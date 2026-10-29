@@ -1,6 +1,6 @@
 # 排班、后台和病历完善版本：部署与运维
 
-适用代码：`Hospital_system_new/Hospital_system` 当前工作区。数据库继续为 OceanBase MySQL 兼容租户，不重新导入 MySQL，不覆盖已有业务数据。源码和本地镜像修改不会自动更新 Docker Hub。
+适用代码：当前检出的项目源码。数据库继续为 OceanBase MySQL 兼容租户，不重新导入 MySQL，不覆盖已有业务数据。源码和本地镜像修改不会自动更新 Docker Hub。
 
 ## 1. 获取项目和准备配置
 
@@ -24,7 +24,13 @@ docker compose --env-file .env.oceanbase -f docker-compose.oceanbase.yml ps
 
 首次初始化可能需要数分钟。等待 OceanBase 显示 healthy，再处理业务账号。已迁移且账号可用的环境跳过以下创建步骤，直接进入第 3 节。
 
-空库的最终态结构由挂载的 `database/oceanbase/01_hospt_schema.sql` 初始化；它不会创建可登录的业务账号，也不会导入演示患者。先打开租户数据库命令行：
+当前 Compose 不自动挂载或重复执行建表脚本。只有确认是全新的空业务库时，才执行下面的初始化；已有迁移数据的环境跳过此命令。此脚本不会创建可登录的业务账号，也不会导入演示患者。
+
+```powershell
+Get-Content -Raw -Encoding UTF8 .\database\oceanbase\01_hospt_schema.sql | docker compose --env-file .env.oceanbase -f docker-compose.oceanbase.yml exec -T oceanbase sh -lc 'MYSQL_PWD="$OB_TENANT_PASSWORD" obclient -h127.0.0.1 -P2881 -uroot@test --default-character-set=utf8mb4'
+```
+
+Windows PowerShell 5.1 执行包含中文的 SQL 前，在当前终端设置 `$OutputEncoding = New-Object System.Text.UTF8Encoding($false)`。脚本执行失败时先查看错误，不重复导入历史数据。随后打开租户数据库命令行：
 
 ```powershell
 docker compose --env-file .env.oceanbase -f docker-compose.oceanbase.yml exec oceanbase obclient -h127.0.0.1 -P2881 -uroot@test -p
@@ -41,7 +47,7 @@ FLUSH PRIVILEGES;
 
 可以参考 `database/oceanbase/02_create_app_user.sql.template`，不要把填好密码的副本加入 Git。已有账号密码与本地配置不一致时应核对配置，不盲目改动账号。已经迁移的真实库不运行演示数据脚本或重复导入。
 
-本次完善不新增业务表字段，无需重建或重导数据库。已有旧版本若尚未执行 `20261022_secure_portal_and_balance_transactions.sql`，应先按原升级说明完成该历史增量升级，而不是通过清库获得新结构。
+已有旧版本若尚未执行 `20261022_secure_portal_and_balance_transactions.sql`，应先按原升级说明完成该历史增量升级。五项扩展需要容量、候诊、停诊、通知和账号保护结构，按 [五项扩展增量升级](../../database/migrations/20261028_five_extensions.md) 在停写状态升级并核对，再启动新应用。不要通过清库或重导数据获得新结构。
 
 ## 3. 从当前源码构建启动
 
@@ -63,7 +69,7 @@ docker compose --env-file .env.oceanbase -f docker-compose.oceanbase.yml logs --
 docker compose --env-file .env.oceanbase -f docker-compose.oceanbase.yml stop
 ```
 
-后续更新在同一目录、同一 Compose 项目名下再次执行 `up -d --build app`。数据库卷和头像卷保留。不要使用 `down -v` 或卷删除命令。
+后续更新使用同一个 Compose 项目名。源码构建默认镜像为 `hospital-system:local`，`HOSPITAL_APP_IMAGE` 可指定其他本地标签。数据库已运行且不需要调整时可执行 `docker compose --env-file .env.oceanbase -f docker-compose.oceanbase.yml up -d --build --no-deps app` 仅更新应用。更换源码目录时显式增加 `--project-name hospital_system` 以复用原项目，先核对原容器的项目标签和卷名。数据库卷和头像卷保留。不要使用 `down -v` 或卷删除命令。
 
 ## 4. 上传目录与旧头像迁移
 

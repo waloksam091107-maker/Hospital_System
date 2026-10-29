@@ -138,7 +138,7 @@ public class ClinicWorkflowService {
         try(SqlSession s=sessions.get()){
             StringBuilder sql=new StringBuilder("SELECT a.*,p.name AS patient_name FROM appointments a JOIN patients p ON p.patient_id=a.patient_id WHERE a.").append("DOCTOR".equals(role)?"doctor_id":"patient_id").append("=?");List<Object> args=new ArrayList<>();args.add(actor);
             if(date!=null&&!date.isEmpty()){sql.append(" AND a.appointment_date=?");args.add(date);}if(requested!=null&&!requested.isEmpty()){sql.append(" AND a.appointment_time=?");args.add(period(requested));}
-            sql.append(" ORDER BY CASE WHEN a.queue_status='CALLED' THEN 0 WHEN a.queue_status='IN_PROGRESS' THEN 1 WHEN a.queue_status='WAITING' THEN 2 ELSE 3 END,COALESCE((SELECT MAX(q.id) FROM queue_history q WHERE q.appointment_id=a.appointment_id AND q.to_status='WAITING'),0),a.checked_in_at,a.appointment_sequence,a.appointment_id LIMIT 300");List<Map<String,Object>> list=rows(s,sql.toString(),args.toArray());
+            sql.append(" ORDER BY CASE WHEN a.status IN ('BOOKED','IN_PROGRESS') THEN 0 ELSE 1 END,CASE WHEN a.queue_status='CALLED' THEN 0 WHEN a.queue_status='IN_PROGRESS' THEN 1 WHEN a.queue_status='WAITING' THEN 2 ELSE 3 END,COALESCE((SELECT MAX(q.id) FROM queue_history q WHERE q.appointment_id=a.appointment_id AND q.to_status='WAITING'),0),a.checked_in_at,a.appointment_sequence,a.appointment_id LIMIT 300");List<Map<String,Object>> list=rows(s,sql.toString(),args.toArray());
             for(Map<String,Object> a:list)a.put("leaveBlocked",leaveBlocked(s,number(a,"doctorId"),str(a,"appointmentDate"),str(a,"appointmentTime")));return list;
         }catch(SQLException e){throw new IllegalStateException("候诊查询失败。",e);}
     }

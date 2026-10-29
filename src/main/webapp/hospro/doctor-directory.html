@@ -363,7 +363,7 @@ function appUrl(path) { return appContext + path; }
                                             <div class="pattern-1" style="background-image: url(static/picture/shape-24.png);"></div>
                                             <div class="pattern-2" style="background-image: url(static/picture/shape-25.png);"></div>
                                         </div>
-                                        <figure class="image-box"><img src="/img/1.jpg" alt=""></figure>
+                                        <figure class="image-box"><img src="static/picture/author-1.png" alt="医生头像"></figure>
                                         <div class="content-box">
                                             <div class="like-box"><a href="doctors-details.html"><i class="far fa-heart"></i></a></div>
                                             <ul class="name-box clearfix">
@@ -1050,19 +1050,22 @@ function appUrl(path) { return appContext + path; }
                     var pattern = $('<div class="pattern"></div>');
                     var pattern1 = $('<div class="pattern-1" style="background-image: url(static/picture/shape-24.png);"></div>');
                     var pattern2 = $('<div class="pattern-2" style="background-image: url(static/picture/shape-25.png);"></div>');
-                    var imageBox = $('<figure class="image-box"><img src="/hos_images/' + v.avatar + '" alt=""></figure>');
+                    var imageBox = $('<figure class="image-box"></figure>');
+                    var avatar = !v.avatar ? 'static/picture/author-1.png' : /^uploads\/avatars\/[A-Za-z0-9._-]+$/.test(v.avatar) ? appUrl('/' + v.avatar) : '/hos_images/' + encodeURIComponent(v.avatar);
+                    imageBox.append($('<img alt="医生头像">').one('error', function () { this.src = 'static/picture/author-1.png'; }).attr('src', avatar));
                     var contentBox = $('<div class="content-box"></div>');
-                    var contentBox_3=$('<span class="designation">工号：'+v.jobNumber+'</span>')
+                    var contentBox_3=$('<span class="designation"></span>').text('工号：'+(v.jobNumber || '未提供'));
                     var doctorDetailsUrl = 'doctors-details.html?doctorId=' + encodeURIComponent(v.doctorId);
                     var likeBox = $('<div class="like-box"><a href="' + doctorDetailsUrl + '"><i class="far fa-heart"></i></a></div>');
                     var nameBox = $('<ul class="name-box clearfix"></ul>');
-                    var nameBox_1=$('<li class="name"><h3><a href="' + doctorDetailsUrl + '">'+v.name+'</a></h3></li>');
+                    var nameBox_1=$('<li class="name"><h3></h3></li>');
+                    nameBox_1.find('h3').append($('<a></a>').attr('href', doctorDetailsUrl).text(v.name || '未提供'));
                     var nameBox_2=$('<li><i class="icon-Trust-1"></i></li>');
                     var nameBox_3=$('<li><i class="icon-Trust-2"></i></li>');
                     var contentBox_4=$('<div class="text"></div>');
-                    var contentBox_4_1=$('<p>电话：'+v.phone+'</p>');
-                    var contentBox_4_2=$('<p>职称：'+v.professionalTitles.titleName+'</p>');
-                    var contentBox_4_3=$('<p>'+v.introduction+'</p>');
+                    var contentBox_4_1=$('<p></p>').text('电话：'+(v.phone || '未提供'));
+                    var contentBox_4_2=$('<p></p>').text('职称：'+((v.professionalTitles || {}).titleName || '未提供'));
+                    var contentBox_4_3=$('<p></p>').text(v.introduction || '暂无简介');
                     var contentBox_5=$('<ul class="rating clearfix"><li><i class="icon-Star"></i></li><li><i class="icon-Star"></i></li><li><i class="icon-Star"></i></li><li><i class="icon-Star"></i></li><li><i class="icon-Star"></i></li></ul><div class="link"><a href="' + doctorDetailsUrl + '">24/7 Available</a></div></div>')
                     contentBox_4.append(contentBox_4_1);
                     contentBox_4.append(contentBox_4_2);
@@ -1081,7 +1084,7 @@ function appUrl(path) { return appContext + path; }
                     contentBox.append(contentBox_3);
                     contentBox.append(contentBox_4);
                     contentBox.append(contentBox_5);
-                    var visitButton = $('<div class="btn-box"><a href="' + doctorDetailsUrl + '&departmentName=' + encodeURIComponent(v.departments.departmentName) + '&titleName=' + encodeURIComponent(v.professionalTitles.titleName) + '&avatar=' + encodeURIComponent(v.avatar) + '">Visit Now</a></div>');
+                    var visitButton = $('<div class="btn-box"></div>').append($('<a></a>').attr('href', doctorDetailsUrl).text('查看医生与号源'));
                     contentBox.append(visitButton)
                     innerBox.append(contentBox);
 

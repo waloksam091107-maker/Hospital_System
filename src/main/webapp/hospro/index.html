@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -83,178 +83,6 @@ function openDepartmentDirectory(departmentName, departmentId) {
         });
     });
 
-    document.addEventListener('DOMContentLoaded', (event) => {
-        // 获取按钮元素
-        const gerenzhuyeButton = document.getElementById('gerenzhuye');
-
-        // 定义点击事件处理函数
-        function handleButtonClick() {
-            // 获取当前页面的 URL 对象
-            const url = new URL(window.location.href);
-            // 获取 URL 中的 search 参数
-            const searchParams = new URLSearchParams(url.search);
-            // 获取 patientId 参数的值
-            const doctorId = searchParams.get('doctorId');
-            // 如果 patientId 存在
-            if (doctorId) {
-                // 构建跳转的 URL，带上 patientId 参数
-                const redirectUrl = 'portal-profile.html';
-                // 跳转到指定页面
-                window.location.href = redirectUrl;
-            }
-        }
-        // 添加点击事件监听器
-        gerenzhuyeButton.addEventListener('click', handleButtonClick);
-    });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-        // 获取按钮元素
-        const hzxinxiButton = document.getElementById('hzxinxi');
-
-        // 定义点击事件处理函数
-        function handleButtonClick() {
-            // 获取当前页面的 URL 对象
-            const url = new URL(window.location.href);
-            // 获取 URL 中的 search 参数
-            const searchParams = new URLSearchParams(url.search);
-            // 获取 patientId 参数的值
-            const patientId = searchParams.get('patientId');
-            // 如果 patientId 存在
-            if (patientId) {
-                // 构建跳转的 URL，带上 patientId 参数
-                const redirectUrl = 'portal-profile.html';
-                // 跳转到指定页面
-                window.location.href = redirectUrl;
-            }
-        }
-        // 添加点击事件监听器
-        hzxinxiButton.addEventListener('click', handleButtonClick);
-    });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-        // 获取按钮元素
-        const glygerenzhuyeButton = document.getElementById('glygerenzhuye');
-
-        // 定义点击事件处理函数
-        function handleButtonClick() {
-            // 获取当前页面的 URL 对象
-            const url = new URL(window.location.href);
-            // 获取 URL 中的 search 参数
-            const searchParams = new URLSearchParams(url.search);
-            // 获取 patientId 参数的值
-            const adminId = searchParams.get('adminId');
-            // 如果 patientId 存在
-            if (adminId) {
-                // 构建跳转的 URL，带上 patientId 参数
-                const redirectUrl = 'portal-profile.html';
-                // 跳转到指定页面
-                window.location.href = redirectUrl;
-            }
-        }
-        // 添加点击事件监听器
-        glygerenzhuyeButton.addEventListener('click', handleButtonClick);
-    });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-        // 获取按钮元素
-        const glygerenzhuyeButton = document.getElementById('glygerenzhuye');
-
-        // 定义点击事件处理函数
-        function handleButtonClick() {
-            // 获取当前页面的 URL 对象
-            const url = new URL(window.location.href);
-            // 获取 URL 中的 search 参数
-            const searchParams = new URLSearchParams(url.search);
-            // 获取 patientId 参数的值
-            const adminId = searchParams.get('adminId');
-            // 如果 patientId 存在
-            if (adminId) {
-                // 构建跳转的 URL，带上 patientId 参数
-                const redirectUrl = 'portal-profile.html';
-                // 跳转到指定页面
-                window.location.href = redirectUrl;
-            }
-        }
-        // 添加点击事件监听器
-        glygerenzhuyeButton.addEventListener('click', handleButtonClick);
-    });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-        // 获取按钮元素
-        const jiuzhenButton = document.getElementById('jiuzhen');
-
-        // 定义点击事件处理函数
-        function handleButtonClick() {
-            // 获取当前页面的 URL 对象
-            const url = new URL(window.location.href);
-            // 获取 URL 中的 search 参数
-            const searchParams = new URLSearchParams(url.search);
-            // 获取 patientId 参数的值
-            const doctorId = searchParams.get('doctorId');
-            // 如果 patientId 存在
-            if (doctorId) {
-                // 构建跳转的 URL，带上 patientId 参数
-                const redirectUrl = `../doctor-schedule/appointments.html`;
-                // 跳转到指定页面
-                window.location.href = redirectUrl;
-            }
-        }
-        // 添加点击事件监听器
-        jiuzhenButton.addEventListener('click', handleButtonClick);
-    });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-        // 获取按钮元素
-        const hzjiuzhenButton = document.getElementById('hzjiuzhen');
-        // 定义点击事件处理函数
-        function handleButtonClick() {
-            // 获取当前页面的 URL 对象
-            const url = new URL(window.location.href);
-            // 获取 URL 中的 search 参数
-            const searchParams = new URLSearchParams(url.search);
-            // 获取 patientId 参数的值
-            const patientId = searchParams.get('patientId');
-            // 如果 patientId 存在
-            if (patientId) {
-                // 构建跳转的 URL，带上 patientId 参数
-                const redirectUrl = `patient.jsp?patientId=${encodeURIComponent(patientId)}`;
-                // 跳转到指定页面
-                window.location.href = redirectUrl;
-            }
-        }
-        // 添加点击事件监听器
-        hzjiuzhenButton.addEventListener('click', handleButtonClick);
-    });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-        // 获取按钮元素
-        const paibanButton = document.getElementById('paiban');
-        // 定义点击事件处理函数
-        function handleButtonClick() {
-            // 获取当前页面的 URL 对象
-            const url = new URL(window.location.href);
-            // 获取 URL 中的 search 参数
-            const searchParams = new URLSearchParams(url.search);
-            // 获取 patientId 参数的值
-            const doctorId = searchParams.get('doctorId');
-            // 如果 patientId 存在
-            if (doctorId) {
-                paibanButton.setAttribute('href', `../doctor-schedule/date.html?doctorId=${encodeURIComponent(doctorId)}`);
-                // 构建跳转的 URL，带上 patientId 参数
-                const redirectUrl = `../doctor-schedule/date.html?doctorId=${encodeURIComponent(doctorId)}`;
-                // 跳转到指定页面
-                window.location.href = redirectUrl;
-            }
-        }
-        // 添加点击事件监听器
-        paibanButton.addEventListener('click', handleButtonClick);
-    });
 </script>
 
 <style>
@@ -426,105 +254,20 @@ function openDepartmentDirectory(departmentName, departmentId) {
 </style>
 
 <script>
-    $(function (){
-        // 获取顶部URL中的doctorId参数值
-        var urlParams = new URLSearchParams(window.location.search);
-        var doctorId = urlParams.get('doctorId');
-
-        // 获取顶部URL中的 patientId 参数值
-        var urlParams = new URLSearchParams(window.location.search);
-        var patientId = urlParams.get('patientId');
-
-
-        // 动态设置医嘱管理链接的点击事件
-        $('#docOrderLink').on('click', function(event) {
-            event.preventDefault(); // 阻止默认行为
-            var targetUrl = 'docOrder.html?doctorId=' + doctorId;
-            window.location.href = targetUrl; // 执行页面跳转
-        });
-        // 动态设置就诊记录查询链接的点击事件
-        $('#patOrderLink').on('click', function(event) {
-            event.preventDefault(); // 阻止默认行为
-            var targetUrl = 'medical-records.html';
-            window.location.href = targetUrl; // 执行页面跳转
-        });
-
-        // alert("123")
-        // 获取当前 URL
-        const url = new URL(window.location);
-
-        // 从 URL 中获取参数
-        const searchParams = new URLSearchParams(url.search);
-
-        // 获取 jobNum 参数的值
-        const jobNum = searchParams.get('jobNum');
-
-        // 检查 jobNum 参数是否存在，如果存在则弹出提示
-        if (jobNum) {
-            alert(`您的工号是: ${jobNum}`);
-        }
-
-    })
-</script>
-<!-- 监听输入框 -->
-<script type="text/javascript">
     $(document).ready(function () {
-        const urlParams = new URLSearchParams(window.location.search);
-        const typeId = urlParams.get('roleCode') || urlParams.get('typeId');
-
-        // 根据typeId显示相应的div
-        if (typeId === '0') {
-            var Obj ='<div class="author"><div class="btn-box"><a href="register-page.html" class="theme-btn-one"><i class="icon-image"></i>注册/登录</a></div> </div>'
-            $("#title-box").append(Obj);
-            $("#title-box2").append(Obj);
-        } else if (typeId === '1') {
-            const doctorId = urlParams.get('doctorId');
-            $.ajax({
-                url: appUrl('/doctor/list'),
-                type: 'POST',
-                data: { "id": doctorId },
-                dataType: 'json',
-                success: function (data) {
-                    console.log(data);
-                    const Obj = '<div class="author"> <a href="doctorDetails.html?doctorId=' + doctorId + '"><figure class="author-image"><img src="/hos_images/' + data.avatar + '.jpg" alt=""></figure> <div class="select-box"><select class="wide"> <option url="" data-display="' + data.name + '"></option></select></div></a></div>';
-                    $("#title-box").append(Obj);
-                    $("#title-box2").append(Obj);
+        // Session-owned profile remains valid when returning without login URL parameters.
+        fetch(appUrl('/portal/profile'), {credentials: 'same-origin', cache: 'no-store'})
+            .then(async function(response) {
+                const profile = await response.json();
+                if (!response.ok) {
+                    $('.author-box').empty().append($('<a href="login.html">登录 / 注册</a>'));
+                    if (profile.code === 'PASSWORD_CHANGE_REQUIRED') location.assign('change-password.html?required=true');
+                    return;
                 }
-            });
-        } else if (typeId === '2') {
-            document.getElementById('patient-box').style.display = 'block';
-            const patientId = urlParams.get('patientId');
-            $.ajax({
-                url: appUrl('/patients/select'),
-                type: 'POST',
-                data: { "id": patientId },
-                dataType: 'json',
-                success: function (data) {
-                    console.log(data);
-                    const Obj ='<div class="author"> <a href="patientDetails.html?patientId=' + patientId + '"><figure class="author-image"><img src="/hos_images/' + data.avatar + '.jpg" alt=""></figure> <div class="select-box"><select class="wide"> <option url="" data-display="' + data.name + '"></option></select></div></a></div>'
-
-                    $("#title-box").append(Obj);
-                    $("#title-box2").append(Obj);
-                }
-            });
-        } else if (typeId === '3') {
-            document.getElementById('admin-box').style.display = 'block';
-            const adminsId = urlParams.get('adminsId');
-            $.ajax({
-                url: appUrl('/admins/list-by-id'),
-                type: 'POST',
-                data: { "id": adminsId },
-                dataType: 'json',
-                success: function (data) {
-                    console.log(data);
-                    const Obj ='<div class="author"> <a href="adminDetails.html?adminId=' + adminId + '"><figure class="author-image"><img src="/hos_images/' + data.avatar + '.jpg" alt=""></figure> <div class="select-box"><select class="wide"> <option url="" data-display="' + data.name + '"></option></select></div></a></div>'
-
-                    $("#title-box").append(Obj);
-                    $("#title-box2").append(Obj);
-                }
-            });
-        }
-
+                if (!['DOCTOR', 'PATIENT', 'ADMIN'].includes(profile.role)) return;
+                $('[data-role-menu]').each(function() { $(this).toggle(this.dataset.roleMenu === profile.role); });
+                $('.author-box').empty().append($('<a href="portal-profile.html"></a>').text(profile.name || '个人资料'));
+            }).catch(function() {});
         $("#inputView").on("input", function () {
             var keyword = $.trim(this.value);
             var sequence = ++departmentSearchSequence;
@@ -556,17 +299,24 @@ function openDepartmentDirectory(departmentName, departmentId) {
             $('#departmentId').val($(this).data('department-id'));
             $("#departmentSearchResults").empty().hide();
         });
-        // 轮播图
-        $(".single-item-carousel").owlCarousel({
-            items: 1, // 每次显示一个项目
-            loop: true, // 无限循环
-            margin: 10, // 项目之间的间距
-            nav: true, // 显示导航按钮
-            autoplay: true, // 自动播放
-            autoplayTimeout: 3000, // 自动播放间隔时间
-            autoplayHoverPause: true // 鼠标悬停时暂停自动播放
-        });
-
+        fetch(appUrl('/announcements/list'), {cache: 'no-store'})
+            .then(function(response) { if (!response.ok) throw new Error(); return response.json(); })
+            .then(function(items) {
+                const notices = $('#announcement').empty(), news = $('#news-container').empty();
+                if (!items.length) { notices.text('暂时没有已发布公告。'); news.text('暂时没有已发布公告。'); return; }
+                items.slice(0, 3).forEach(function(item) {
+                    const card = $('<article class="announcement-card"></article>');
+                    card.append($('<h3 class="announcement-title"></h3>').text(item.title));
+                    card.append($('<p class="announcement-date"></p>').text(item.publishedAt || item.creationTime || ''));
+                    card.append($('<p class="announcement-content"></p>').text(item.content));
+                    card.append($('<a href="news.html" class="btn btn-primary">查看公告</a>'));
+                    notices.append(card);
+                    const summary = $('<article class="col-lg-4 col-md-6 mb-3"></article>');
+                    summary.append($('<h3></h3>').text(item.title));
+                    summary.append($('<p></p>').text(item.content));
+                    summary.append($('<a href="news.html">查看公告</a>')); news.append(summary);
+                });
+            }).catch(function() { $('#announcement,#news-container').text('公告读取失败，请稍后重试。'); });
 
         $.ajax({
             url: appUrl('/first'),
@@ -587,7 +337,7 @@ function openDepartmentDirectory(departmentName, departmentId) {
                         <div class="feature-block-one">
                             <div class="inner-box pattern-1 text-center">
                                 <p>预约</p>
-                                <h3>${v.departmentName}</h3>
+                                <h3>${$("<span>").text(v.departmentName).html()}</h3>
                                 <div class="link"><a href="${departmentBookingUrl}"><i class="icon-Arrow-Right"></i></a></div>
                                 <div class="btn-box"><a class="theme-btn-one" href="${departmentBookingUrl}">立即预约<i class="icon-Arrow-Right"></i></a></div>
                             </div>
@@ -628,7 +378,7 @@ function openDepartmentDirectory(departmentName, departmentId) {
                             $subMenu.find('ul').empty();
                             // 遍历数据，生成子菜单内容
                             $.each(data, function(i, v) {
-                                var liObj = $("<li><a href='doctor-directory.html?departmentId=" + v.departmentId + "&departmentName=" + v.departmentName+"'>" + v.departmentName + "</li>");
+                                var liObj = $('<li></li>').append($('<a></a>').attr('href', 'doctor-directory.html?departmentId=' + encodeURIComponent(v.departmentId) + '&departmentName=' + encodeURIComponent(v.departmentName)).text(v.departmentName));
                                 liObj.appendTo($subMenu.find('ul'));
                             });
 
@@ -766,9 +516,9 @@ function openDepartmentDirectory(departmentName, departmentId) {
                         <nav class="main-menu navbar-expand-md navbar-light">
                             <div class="collapse navbar-collapse show clearfix" id="navbarSupportedContent">
                                 <ul class="navigation clearfix">
-                                    <li class="current dropdown"><a href="">首页</a>
+                                    <li class="current dropdown"><a href="index.html">首页</a>
                                     </li>
-                                    <li class="dropdown"><a href="">医生</a>
+                                    <li class="dropdown" data-role-menu="DOCTOR" style="display:none"><a href="#">医生</a>
                                         <ul>
                                             <li class="dropdown"><a href="">个人中心</a>
                                                 <ul>
@@ -778,27 +528,27 @@ function openDepartmentDirectory(departmentName, departmentId) {
                                 <li><a id="paiban" href="../doctor-schedule/date.html">排班表</a></li>
                                                 </ul>
                                             </li>
-                                            <li class="dropdown"><a id="jiuzhen">患者就诊</a></li>
+                                            <li class="dropdown"><a id="jiuzhen" href="../doctor-schedule/appointments.html">患者就诊</a></li>
 
-                                            <li class="dropdown"><a id="docOrderLink" href="#">医嘱管理</a></li>
+                                            <li class="dropdown"><a id="docOrderLink" href="../doctor-schedule/appointments.html">医嘱管理</a></li>
                                         </ul>
                                     </li>
-                                    <li class="dropdown"><a href="">患者</a>
+                                    <li class="dropdown" data-role-menu="PATIENT" style="display:none"><a href="#">患者</a>
                                         <ul>
                                             <li class="dropdown"><a href="">个人中心</a>
                                                 <ul>
                                                     <li><a href="login.html?typeId=2">注册/登录</a></li>
                                                     <li><a href="change-password.html?typeId=2">修改密码</a></li>
-                                                    <li><a id="hzxinxi">个人信息</a></li>
+                                                    <li><a id="hzxinxi" href="portal-profile.html">个人信息</a></li>
                                                 </ul>
                                             </li>
 
-                                            <li class="dropdown"><a id="hzjiuzhen">就诊记录查询</a></li>
+                                            <li class="dropdown"><a id="hzjiuzhen" href="patient.jsp">就诊记录查询</a></li>
                                             <li class="dropdown"><a id="patOrderLink" href="medical-records.html">医嘱</a></li>
                                             <li class="dropdown"><a href="patients-pay.html">账户充值</a></li>
                                         </ul>
                                     </li>
-                                    <li class="dropdown"><a href="">管理员</a>
+                                    <li class="dropdown" data-role-menu="ADMIN" style="display:none"><a href="#">管理员</a>
                                         <ul>
                                             <li class="dropdown"><a href="">个人中心</a>
                                                 <ul>
@@ -808,12 +558,12 @@ function openDepartmentDirectory(departmentName, departmentId) {
                                                 </ul>
                                             </li>
 
-                                            <li class="dropdown"><a href="/departments/list">科室管理</a></li>
-                                            <li class="dropdown"><a href="/hospro/doctors.jsp">医生管理</a></li>
-                                            <li class="dropdown"><a href="/hospro/my-patients.jsp">病患管理</a></li>
-                                            <li class="dropdown"><a href="">排班管理</a></li>
+                                            <li class="dropdown"><a href="admin-master-data.html?tab=departments">科室管理</a></li>
+                                            <li class="dropdown"><a href="admin-master-data.html?tab=doctors">医生管理</a></li>
+                                            <li class="dropdown"><a href="admin-master-data.html?tab=patients">病患管理</a></li>
+                                            <li class="dropdown"><a href="../clinic-workflow.html">停诊审批</a></li>
                                             <li class="dropdown"><a href="admin-announcements.html">公告管理</a></li>
-                                            <li class="dropdown"><a href="/hospro/sum.html">统计报表</a></li>
+                                            <li class="dropdown"><a href="sum.html">统计报表</a></li>
                                         </ul>
                                     </li>
                                     <li class="dropdown"><a href="news.html">新闻中心</a>
@@ -923,43 +673,10 @@ function openDepartmentDirectory(departmentName, departmentId) {
                             <p>医院挂号系统</p>
                             <h2>关注我们的公告</h2>
                         </div>
-                        <div class="single-item-carousel owl-carousel owl-theme owl-dots-none nav-style-one" id="announcement">
-                            <div class="item">
-                                <div class="announcement-card">
-                                    <h3 class="announcement-title">健康体检预约开放通知</h3>
-                                    <p class="announcement-date">2024-07-16</p>
-                                    <p class="announcement-content">各位患者：为提升服务质量，现开放健康体检预约通道。我们为您提供全面的体检项目选择，并配备专业医护团队，确保您的健康检查及时准确。请尽早安排您的体检时间，预防胜于治疗。期待为您的健康保驾护航。————医院管理部</p>
-                                    <button class="btn btn-primary">查看详情</button>
-                                </div>
-                            </div>
-                            <div class="item">
-                                <div class="announcement-card">
-                                    <h3 class="announcement-title">疫苗接种重要通知</h3>
-                                    <p class="announcement-date">2024-07-06</p>
-                                    <p class="announcement-content">亲爱的患者，请注意，我们提供最新的COVID-19疫苗接种服务。为响应防疫号召，保护您和他人的健康，我们设立了多个接种点，并提供方便快捷的预约服务。请及时预约，共同为社区健康贡献力量。————医院疫苗接种组</p>
-                                    <button class="btn btn-primary">查看详情</button>
-                                </div>
-                            </div>
-                            <div class="item">
-                                <div class="announcement-card">
-                                    <h3 class="announcement-title">门诊服务时间调整公告</h3>
-                                    <p class="announcement-date">2024-07-14</p>
-                                    <p class="announcement-content">尊敬的患者：为了更好地安排门诊服务，我们将调整部分科室的就诊时间。调整后的时间将更贴合患者的需求，同时确保医疗资源的有效利用。请关注最新公告，感谢您的理解与支持。————医院门诊管理办公室</p>
-                                    <button class="btn btn-primary" url="">查看详情</button>
-                                </div>
-                            </div>
-                            <div class="item">
-                                <div class="announcement-card">
-                                    <h3 class="announcement-title">医院全面开放在线挂号服务</h3>
-                                    <p class="announcement-date">2024-06-28</p>
-                                    <p class="announcement-content">为了方便患者就医，本院现已全面开放在线挂号服务。您可以随时随地通过网上平台或手机APP预约专家门诊，节省您宝贵的时间。我们致力于提供更便捷、高效的医疗服务，期待为您的健康保驾护航。————医院信息技术部</p>
-                                    <button class="btn btn-primary">查看详情</button>
-                                </div>
-                            </div>
-                            </div>
-                        </div>
+                        <div id="announcement" aria-live="polite">正在读取公告…</div>
                     </div>
                 </div>
+            </div>
         </div>
     </section>
     <!-- announcement-section end -->
@@ -1080,14 +797,9 @@ function openDepartmentDirectory(departmentName, departmentId) {
                     </div>
                     <div class="col-lg-6 col-md-12 col-sm-12 right-column">
                         <div class="content_block_4">
-                            <div class="content-box"><h3>使用邮箱订阅消息提醒</h3>
-                                <form action="" method="post" class="subscribe-form">
-                                    <div class="form-group"><input type="email" name="email" placeholder="你的邮箱"
-                                                                   required="">
-                                        <button type="submit" class="theme-btn-one">现在订阅<i
-                                                class="icon-Arrow-Right"></i></button>
-                                    </div>
-                                </form>
+                            <div class="content-box"><h3>预约与就诊消息提醒</h3>
+                                <p>登录后可在站内通知中查看预约、停诊、叫号和病历完成消息。</p>
+                                <a href="../notifications.html" class="theme-btn-one">打开站内通知<i class="icon-Arrow-Right"></i></a>
                             </div>
                         </div>
                     </div>

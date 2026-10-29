@@ -27,32 +27,17 @@ public class MenuServiceImpl {
         mapper.updateById(id,price,fenlei);
     }
     public PageInfo<Menu> queryByPage(int pageNum, String fenlei){
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        MenuMapper mapper = sqlSession.getMapper(MenuMapper.class);
-        PageHelper.startPage(pageNum,2);
-        if("-1".equals(fenlei)){
-            //全选
-            List<Menu> list=mapper.selectAll();
-            PageInfo<Menu> pageInfo=new PageInfo<>(list);
-            return pageInfo;
-
-        }else{
-            List<Menu> list=mapper.selectByClass(fenlei);
-            PageInfo<Menu> pageInfo=new PageInfo<>(list);
-            return pageInfo;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            MenuMapper mapper = sqlSession.getMapper(MenuMapper.class);
+            PageHelper.startPage(pageNum,2);
+            List<Menu> list="-1".equals(fenlei)?mapper.selectAll():mapper.selectByClass(fenlei);
+            return new PageInfo<>(list);
         }
-
-
-
-
-
-
-
     }
 
     public List<String> queryCategories() {
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        MenuMapper mapper = sqlSession.getMapper(MenuMapper.class);
-        return mapper.selectCategories();
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            return sqlSession.getMapper(MenuMapper.class).selectCategories();
+        }
     }
 }

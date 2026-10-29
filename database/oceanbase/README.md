@@ -8,4 +8,4 @@
 
 真实历史数据迁移必须使用 `scripts/oceanbase/migrate-from-mysql.ps1`，并在完成后执行 `scripts/oceanbase/verify-migration.ps1`。不要运行 `database/schema/hospt_minimal_demo_data.sql`，否则会把演示数据混入真实迁移目标。
 
-`active_slot_key` 是预约有效号源的生成列：仅 `BOOKED`、`IN_PROGRESS` 和 `COMPLETED` 状态占用号源，唯一索引阻止同一医生、日期、时段发生重复有效预约。若部署的 OceanBase 版本拒绝该生成列表达式，应停止导入，在不触碰 MySQL 源库的前提下修改目标 DDL 后重新初始化目标卷。
+多号源版本使用 `capacity`、`occupied_count` 和递增的 `appointment_sequence`。`BOOKED`、`IN_PROGRESS`、`COMPLETED`、`NO_SHOW` 占用容量；取消和改期释放容量并保留历史序号。生成列 `active_patient_slot_key` 与唯一索引防止同一患者重复占用同一号源，另一唯一索引防止同一号源序号重复。已有旧库必须停写并执行 `database/migrations/20261028_five_extensions.md` 所述的增量升级，不重复建库或导入演示数据。

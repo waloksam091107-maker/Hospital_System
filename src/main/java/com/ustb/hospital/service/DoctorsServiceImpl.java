@@ -149,10 +149,9 @@ sqlSession.commit();
         }
     }
     public Doctors queryById(int doctorId){
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        DoctorsMapper mapper = sqlSession.getMapper(DoctorsMapper.class);
-        Doctors doctor = mapper.selectById(doctorId);
-        return doctor;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            return sqlSession.getMapper(DoctorsMapper.class).selectById(doctorId);
+        }
     }
     public void updateDoctorProfile(int doctorId,String phone,String registrationFee,String professionalTitleId){
         //调用工具类，获取会话对象sqlSession

@@ -7,6 +7,13 @@ const path = require('node:path');
   const browser = await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_BROWSER_PATH || 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'});
   let failures=0;
   const cases=[
+    ['分类链接进入患者维护',async page=>{
+      assert.equal(await page.locator('main section.active').getAttribute('id'),'patients');
+      assert.equal(await page.locator('.tab.active').getAttribute('data-target'),'patients');
+    },'?tab=patients'],
+    ['无效分类链接保留默认医生维护',async page=>{
+      assert.equal(await page.locator('main section.active').getAttribute('id'),'doctors');
+    },'?tab=unknown'],
     ['科室说明回填并保留编辑内容',async page=>{
       await page.locator('[data-target=departments]').click();await page.locator('#departments tbody button').first().click();
       assert.equal(await page.locator('[name=departmentDescription]').inputValue(),'原说明');
@@ -34,7 +41,7 @@ const path = require('node:path');
       assert.equal(await page.locator('[name=departmentName]').inputValue(),'失败输入');
     }]
   ];
-  for(const [name,test] of cases){const page=await browser.newPage();const requests=[];
+  for(const [name,test,search=''] of cases){const page=await browser.newPage();const requests=[];
     try{
       await page.route('**/*',route=>{
         const req=route.request(),url=new URL(req.url());requests.push(url.search);
@@ -49,7 +56,7 @@ const path = require('node:path');
         }
         return route.fulfill({contentType:'text/html;charset=utf-8',body:fs.readFileSync(path.join(__dirname,'../src/main/webapp/hospro/admin-master-data.html'))});
       });
-      await page.goto('http://hospital.test/ustbhospital/hospro/admin-master-data.html');await page.locator('#doctors tbody tr').first().waitFor();
+      await page.goto('http://hospital.test/ustbhospital/hospro/admin-master-data.html'+search);await page.locator('#doctors tbody tr').first().waitFor({state:'attached'});
       await test(page,requests);console.log('PASS '+name);
     }catch(e){failures++;console.error('FAIL '+name+': '+e.message);}finally{await page.close();}
   }

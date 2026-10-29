@@ -13,31 +13,26 @@ import java.util.List;
 
 public class DepartmentsServiceImpl {
     public List<Departments> queryAllSecond(){
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        DepartmentsMapper mapper=sqlSession.getMapper(DepartmentsMapper.class);
-        List<Departments> list = mapper.selectFirstDept(2);
-        return list;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            return sqlSession.getMapper(DepartmentsMapper.class).selectFirstDept(2);
+        }
     }
 
     public PageInfo queryDepartmentsByName(String departmentName){
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        DepartmentsMapper mapper=sqlSession.getMapper(DepartmentsMapper.class);
-
-
-        PageHelper.startPage(1,5); //
-        Departments dept= mapper.selectByName(departmentName);
-        List<Departments> list = new ArrayList<>();
-        list.add(dept);
-        PageInfo pageInfo=new PageInfo(list);
-        return pageInfo;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            DepartmentsMapper mapper=sqlSession.getMapper(DepartmentsMapper.class);
+            PageHelper.startPage(1,5);
+            Departments dept=mapper.selectByName(departmentName);
+            List<Departments> list=new ArrayList<>();
+            list.add(dept);
+            return new PageInfo(list);
+        }
     }
 
     public List<Departments> querySecondByPid(int deptPid){
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        DepartmentsMapper mapper=sqlSession.getMapper(DepartmentsMapper.class);
-        List<Departments> list = mapper.selectByPid(deptPid);
-        return list;
-
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            return sqlSession.getMapper(DepartmentsMapper.class).selectByPid(deptPid);
+        }
     }
     public void save(int deptPid,String deptName,String deptDesc) throws Exception{
         try {
@@ -93,10 +88,9 @@ public class DepartmentsServiceImpl {
 
 
     public List<Departments> queryByPid(int departmentPid){
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        DepartmentsMapper mapper=sqlSession.getMapper(DepartmentsMapper.class);
-        List<Departments> list= mapper.selectByPid(departmentPid);
-        return list;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            return sqlSession.getMapper(DepartmentsMapper.class).selectByPid(departmentPid);
+        }
     }
     public void delById(int departmentId){
         SqlSession sqlSession = MybatisUtil.getSqlSession();
@@ -116,52 +110,45 @@ public class DepartmentsServiceImpl {
         mapper.insertDept(departmentName,departmentPid,departmentLevel,departmentPath,departmentDescription);
     }
     public List<Departments> queryFirstDept(){
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        DepartmentsMapper mapper=sqlSession.getMapper(DepartmentsMapper.class);
-        List<Departments> list=mapper.selectFirstDept(1);
-        return list;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            return sqlSession.getMapper(DepartmentsMapper.class).selectFirstDept(1);
+        }
     }
 
 
     public PageInfo<Departments> queryAll(int pageNum,int pageSize){
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        DepartmentsMapper mapper=sqlSession.getMapper(DepartmentsMapper.class);
-        PageHelper.startPage(pageNum,pageSize); //
-        List<Departments> list=mapper.selectFirstDept(1);
-        PageInfo pageInfo=new PageInfo(list);
-        return pageInfo;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            DepartmentsMapper mapper=sqlSession.getMapper(DepartmentsMapper.class);
+            PageHelper.startPage(pageNum,pageSize);
+            return new PageInfo<>(mapper.selectFirstDept(1));
+        }
     }
 
     public PageInfo<Departments> querySecondLevelDepartmentsPage(int pageNum,int pageSize){
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        DepartmentsMapper mapper=sqlSession.getMapper(DepartmentsMapper.class);
-        PageHelper.startPage(pageNum,pageSize); //
-        List<Departments> list=mapper.selectAll();
-        PageInfo pageInfo=new PageInfo(list);
-        return pageInfo;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            DepartmentsMapper mapper=sqlSession.getMapper(DepartmentsMapper.class);
+            PageHelper.startPage(pageNum,pageSize);
+            return new PageInfo<>(mapper.selectAll());
+        }
     }
 
     public List<Departments> queryAllSecondLevelDepartments(){
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        DepartmentsMapper mapper=sqlSession.getMapper(DepartmentsMapper.class);
-        List<Departments> list=mapper.selectAll();
-        return list;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            return sqlSession.getMapper(DepartmentsMapper.class).selectAll();
+        }
     }
     public PageInfo<Departments> queryByNameWithPage(int pageNum, int pageSize, String deptName) {
-        //调用工具类，获取会话对象
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        //调用mapper
-        DepartmentsMapper mapper=sqlSession.getMapper(DepartmentsMapper.class);
-        PageHelper.startPage( pageNum, pageSize);
-        List<Departments> List=mapper.selectByNameWithPage(deptName);
-        PageInfo pageInfo = new PageInfo(List);
-return pageInfo;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            DepartmentsMapper mapper=sqlSession.getMapper(DepartmentsMapper.class);
+            PageHelper.startPage(pageNum,pageSize);
+            return new PageInfo<>(mapper.selectByNameWithPage(deptName));
+        }
     }
     public int DepartmentHasChildren(int departmentId) {
-        SqlSession sqlSession = MybatisUtil.getSqlSession();
-        DepartmentsMapper mapper = sqlSession.getMapper(DepartmentsMapper.class);
-        List<Departments> children = (List<Departments>) mapper.selectByParentId(departmentId);
-        return !children.isEmpty() ? 1 : 0;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            List<Departments> children=sqlSession.getMapper(DepartmentsMapper.class).selectByParentId(departmentId);
+            return !children.isEmpty() ? 1 : 0;
+        }
     }
     public void delete(int departmentId) throws Exception {
         SqlSession sqlSession = null;
@@ -193,12 +180,9 @@ sqlSession.commit();
         }
     }
     public List<Departments> querySecondDept(){
-        //调用工具类，获取会话对象
-SqlSession sqlSession=MybatisUtil.getSqlSession();
-        //调用mapper
-        DepartmentsMapper mapper=sqlSession.getMapper(DepartmentsMapper.class);
-        List<Departments> list = mapper.selectFirstDept(2);
-        return list;
+        try (SqlSession sqlSession = MybatisUtil.getSqlSession()) {
+            return sqlSession.getMapper(DepartmentsMapper.class).selectFirstDept(2);
+        }
     }
 
 }

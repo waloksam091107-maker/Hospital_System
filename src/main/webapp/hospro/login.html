@@ -33,6 +33,10 @@
             // 直接访问登录页时默认以医生身份登录；URL 参数仅接受系统定义的三类角色。
             const roleCode = ["1", "2", "3"].indexOf(requestedRoleCode) >= 0 ? requestedRoleCode : "1";
             $('#roleCode').val(roleCode);
+            if ($.fn.niceSelect) $('#roleCode').niceSelect('update');
+            if (searchParams.get('error') === 'login_failed') {
+                $('#loginMessage').text('登录失败，请检查账号、密码和登录身份；账号停用或锁定时请联系管理员。');
+            }
 
             $('#registerLink').attr('href', appUrl('/hospro/register-page.html?roleCode=') + roleCode);
 
@@ -283,6 +287,7 @@
                     <div class="title-box"><h3 style="text-align: center;">Login</h3></div>
                     <div class="inner">
                         <form action="../auth/login" method="post" class="registration-form">
+                            <p id="loginMessage" role="alert" style="color:#b42318;text-align:center;"></p>
 
                             <div class="row clearfix">
                                 <div class="col-lg-12 col-md-12 col-sm-12 form-group"><label>账号</label><input

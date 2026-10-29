@@ -3,7 +3,6 @@ package com.ustb.hospital.service;
 import com.ustb.hospital.utils.SessionIdentity;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 /** Metadata captured from the authenticated server-side session, never the request body. */
 public final class AuditContext {
@@ -22,15 +21,11 @@ public final class AuditContext {
     }
 
     public static AuditContext fromRequest(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        String role = session == null ? null : (String) session.getAttribute(SessionIdentity.CURRENT_USER_ROLE);
-        Object actor = null;
-        if (session != null && SessionIdentity.ROLE_DOCTOR.equals(role)) actor = session.getAttribute(SessionIdentity.CURRENT_DOCTOR_ID);
-        else if (session != null && SessionIdentity.ROLE_PATIENT.equals(role)) actor = session.getAttribute(SessionIdentity.CURRENT_PATIENT_ID);
-        else if (session != null && SessionIdentity.ROLE_ADMIN.equals(role)) actor = session.getAttribute(SessionIdentity.CURRENT_ADMIN_ID);
+        String role = SessionIdentity.getCurrentRole(request);
+        Integer actor = SessionIdentity.getCurrentUserId(request);
         String path = request.getServletPath();
         if (path != null && request.getPathInfo() != null) path += request.getPathInfo();
-        return new AuditContext(role, actor instanceof Integer ? (Integer) actor : null,
+        return new AuditContext(role, actor,
                 request.getMethod(), path, request.getRemoteAddr());
     }
 

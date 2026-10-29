@@ -1,163 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-  <title>医院挂号系统</title>
-  <!-- Fav Icon -->
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <!-- Stylesheets -->
-  <link href="static/css/font-awesome-all.css" rel="stylesheet">
-  <link href="static/css/flaticon.css" rel="stylesheet">
-  <link href="static/css/owl.css" rel="stylesheet">
-  <link href="static/css/bootstrap.css" rel="stylesheet">
-  <link href="static/css/jquery.fancybox.min.css" rel="stylesheet">
-  <link href="static/css/animate.css" rel="stylesheet">
-  <link href="static/css/color.css" rel="stylesheet">
-  <link href="static/css/nice-select.css" rel="stylesheet">
-  <link href="static/css/style.css" rel="stylesheet">
-  <link href="static/css/responsive.css" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #f4f4f9;
-      color: #333;
-    }
-    h1{
-      color: #3fc1c9;
-      font-size: 36px;
-      margin-bottom: 20px;
-    }
-    h2{
-      color: #3fc1c9;
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-    p{
-      margin: revert;
-    }
-    .container {
-      max-width: 800px;
-      margin: 50px auto;
-      padding: 20px;
-      background-color: #fff;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      border-radius: 8px;
-    }
-    label {
-      display: block;
-      margin-bottom: 10px;
-      font-weight: bold;
-    }
-    input[type="date"] {
-      width: calc(100% - 22px);
-      padding: 10px;
-      margin-bottom: 20px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    button {
-      background-color: #3fc1c9;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #3fc1c9;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    table, th, td {
-      border: 1px solid #ddd;
-    }
-    th, td {
-      padding: 15px;
-      text-align: left;
-    }
-    th {
-      background-color: #3fc1c9;
-      color: white;
-    }
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-    .total-row {
-      font-weight: bold;
-      background-color: #f4f4f9;
-    }
-  </style>
-</head>
-<body>
-<div class="container">
-  <h1>医院管理系统 - 收入报表</h1>
-  <label for="date">选择日期：</label>
-  <input type="date" id="date" name="date">
-  <button id="queryButton">查询</button>
-  <p>注：查询日期为当日日期，查询结果仅包含当日的订单。</p>
-  <h2>统计结果：</h2>
-  <div id="report"></div>
-</div>
-
-<script src="/js/jquery-3.7.1.min.js"></script>
-<script type="text/javascript">
-  $(document).ready(function () {
-    $("#queryButton").click(function () {
-      const date = $("#date").val();
-      console.log("查询日期：" + date);
-      if (!date) {
-        alert('请选择一个日期');
-        return;
-      }
-
-      $.ajax({
-        url: "/admins/sum",
-        type: "POST",
-        dataType: "json",
-        data: {"date": date},
-        success: function (res) {
-          $("#report").empty();
-
-          if (res.length === 0) {
-            $("#report").append('<p>无相关记录</p>');
-            return;
-          }
-
-          let totalIncome = 0;
-          let table = '<table><tr><th>订单ID</th><th>医生姓名</th><th>患者姓名</th><th>缴费金额</th></tr>';
-
-          res.forEach(order => {
-            const amount = parseFloat(order.status.replace(/[^\d.]/g, ''));
-            table += '<tr>' +
-                    '<td>' + order.orderId + '</td>' +
-                    '<td>' + order.doctorName + '</td>' +
-                    '<td>' + order.patientName + '</td>' +
-                    '<td>' + amount + '</td>' +
-                    '</tr>';
-
-            if (!isNaN(amount)) {
-              totalIncome += amount;
-            }
-          });
-
-          table += '<tr class="total-row"><td colspan="3">总收入</td><td>' + totalIncome + ' 元</td></tr>';
-          table += '</table>';
-
-          $("#report").append(table);
-        },
-        error: function (XMLHttpRequest, textStatus, errorThrown) {
-          alert("获取报表失败！");
-        }
-      });
-    });
-  });
-</script>
-</body>
-</html>
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>每日挂号收入 - 医院挂号系统</title>
+<style>*{box-sizing:border-box}body{margin:0;color:#183153;background:#f2f8f8;font:16px/1.6 "Microsoft YaHei",sans-serif}main{max-width:1000px;margin:32px auto;padding:24px;background:white;border-radius:10px}a{color:#185d83}h1{font-size:26px}form{display:flex;align-items:end;flex-wrap:wrap;gap:12px}label{display:grid;gap:6px}input,button{font:inherit;padding:8px 12px;border:1px solid #a8bdc8;border-radius:5px}button{background:#14365d;color:white;cursor:pointer}.hint{color:#5a7183}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:600px}th,td{padding:12px;text-align:left;border-bottom:1px solid #dce5ee}.error{color:#a82727}@media(max-width:600px){main{margin:12px;padding:16px}h1{font-size:22px}}</style></head>
+<body><main><a href="index.html">← 返回首页</a><h1>每日挂号收入</h1><form id="reportForm"><label>选择日期<input type="date" id="date" required></label><button id="queryButton" type="submit">查询</button></form><p class="hint">按北京时间统计所选日期实际发生的挂号扣费。模拟充值不计入收入；取消预约不会退费，已扣款仍计入原扣费日。</p><p id="message" role="status" aria-live="polite"></p><div id="report"></div></main>
+<script>
+(function(){
+ 'use strict';
+ const context=location.pathname.split('/hospro/')[0],report=document.getElementById('report'),message=document.getElementById('message'),button=document.getElementById('queryButton'),date=document.getElementById('date');
+ const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const part=type=>parts.find(p=>p.type===type).value;date.value=part('year')+'-'+part('month')+'-'+part('day');
+ function cell(row,tag,text){const node=document.createElement(tag);node.textContent=text==null?'—':text;row.appendChild(node);}
+ document.getElementById('reportForm').addEventListener('submit',async function(event){
+  event.preventDefault();report.replaceChildren();message.className='';message.textContent='正在读取报表…';button.disabled=true;
+  try{
+   const response=await fetch(context+'/portal/admin/income?'+new URLSearchParams({date:date.value}),{credentials:'same-origin',cache:'no-store'});
+   const body=await response.json();if(!response.ok)throw new Error(body.message||'报表读取失败，请稍后重试。');
+   if(!Array.isArray(body.items)||!Number.isFinite(Number(body.total)))throw new Error('报表数据无效，请稍后重试。');
+   const wrapper=document.createElement('div');wrapper.className='table-wrap';const table=document.createElement('table'),head=document.createElement('thead'),headRow=document.createElement('tr');
+   ['流水编号','预约编号','医生','患者','挂号收入'].forEach(label=>cell(headRow,'th',label));head.appendChild(headRow);table.appendChild(head);
+   const rows=document.createElement('tbody');body.items.forEach(item=>{const row=document.createElement('tr');[item.transactionId,item.appointmentId,item.doctorName,item.patientName,Number(item.amount).toFixed(2)+' 元'].forEach(value=>cell(row,'td',value));rows.appendChild(row);});table.appendChild(rows);wrapper.appendChild(table);report.appendChild(wrapper);
+   const total=document.createElement('p');total.textContent='当日总收入：'+Number(body.total).toFixed(2)+' 元';report.appendChild(total);message.textContent=body.items.length?'共 '+body.items.length+' 笔挂号扣费。':'当日没有挂号扣费。';
+  }catch(error){message.className='error';message.textContent=error.message;}finally{button.disabled=false;}
+ });
+}());
+</script></body></html>

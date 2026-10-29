@@ -34,6 +34,12 @@
         Array.prototype.forEach.call(document.querySelectorAll('.main-menu a, .mobile-menu a, .main-footer a'), function (link) {
             var href = link.getAttribute('href');
             if (isPlaceholder(href)) {
+                // Template parent items open real submenus, including the mobile menu.
+                if (link.parentElement && link.parentElement.querySelector('ul')) {
+                    link.setAttribute('href', '#');
+                    link.addEventListener('click', function (event) { event.preventDefault(); });
+                    return;
+                }
                 disablePlaceholderLink(link);
             }
         });

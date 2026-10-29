@@ -108,6 +108,8 @@
         form.querySelector('.reset').addEventListener('click',function(){reset(name);show(name,'');});updateButton(name);
     });
     Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(button){button.addEventListener('click',function(){Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(item){item.classList.toggle('active',item===button);});Array.prototype.forEach.call(document.querySelectorAll('main section'),function(item){item.classList.toggle('active',item.id===button.dataset.target);});});});
+    var initialTab=new URLSearchParams(window.location.search).get('tab');
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(button){if(button.dataset.target===initialTab)button.click();});
     request(context+'/security/csrf').then(function(body){csrf=body.token||body.csrfToken||'';if(!csrf)throw new Error('未能获取安全令牌，请重新登录。');return loadOptions();}).then(function(){Object.keys(resources).forEach(function(name){reset(name);load(name);});}).catch(function(error){Object.keys(resources).forEach(function(name){show(name,error.message,true);updateButton(name);});});
 }());
 </script>

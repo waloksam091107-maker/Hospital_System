@@ -14,7 +14,8 @@ COPY --from=build /workspace/target/ustbhospital.war /usr/local/tomcat/webapps/u
 COPY scripts/oceanbase/wait-oceanbase.sh /usr/local/bin/wait-oceanbase.sh
 RUN chmod 755 /usr/local/bin/wait-oceanbase.sh
 
-ENV OCEANBASE_HOST=oceanbase \
+ENV TZ=Asia/Shanghai \
+    OCEANBASE_HOST=oceanbase \
     OCEANBASE_PORT=2881 \
     OCEANBASE_WAIT_SECONDS=360 \
     HOSPITAL_UPLOAD_DIR=/var/lib/hospital/uploads

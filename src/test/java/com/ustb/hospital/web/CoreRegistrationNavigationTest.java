@@ -13,15 +13,16 @@ import static org.junit.Assert.assertTrue;
 /** Regression checks for navigation links used by the registration minimum loop. */
 public class CoreRegistrationNavigationTest {
     @Test
-    public void homePageUsesTheLoginRoleAndCanonicalDoctorWorkPages() throws Exception {
+    public void homePageUsesTheSessionRoleAndCanonicalDoctorWorkPages() throws Exception {
         String page = readWebFile("hospro", "index.html");
 
-        assertTrue("登录页传递的 roleCode 必须能驱动首页角色菜单", page.contains(
-                "const typeId = urlParams.get('roleCode') || urlParams.get('typeId');"));
+        assertTrue("首页必须读取经过认证的会话资料", page.contains("fetch(appUrl('/portal/profile')"));
+        assertFalse("URL 角色参数不能决定账号身份", page.contains("urlParams.get('roleCode')"));
+        assertFalse("首页不能再调用已停用的患者资料接口", page.contains("appUrl('/patients/select')"));
         assertTrue("医生预约记录入口必须进入当前的预约页", page.contains(
-                "`../doctor-schedule/appointments.html`"));
+                "href=\"../doctor-schedule/appointments.html\""));
         assertTrue("医生排班入口必须进入当前的排班页", page.contains(
-                "`../doctor-schedule/date.html?doctorId=${encodeURIComponent(doctorId)}`"));
+                "href=\"../doctor-schedule/date.html\""));
     }
 
     @Test
@@ -30,8 +31,8 @@ public class CoreRegistrationNavigationTest {
 
         assertTrue("排班菜单必须具备非占位 href，避免被旧模板导航保护脚本拦截", page.contains(
                 "<a id=\"paiban\" href=\"../doctor-schedule/date.html\""));
-        assertTrue("排班菜单必须由当前医生编号补全查询参数", page.contains(
-                "paibanButton.setAttribute('href', `../doctor-schedule/date.html?doctorId=${encodeURIComponent(doctorId)}`)"));
+        assertTrue("医生角色菜单必须由会话资料驱动", page.contains("this.dataset.roleMenu === profile.role"));
+        assertFalse("排班入口不能再信任 URL 的医生编号", page.contains("searchParams.get('doctorId')"));
     }
 
     @Test
@@ -61,10 +62,10 @@ public class CoreRegistrationNavigationTest {
 
         assertTrue("医生个人主页入口必须指向实际存在的页面", page.contains("id=\"doctorProfileLink\""));
         assertTrue("医生返回主页入口必须保留医生身份", page.contains("id=\"doctorHomeLink\""));
-        assertTrue("排班页必须生成医生个人主页的正确相对路径", page.contains(
-                "../hospro/doctor-profile.html?doctorId="));
-        assertTrue("排班页必须生成医生首页的正确相对路径", page.contains(
-                "../hospro/index.html?roleCode=1&doctorId="));
+        assertTrue("排班页必须进入会话所有的个人资料页", page.contains("../hospro/portal-profile.html"));
+        assertTrue("排班页返回首页不能依赖 URL 身份", page.contains("../hospro/index.html"));
+        assertTrue("排班页必须读取当前会话资料", page.contains("appUrl('/portal/profile')"));
+        assertFalse("排班页不能查询 URL 指定的医生资料", page.contains("appUrl('/doctors/details')"));
     }
 
     @Test
@@ -97,16 +98,16 @@ public class CoreRegistrationNavigationTest {
     }
 
     @Test
-    public void departmentSearchFormIsClosedBeforeTheNewsletterForm() throws Exception {
+    public void departmentSearchFormIsClosedBeforeNotificationEntry() throws Exception {
         String page = readWebFile("hospro", "index.html");
 
         int departmentFormStart = page.indexOf("<form id=\"departmentForm\"");
         int departmentFormEnd = page.indexOf("</form>", departmentFormStart);
-        int newsletterFormStart = page.indexOf("<form action=\"\" method=\"post\" class=\"subscribe-form\"");
+        int notificationEntry = page.indexOf("<h3>预约与就诊消息提醒</h3>");
 
         assertTrue("科室搜索表单必须存在", departmentFormStart >= 0);
-        assertTrue("科室搜索表单必须在订阅表单前正确闭合，避免提交时校验邮箱", departmentFormEnd > departmentFormStart
-                && departmentFormEnd < newsletterFormStart);
+        assertTrue("科室搜索表单应独立闭合，消息提醒进入现有通知页面", departmentFormEnd > departmentFormStart
+                && departmentFormEnd < notificationEntry);
     }
 
     @Test

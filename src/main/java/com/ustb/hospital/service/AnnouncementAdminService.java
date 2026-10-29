@@ -50,9 +50,9 @@ public class AnnouncementAdminService {
             if (session.getMapper(AnnouncementsMapper.class).insertPortalAdmin(announcement) != 1 || announcement.getAnnouncementId() == null) throw new IllegalStateException();
             audit.writeSuccess(session, context, "ANNOUNCEMENT_CREATE", "ANNOUNCEMENT", String.valueOf(announcement.getAnnouncementId()));
             session.commit();
-            return AppointmentOperationResult.success("公告已发布。");
+            return AppointmentOperationResult.success("公告草稿已保存，发布后将在门户显示。");
         } catch (RuntimeException exception) {
-            return rollback(session, context, "ANNOUNCEMENT_CREATE", "CREATE_FAILED", "公告发布失败，请稍后重试。");
+            return rollback(session, context, "ANNOUNCEMENT_CREATE", "CREATE_FAILED", "公告草稿保存失败，请稍后重试。");
         } finally { close(session); }
     }
 

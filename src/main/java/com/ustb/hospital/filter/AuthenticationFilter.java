@@ -27,15 +27,19 @@ public class AuthenticationFilter implements Filter {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         HttpSession session = httpRequest.getSession(false);
         Integer id=SessionIdentity.getCurrentUserId(httpRequest);
-        Object version=session==null?null:session.getAttribute(SessionIdentity.ACCOUNT_SESSION_VERSION);
+        Object version=SessionIdentity.getSessionAttribute(session,SessionIdentity.ACCOUNT_SESSION_VERSION);
+        String role=SessionIdentity.getCurrentRole(httpRequest);
         com.ustb.hospital.service.AccountSecurityService.AccountState state=null;
-        try { if(id!=null && version instanceof Long) state=accounts.validateSession(SessionIdentity.getCurrentRole(httpRequest),id,((Long)version).longValue()); }
+        try { if(id!=null && role!=null && version instanceof Long) state=accounts.validateSession(role,id,((Long)version).longValue()); }
         catch(RuntimeException unavailable) {
             httpResponse.setStatus(503);httpResponse.setContentType("application/json;charset=UTF-8");httpResponse.getWriter().write("{\"success\":false,\"code\":\"SECURITY_UNAVAILABLE\",\"message\":\"账号验证暂时不可用，请稍后重试。\"}");return;
         }
         if (state == null) {
             AuditFailureRecorder.record(httpRequest, auditService);
-            if(session!=null)session.invalidate();
+            if(session!=null) {
+                try { session.invalidate(); }
+                catch(IllegalStateException invalidated) { /* Another request already ended this session. */ }
+            }
             httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             httpResponse.setContentType("application/json;charset=UTF-8");
             httpResponse.getWriter().write("{\"success\":false,\"code\":\"LOGIN_REQUIRED\",\"message\":\"请先登录。\"}");

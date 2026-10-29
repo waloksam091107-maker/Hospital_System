@@ -9,7 +9,7 @@
 </head>
 <body>
 <header><h1>公告管理</h1><span>仅管理员可发布和维护公告</span><a href="adm_main.jsp">返回管理主页</a></header>
-<main><div class="card"><p class="hint">新建公告初始为草稿；发布后才会在门户公告页显示。下线不删除内容。</p><form id="announcement-form"><input type="hidden" name="announcementId"><label>公告标题<input name="title" required maxlength="255"></label><label>公告正文<textarea name="content" required maxlength="10000"></textarea></label><button type="submit">保存草稿</button><button class="secondary" type="button" id="reset">新建公告</button></form><p id="result" class="result" aria-live="polite"></p><div id="items"></div></div></main>
+<main><div class="card"><p class="hint">新建公告初始为草稿；发布后才会在门户公告页显示。下线不删除内容。</p><form id="announcement-form"><input type="hidden" name="announcementId"><label>公告标题<input name="title" required maxlength="255"></label><label>公告正文<textarea name="content" required maxlength="10000"></textarea></label><button type="submit">保存草稿</button><button class="secondary" type="button" id="new-announcement">新建公告</button></form><p id="result" class="result" aria-live="polite"></p><div id="items"></div></div></main>
 <script>
 (function () {
     'use strict';
@@ -40,8 +40,8 @@
             });
         }).catch(function (error) { show(error.message, true); });
     }
-    form.addEventListener('submit', function (event) { event.preventDefault(); var data = new URLSearchParams(new FormData(form)); data.set('action', form.dataset.mode || 'create'); request(api, { method: 'POST', headers: headers(), body: data.toString() }).then(function (body) { show(body.message); reset(); load(); }).catch(function (error) { show(error.message, true); }); });
-    document.getElementById('reset').addEventListener('click', reset);
+    form.addEventListener('submit', function (event) { event.preventDefault(); var data = new URLSearchParams(new FormData(form)); data.set('action', form.dataset.mode || 'create'); request(api, { method: 'POST', headers: headers(), body: data.toString() }).then(function (body) { reset(); show(body.message); load(); }).catch(function (error) { show(error.message, true); }); });
+    document.getElementById('new-announcement').addEventListener('click', reset);
     request(context + '/security/csrf').then(function (body) { csrf = body.token || body.csrfToken || ''; if (!csrf) throw new Error('未能获取安全令牌，请重新登录。'); load(); }).catch(function (error) { show(error.message, true); });
 }());
 </script>

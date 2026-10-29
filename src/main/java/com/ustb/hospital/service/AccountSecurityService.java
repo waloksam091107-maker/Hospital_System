@@ -49,8 +49,8 @@ public class AccountSecurityService {
     private boolean allowSource(SqlSession s,String ip,Timestamp now){
         AccountSecurityStore.execute(s,"INSERT INTO login_throttle(source_ip,attempts,window_start) VALUES(?,0,?) ON DUPLICATE KEY UPDATE source_ip=source_ip",ip,now);
         try(PreparedStatement p=s.getConnection().prepareStatement("SELECT attempts,window_start FROM login_throttle WHERE source_ip=? FOR UPDATE")){p.setString(1,ip);try(ResultSet r=p.executeQuery()){
-            if(!r.next())throw new IllegalStateException("Throttle missing");boolean expired=now.getTime()-r.getTimestamp(2).getTime()>=900000L;int count=expired?1:r.getInt(1)+1;
-            AccountSecurityStore.execute(s,"UPDATE login_throttle SET attempts=?,window_start=? WHERE source_ip=?",Math.min(count,61),expired?now:r.getTimestamp(2),ip);return count<=60;
+            if(!r.next())throw new IllegalStateException("Throttle missing");Timestamp windowStart=AccountSecurityStore.timestamp(r,2);boolean expired=now.getTime()-windowStart.getTime()>=900000L;int count=expired?1:r.getInt(1)+1;
+            AccountSecurityStore.execute(s,"UPDATE login_throttle SET attempts=?,window_start=? WHERE source_ip=?",Math.min(count,61),expired?now:windowStart,ip);return count<=60;
         }}catch(SQLException e){throw new IllegalStateException("Login throttle failed",e);}
     }
     public AppointmentOperationResult setEnabled(String role,int id,boolean enabled,AuditContext context){return manage(role,id,enabled?"ENABLE":"DISABLE",null,context);}
@@ -88,7 +88,7 @@ public class AccountSecurityService {
         if(!("DOCTOR".equals(role)||"PATIENT".equals(role))||page<1||page>100000||size<1||size>100)throw new IllegalArgumentException("Invalid query");
         String id=AccountSecurityStore.idColumn(role),table=AccountSecurityStore.table(role);List<Map<String,Object>> rows=new ArrayList<>();
         try(SqlSession s=sessions.get();PreparedStatement p=s.getConnection().prepareStatement("SELECT a."+id+",a.name,COALESCE(c.enabled,TRUE),COALESCE(c.must_change_password,FALSE),c.locked_until FROM "+table+" a LEFT JOIN account_security c ON c.account_role=? AND c.account_id=a."+id+" ORDER BY a."+id+" LIMIT ? OFFSET ?")){
-            p.setString(1,role);p.setInt(2,size);p.setInt(3,(page-1)*size);try(ResultSet r=p.executeQuery()){while(r.next()){Map<String,Object> row=new LinkedHashMap<>();row.put("id",r.getInt(1));row.put("name",r.getString(2));row.put("enabled",r.getBoolean(3));row.put("mustChangePassword",r.getBoolean(4));row.put("lockedUntil",r.getTimestamp(5));rows.add(row);}}return rows;
+            p.setString(1,role);p.setInt(2,size);p.setInt(3,(page-1)*size);try(ResultSet r=p.executeQuery()){while(r.next()){Map<String,Object> row=new LinkedHashMap<>();row.put("id",r.getInt(1));row.put("name",r.getString(2));row.put("enabled",r.getBoolean(3));row.put("mustChangePassword",r.getBoolean(4));row.put("lockedUntil",AccountSecurityStore.timestamp(r,5));rows.add(row);}}return rows;
         }catch(SQLException e){throw new IllegalStateException("Account list failed",e);}
     }
     private static boolean validRole(String role){return "PATIENT".equals(role)||"DOCTOR".equals(role)||"ADMIN".equals(role);}

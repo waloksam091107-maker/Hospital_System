@@ -47,14 +47,7 @@ function appUrl(path) { return appContext + path; }
     function handlePersonalPageClick(event) {
 
         event.preventDefault();
-        const url = new URL(window.location.href);
-        const searchParams = new URLSearchParams(url.search);
-        const patientId = searchParams.get('patientId');
-        if (!patientId) {
-            return;
-        }
-        const redirectUrl = appUrl('/hospro/patientpr.html?patientId=') + encodeURIComponent(patientId);
-        window.location.href = redirectUrl;
+        window.location.href = 'portal-profile.html';
     }
 
     // 在页面加载完成后，为按钮添加点击事件监听器
@@ -227,12 +220,7 @@ function appUrl(path) { return appContext + path; }
                         <div class="icon-box"><a href="index.html"><i class="icon-Bell"></i></a></div>
                         <div class="author">
                             <figure class="author-image"><img src="static/picture/author-1.png" alt=""></figure>
-                            <div class="select-box"><select class="wide">
-                                <option data-display="Dr. Rex Allen">Dr. Rex Allen</option>
-                                <option value="1">Cardiology</option>
-                                <option value="2">Nurology</option>
-                                <option value="4">Pragnency</option>
-                            </select></div>
+                            <div class="select-box"><a id="patientHeaderName" href="portal-profile.html">正在读取账号…</a></div>
                         </div>
                     </div>
                 </div>
@@ -300,14 +288,14 @@ function appUrl(path) { return appContext + path; }
         <div class="left-panel">
             <div class="profile-box">
                 <div class="upper-box">
-                    <figure class="profile-image"><img id="patientAvatarImg" src="/hos_images" alt=""></figure>
+                    <figure class="profile-image"><img id="patientAvatarImg" src="static/picture/author-1.png" alt=""></figure>
                     <div class="title-box centred">
                         <div class="inner"><h3 id="patientNameLabel">name</h3></div>
                     </div>
                 </div>
                 <div class="profile-info">
                     <ul class="list clearfix">
-                        <li><a id="hzgeren"><i class="fas fa-user"></i>个人主页</a></li>
+                        <li><a id="hzgeren" href="portal-profile.html"><i class="fas fa-user"></i>个人主页</a></li>
 
                         <li><a id="hzyuyue" class="current"><i class="fas fa-wheelchair"></i>预约记录</a></li>
                         <li><a href="exit.jsp"><i class="fas fa-plus-circle"></i>修改信息</a></li>
@@ -481,8 +469,10 @@ function appUrl(path) { return appContext + path; }
             dataType: "json",
             success: function (patient) {
                 $("#patientNameLabel").text(patient.name);
-                var patientAvatarPath = '/hos_images/' + patient.avatar;
-                $("#patientAvatarImg").attr("src", patientAvatarPath);
+                $("#patientHeaderName").text(patient.name);
+                var image = document.getElementById('patientAvatarImg');
+                image.onerror = function () { this.onerror = null; this.src = 'static/picture/author-1.png'; };
+                if (patient.avatar) image.src = patient.avatar.indexOf('uploads/avatars/') === 0 ? appUrl('/' + patient.avatar) : '/hos_images/' + encodeURIComponent(patient.avatar);
             },
             error: function (xhr, status, error) {
                 console.error('AJAX Error: ' + status, error);
