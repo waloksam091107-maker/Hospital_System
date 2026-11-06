@@ -1,7 +1,7 @@
 /* Account administration never inserts server content as HTML or retains temporary passwords. */
 (function () {
   'use strict';
-  var root = new URL('../', window.location.href), page = 1, resetId = null, resetRole = null, busy = false;
+  var root = new URL('../', window.location.href), page = 1, resetId = null, resetRole = null, busy = false, loadVersion = 0;
   function el(id) { return document.getElementById(id); }
   function message(text) { el('message').textContent = text; }
   async function api(path, options) {
@@ -12,8 +12,14 @@
     return result;
   }
   async function load() {
+    var version = ++loadVersion, requestedRole = el('role').value, requestedPage = page;
+    closeReset();
+    el('accounts').replaceChildren();
+    el('previous').disabled = true; el('next').disabled = true;
+    el('page').textContent = '正在加载…';
     try {
-      var data = await api('portal/admin/account-security/list?role=' + el('role').value + '&page=' + page + '&pageSize=20');
+      var data = await api('portal/admin/account-security/list?role=' + requestedRole + '&page=' + requestedPage + '&pageSize=20');
+      if (version !== loadVersion) return;
       var tbody = el('accounts'); tbody.replaceChildren();
       data.items.forEach(function (account) {
         var tr = document.createElement('tr');
@@ -22,14 +28,15 @@
         [[account.enabled ? '停用' : '启用', account.enabled ? 'disable' : 'enable'], ['解除锁定', 'unlock'], ['重置密码', 'reset']].forEach(function (entry) {
           var button = document.createElement('button'); button.type = 'button'; button.textContent = entry[0];
           button.addEventListener('click', function () {
-            if (entry[1] === 'reset') { resetId = account.id; resetRole = el('role').value; el('reset-target').textContent = account.name + '（编号 ' + account.id + '）'; el('reset-form').hidden = false; el('temporary-password').value = ''; el('temporary-password').focus(); }
-            else mutate(entry[1], account.id, el('role').value);
+            if (busy || version !== loadVersion || requestedRole !== el('role').value) return;
+            if (entry[1] === 'reset') { resetId = account.id; resetRole = requestedRole; el('reset-target').textContent = account.name + '（编号 ' + account.id + '）'; el('reset-form').hidden = false; el('temporary-password').value = ''; el('temporary-password').focus(); }
+            else mutate(entry[1], account.id, requestedRole);
           }); actions.appendChild(button);
         }); tr.appendChild(actions); tbody.appendChild(tr);
       });
       if (!data.items.length) { var tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = 6; td.textContent = '本页暂无账号'; tr.appendChild(td); tbody.appendChild(tr); }
-      el('page').textContent = '第 ' + page + ' 页'; el('previous').disabled = page <= 1; el('next').disabled = data.items.length < 20;
-    } catch (error) { message(error.message); }
+      el('page').textContent = '第 ' + requestedPage + ' 页'; el('previous').disabled = requestedPage <= 1; el('next').disabled = data.items.length < 20;
+    } catch (error) { if (version === loadVersion) { message(error.message); el('page').textContent = '加载失败，请刷新重试'; } }
   }
   async function mutate(action, id, role, password) {
     if (busy) return; busy = true;

@@ -94,6 +94,18 @@ public class AppointmentsServiceImpl {
         } finally { close(sqlSession); }
     }
 
+    /** Exact notification destination remains scoped to the authenticated owner. */
+    public PageInfo<Appointments> queryTarget(int actorId, int appointmentId, boolean doctor) {
+        try (SqlSession session = MybatisUtil.getSqlSession()) {
+            java.util.Map<String, Object> args = new java.util.HashMap<>();
+            args.put(doctor ? "doctorId" : "patientId", actorId);
+            args.put("appointmentId", appointmentId);
+            List<Appointments> items = session.selectList("com.ustb.hospital.mapper.AppointmentsMapper."
+                    + (doctor ? "selectByDoctorIdTarget" : "selectByPatientIdWithDoctorDetailsTarget"), args);
+            return new PageInfo<Appointments>(items);
+        }
+    }
+
     public PageInfo<Appointments> queryAll(int pageNum, int pageSize) {
         SqlSession sqlSession = MybatisUtil.getSqlSession();
         try {

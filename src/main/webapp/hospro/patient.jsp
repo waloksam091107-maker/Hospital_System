@@ -479,6 +479,7 @@ function appUrl(path) { return appContext + path; }
             }
         });
     });
+    const appointmentTarget = new URLSearchParams(location.search).get('appointmentId');
     let csrfToken = '';
     function loadCsrfToken(callback) {
         $.getJSON(appUrl('/security/csrf')).done(function (response) {
@@ -490,7 +491,7 @@ function appUrl(path) { return appContext + path; }
         $.ajax({
             url: appUrl('/appointments/patient'),
             type: 'GET',
-            data: { "pageNum": p },
+            data: appointmentTarget === null ? { pageNum: p } : { appointmentId: appointmentTarget },
             dataType: "json",
             success: function (res) {
                 console.log("Appointment data:", res);
@@ -529,8 +530,8 @@ function appUrl(path) { return appContext + path; }
                     $(".pagination").append($li);
                 }
             },
-            error: function () {
-                alert("加载预约记录失败！");
+            error: function (xhr) {
+                var row = $("<tr></tr>"); row.append($("<td></td>").attr("colspan", 8).text(appointmentRequestError(xhr, "加载预约记录失败，请重试。"))); $("#appBody").empty().append(row);
             }
         });
     }

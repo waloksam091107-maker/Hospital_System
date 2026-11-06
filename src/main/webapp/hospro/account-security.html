@@ -5,9 +5,12 @@
 <h1>账号安全管理</h1><p>停用账号会撤销已有登录；医生的原预约保留，由医院协调或患者自行改期、取消。重置密码不会启用已停用账号。</p>
 <label>账号角色 <select id="role"><option value="DOCTOR">医生</option><option value="PATIENT">患者</option></select></label><button id="refresh" type="button">刷新</button>
 <div id="message" role="status" aria-live="polite"></div>
-<table><thead><tr><th>编号</th><th>姓名</th><th>账号状态</th><th>密码状态</th><th>登录锁定</th><th>操作</th></tr></thead><tbody id="accounts"></tbody></table>
+<div class="account-table" role="region" aria-label="账号列表，可横向滚动" tabindex="0"><table><thead><tr><th>编号</th><th>姓名</th><th>账号状态</th><th>密码状态</th><th>登录锁定</th><th>操作</th></tr></thead><tbody id="accounts"></tbody></table></div>
 <p><button id="previous" type="button">上一页</button><span id="page">第 1 页</span><button id="next" type="button">下一页</button></p>
 <form id="reset-form" hidden><h2>设置临时密码</h2><p id="reset-target"></p><label>临时密码 <input id="temporary-password" type="password" minlength="8" autocomplete="new-password" required></label><p>至少 8 个字符，UTF-8 编码不超过 72 字节。用户下次登录必须修改密码。</p><button type="submit">重置密码</button><button type="button" id="cancel-reset">取消</button></form>
-</main><script src="static/js/account-security.js"></script></body></html>
+</main><style>
+*{box-sizing:border-box}main{min-width:0}nav{flex-wrap:wrap}.account-table{max-width:100%;overflow-x:auto}table{min-width:650px}td{overflow-wrap:anywhere}td:nth-child(2){max-width:220px}#reset-form{min-width:0;overflow-wrap:anywhere}#reset-form input{max-width:100%;min-width:0}#reset-form label{display:block}
+@media(max-width:600px){main{margin:12px;padding:16px}h1{font-size:23px}#reset-form{padding:10px}#reset-form input{display:block;width:100%;margin:3px 0}}
+</style><script src="static/js/account-security.js"></script></body></html>
 
 

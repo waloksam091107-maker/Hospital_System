@@ -60,6 +60,7 @@
         return {'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[character];
       });
     }
+    const appointmentTarget = new URLSearchParams(location.search).get('appointmentId');
     let csrfToken = '';
     function statusText(status) {
       return { BOOKED: '已预约', IN_PROGRESS: '接诊中', COMPLETED: '已完成接诊', CANCELLED: '已取消', RESCHEDULED: '已改期', NO_SHOW: '爽约' }[status] || status;
@@ -101,7 +102,7 @@
       $('#appointmentRows').html('<tr><td class="error-message" colspan="7">' + escapeHtml(message) + '</td></tr>');
     }
     function loadAppointments(pageNumber) {
-      $.ajax({ url: appUrl('/appointments/doctor'), type: 'GET', dataType: 'json', data: { pageNum: pageNumber } })
+      $.ajax({ url: appUrl('/appointments/doctor'), type: 'GET', dataType: 'json', data: appointmentTarget === null ? { pageNum: pageNumber } : { appointmentId: appointmentTarget } })
         .done(renderAppointments)
         .fail(displayError);
     }

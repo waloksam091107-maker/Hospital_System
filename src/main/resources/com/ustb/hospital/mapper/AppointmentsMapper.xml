@@ -139,6 +139,17 @@
         FROM appointments app,doctors doc, departments dep, professional_titles pt
         WHERE app.patient_id = #{patientId} AND app.doctor_id=doc.doctor_id AND doc.department_id=dep.department_id AND doc.professional_title_id = pt.id
     </select>
+    <select id="selectByPatientIdWithDoctorDetailsTarget" resultMap="appointmentMap">
+        SELECT app.appointment_sequence, app.queue_status,
+               CASE WHEN EXISTS (SELECT 1 FROM clinic_leave l WHERE l.doctor_id=app.doctor_id
+                   AND l.status='APPROVED' AND l.start_date &lt;= app.appointment_date AND l.end_date &gt;= app.appointment_date
+                   AND LOCATE(CONCAT(',',app.appointment_time,','),CONCAT(',',l.periods,',')) &gt; 0)
+               THEN 1 ELSE 0 END AS leave_blocked, appointment_id, appointment_date, appointment_time, status, app.previous_appointment_id,
+               name, department_name, title_name
+        FROM appointments app,doctors doc, departments dep, professional_titles pt
+        WHERE app.patient_id = #{patientId} AND app.doctor_id=doc.doctor_id AND doc.department_id=dep.department_id AND doc.professional_title_id = pt.id
+        AND app.appointment_id = #{appointmentId}
+    </select>
 
     <select id="selectById" resultMap="appointmentMap">
         select * from appointments where appointment_id = #{appointmentId}
@@ -159,6 +170,16 @@
                THEN 1 ELSE 0 END AS leave_blocked, appointment_id, appointment_date,appointment_time, status,name, id_card_number, phone,balance
         FROM appointments app,patients pa
         WHERE app.doctor_id = #{doctorId} AND app.patient_id=pa.patient_id
+    </select>
+    <select id="selectByDoctorIdTarget" resultMap="appointmentMap">
+        SELECT app.appointment_sequence, app.queue_status,
+               CASE WHEN EXISTS (SELECT 1 FROM clinic_leave l WHERE l.doctor_id=app.doctor_id
+                   AND l.status='APPROVED' AND l.start_date &lt;= app.appointment_date AND l.end_date &gt;= app.appointment_date
+                   AND LOCATE(CONCAT(',',app.appointment_time,','),CONCAT(',',l.periods,',')) &gt; 0)
+               THEN 1 ELSE 0 END AS leave_blocked, appointment_id, appointment_date,appointment_time, status,name, id_card_number, phone,balance
+        FROM appointments app,patients pa
+        WHERE app.doctor_id = #{doctorId} AND app.patient_id=pa.patient_id
+        AND app.appointment_id = #{appointmentId}
     </select>
     <select id="selectAppointmentById" parameterType="int" resultType="com.ustb.hospital.entity.Appointments">
         SELECT * FROM appointments WHERE appointment_id = #{appointmentId}
